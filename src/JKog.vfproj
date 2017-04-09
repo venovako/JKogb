@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="11.0" ProjectIdGuid="{42F27421-AFD4-4A86-9FC8-775F3057B04A}">
+	<Platforms>
+		<Platform Name="x64"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug|x64">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/assume:ieee_fpe_flags" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" MultiProcessorCompilation="true" Optimization="optimizeDisabled" UseProcessorExtensions="codeExclusivelyHost" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\HDF5_D\include" F2003Semantics="true" Diagnostics="diagnosticsShowAll" DebugParameter="debugParameterAll" WarnInterfaces="true" InitLocalVarToNAN="true" FloatingPointModel="strict" FloatingPointStackCheck="true" Traceback="true" RuntimeChecks="rtChecksAll" BoundsCheck="true" StackFrameCheck="true" RuntimeLibrary="rtMultiThreadedDebugDLL" UseMkl="mklSequential"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\HDF5_D\lib" GenerateDebugInformation="true" SubSystem="subSystemConsole" InterproceduralOptimizations="false" AdditionalDependencies="libhdf5_hl_fortran_D.lib libhdf5_hl_f90cstub_D.lib libhdf5_hl_D.lib libhdf5_fortran_D.lib libhdf5_f90cstub_D.lib libhdf5_D.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64" EnableErrorChecks="midlEnableAll"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
+		<Configuration Name="Release|x64">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" MultiProcessorCompilation="true" Optimization="optimizeFull" UseProcessorExtensions="codeExclusivelyHost" Preprocess="preprocessYes" AdditionalIncludeDirectories="C:\HDF5\include" PreprocessorDefinitions="NDEBUG" F2003Semantics="true" Diagnostics="diagnosticsShowAll" FloatingPointModel="precise" Traceback="true" RuntimeChecks="rtChecksNone" RuntimeLibrary="rtMultiThreadedDLL" UseMkl="mklSequential"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" AdditionalLibraryDirectories="C:\HDF5\lib" SubSystem="subSystemConsole" SetChecksum="true" InterproceduralOptimizations="false" AdditionalDependencies="libhdf5_hl_fortran.lib libhdf5_hl_f90cstub.lib libhdf5_hl.lib libhdf5_fortran.lib libhdf5_f90cstub.lib libhdf5.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true" TargetEnvironment="midlTargetAMD64" EnableErrorChecks="midlDisableAll"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/>
+				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath=".\c_ifcs.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\dkogh2.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\dkogt2.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\dkogul.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\dmkldm.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\h5data.f90"/>
+		<File RelativePath=".\invgjp.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\jk.f90"/>
+		<File RelativePath=".\jk1.f90"/>
+		<File RelativePath=".\jkstep.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File>
+		<File RelativePath=".\params.f90">
+			<FileConfiguration Name="Release|x64" ExcludedFromBuild="true"/>
+			<FileConfiguration Name="Debug|x64" ExcludedFromBuild="true"/></File></Filter></Files>
+	<Globals/></VisualStudioProject>
