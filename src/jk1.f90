@@ -153,7 +153,7 @@ CONTAINS
 
     IF (IAND(IFLAGS, IFLAG_PPROCU) .NE. 0) THEN
        DO J = 1, M-1
-          CALL DSWAP(M-J, U(J+1,J), 1, U(J, J+1), LDU)
+          CALL DSWAP(M-J, U(J+1,J), 1, U(J,J+1), LDU)
        END DO
     END IF
 
