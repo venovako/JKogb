@@ -1,30 +1,30 @@
-subroutine dkogt2(upper, f, g, h, tol, rhside, cu, su, cv, sv, f1, h1, info)
-  implicit none
+SUBROUTINE DKOGT2(UPPER, F, G, H, TOL, RHSIDE, CU, SU, CV, SV, F1, H1, INFO)
+  IMPLICIT NONE
 
-  logical, intent(in) :: upper
-  double precision, intent(in) :: f, g, h, tol
+  LOGICAL, INTENT(IN) :: UPPER
+  DOUBLE PRECISION, INTENT(IN) :: F, G, H, TOL
 
-  logical, intent(out) :: rhside
-  double precision, intent(out) :: cu, su, cv, sv, f1, h1
-  integer, intent(out) :: info
+  LOGICAL, INTENT(OUT) :: RHSIDE
+  DOUBLE PRECISION, INTENT(OUT) :: CU, SU, CV, SV, F1, H1
+  INTEGER, INTENT(OUT) :: INFO
 
-  info = 0
+  INFO = 0
 
-  if (upper) then
-     if (f .ge. h) then
-        rhside = .false.
-        call dkogul(f, g, h, tol, cu, su, cv, sv, f1, h1)
-     else
-        rhside = .true.
-        call dkogul(h, -g, f, tol, cv, sv, cu, su, h1, f1)
-     end if
-  else
-     if (f .ge. h) then
-        rhside = .true.
-        call dkogul(f, g, h, tol, cv, sv, cu, su, f1, h1)
-     else
-        rhside = .false.
-        call dkogul(h, -g, f, tol, cu, su, cv, sv, h1, f1)
-     end if
-  end if
-end subroutine dkogt2
+  IF (UPPER) THEN
+     IF (F .GE. H) THEN
+        RHSIDE = .FALSE.
+        CALL DKOGUL(F, G, H, TOL, CU, SU, CV, SV, F1, H1)
+     ELSE
+        RHSIDE = .TRUE.
+        CALL DKOGUL(H, -G, F, TOL, CV, SV, CU, SU, H1, F1)
+     END IF
+  ELSE
+     IF (F .GE. H) THEN
+        RHSIDE = .TRUE.
+        CALL DKOGUL(F, G, H, TOL, CV, SV, CU, SU, F1, H1)
+     ELSE
+        RHSIDE = .FALSE.
+        CALL DKOGUL(H, -G, F, TOL, CU, SU, CV, SV, H1, F1)
+     END IF
+  END IF
+END SUBROUTINE DKOGT2

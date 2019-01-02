@@ -1,42 +1,41 @@
-subroutine dkogh2(upper, f, g, h, tol, rhside, cu, su, cv, sv, f1, h1, info)
-  implicit none
+SUBROUTINE DKOGH2(UPPER, F, G, H, TOL, RHSIDE, CU, SU, CV, SV, F1, H1, INFO)
+  IMPLICIT NONE
 
-  logical, intent(in) :: upper
-  double precision, intent(in) :: f, g, h, tol
+  LOGICAL, INTENT(IN) :: UPPER
+  DOUBLE PRECISION, INTENT(IN) :: F, G, H, TOL
 
-  logical, intent(out) :: rhside
-  double precision, intent(out) :: cu, su, cv, sv, f1, h1
-  integer, intent(out) :: info
+  LOGICAL, INTENT(OUT) :: RHSIDE
+  DOUBLE PRECISION, INTENT(OUT) :: CU, SU, CV, SV, F1, H1
+  INTEGER, INTENT(OUT) :: INFO
 
-  double precision :: th2, th, tg, q
-  logical :: flag
+  DOUBLE PRECISION :: TH2, TH, TG, Q
 
-  info = 0
-  rhside = .true.
+  INFO = 0
+  RHSIDE = .TRUE.
 
-  if (upper) then
-     th2 = (TWO * f * g) / (f * f + g * g + h * h)
-     th = th2 / (ONE + sqrt(c_fma(-th2, th2, ONE)))
-     tg = c_fma(f, th, -g) / h
-     cu = ONE / sqrt(c_fma(tg, tg, ONE))
-     su = cu * tg
-     cv = ONE / sqrt(c_fma(-th, th, ONE))
-     sv = cv * th
+  IF (UPPER) THEN
+     TH2 = (TWO * F * G) / (F * F + G * G + H * H)
+     TH = TH2 / (ONE + SQRT(C_FMA(-TH2, TH2, ONE)))
+     TG = C_FMA(F, TH, -G) / H
+     CU = ONE / SQRT(C_FMA(TG, TG, ONE))
+     SU = CU * TG
+     CV = ONE / SQRT(C_FMA(-TH, TH, ONE))
+     SV = CV * TH
 
-     q = cu / cv
-     f1 = f * q
-     h1 = h / q
-  else
-     th2 = (TWO * g * h) / (f * f + g * g + h * h)
-     th = th2 / (ONE + sqrt(c_fma(-th2, th2, ONE)))
-     tg = c_fma(-h, th, g) / f
-     cu = ONE / sqrt(c_fma(tg, tg, ONE))
-     su = cu * tg
-     cv = ONE / sqrt(c_fma(-th, th, ONE))
-     sv = cv * th
+     Q = CU / CV
+     F1 = F * Q
+     H1 = H / Q
+  ELSE
+     TH2 = (TWO * G * H) / (F * F + G * G + H * H)
+     TH = TH2 / (ONE + SQRT(C_FMA(-TH2, TH2, ONE)))
+     TG = C_FMA(-H, TH, G) / F
+     CU = ONE / SQRT(C_FMA(TG, TG, ONE))
+     SU = CU * TG
+     CV = ONE / SQRT(C_FMA(-TH, TH, ONE))
+     SV = CV * TH
 
-     q = cu / cv
-     f1 = f / q
-     h1 = h * q
-  end if
-end subroutine dkogh2
+     Q = CU / CV
+     F1 = F / Q
+     H1 = H * Q
+  END IF
+END SUBROUTINE DKOGH2

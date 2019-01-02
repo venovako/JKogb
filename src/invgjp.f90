@@ -1,25 +1,25 @@
-subroutine invgjp(nrow, ncolr, G, ldg, jvec, ipl, invp)
-  implicit none
+SUBROUTINE INVGJP(NROW, NCOLR, G, LDG, JVEC, IPL, INVP)
+  IMPLICIT NONE
 
-  integer, intent(in) :: nrow, ncolr, ldg
-  double precision, intent(inout) :: G(ldg, ncolr)
-  integer, intent(inout) :: jvec(ncolr), ipl(ncolr), invp(ncolr)
+  INTEGER, INTENT(IN) :: NROW, NCOLR, LDG
+  DOUBLE PRECISION, INTENT(INOUT) :: G(LDG,NCOLR)
+  INTEGER, INTENT(INOUT) :: JVEC(NCOLR), IPL(NCOLR), INVP(NCOLR)
 
-  integer :: i, ip, jtemp
+  INTEGER :: I, IP, JTEMP
 
-  external :: dswap
+  EXTERNAL :: DSWAP
 
-  do i = 1, ncolr
-    if (invp(i) .ne. i) then
-       ip = invp(i)
+  DO I = 1, NCOLR
+    IF (INVP(I) .NE. I) THEN
+       IP = INVP(I)
 
-       call dswap(nrow, G(1, i), 1, G(1, ip), 1)
-       jtemp = jvec(i)
-       jvec(i) = jvec(ip)
-       jvec(ip) = jtemp
+       CALL DSWAP(NROW, G(1,I), 1, G(1,IP), 1)
+       JTEMP = JVEC(I)
+       JVEC(I) = JVEC(IP)
+       JVEC(IP) = JTEMP
        
-       ipl(ip) = ipl(i)
-       invp(ipl(i)) = ip
-    end if
- end do
-end subroutine invgjp
+       IPL(IP) = IPL(I)
+       INVP(IPL(I)) = IP
+    END IF
+ END DO
+END SUBROUTINE INVGJP

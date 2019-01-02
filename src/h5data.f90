@@ -1,233 +1,233 @@
-module h5data
-  use h5lt
-  use hdf5
-  implicit none
+MODULE H5DATA
+  USE H5LT
+  USE HDF5
+  IMPLICIT NONE
 
-  integer, parameter :: idalen = 4
-  integer, parameter :: timlen = 4
+  INTEGER, PARAMETER :: IDALEN = 4
+  INTEGER, PARAMETER :: TIMLEN = 4
 
-contains
+CONTAINS
 
-  subroutine readh0(gid, idadim, info)
-    implicit none
+  SUBROUTINE READH0(GID, IDADIM, INFO)
+    IMPLICIT NONE
 
-    integer(hid_t), intent(in) :: gid
-    integer, intent(out) :: idadim(idalen), info(2)
+    INTEGER(HID_T), INTENT(IN) :: GID
+    INTEGER, INTENT(OUT) :: IDADIM(IDALEN), INFO(2)
 
-    integer(hsize_t) :: dims1(1)
+    INTEGER(HSIZE_T) :: DIMS1(1)
 
-    info = 0
+    INFO = 0
 
-    dims1(1) = idalen
-1   call h5ltread_dataset_int_f(gid, 'IDADIM', idadim, dims1, info(2))
-    if (info(2) .ne. 0) info(1) = 1
-  end subroutine readh0
+    DIMS1(1) = IDALEN
+    CALL H5LTREAD_DATASET_INT_F(GID, 'IDADIM', IDADIM, DIMS1, INFO(2))
+    IF (INFO(2) .NE. 0) INFO(1) = 1
+  END SUBROUTINE READH0
 
-  subroutine readh1(gid, m, n, G, ldg, jvec, info)
-    implicit none
+  SUBROUTINE READH1(GID, M, N, G, LDG, JVEC, INFO)
+    IMPLICIT NONE
 
-    integer(hid_t), intent(in) :: gid
-    integer, intent(in) :: m, n, ldg
-    double precision, intent(out) :: G(ldg, n)
-    integer, intent(out) :: jvec(n), info(2)
+    INTEGER(HID_T), INTENT(IN) :: GID
+    INTEGER, INTENT(IN) :: M, N, LDG
+    DOUBLE PRECISION, INTENT(OUT) :: G(LDG, N)
+    INTEGER, INTENT(OUT) :: JVEC(N), INFO(2)
 
-    integer(hsize_t) :: dims1(1), dims2(2)
+    INTEGER(HSIZE_T) :: DIMS1(1), DIMS2(2)
 
-    info = 0
+    INFO = 0
 
-    dims2(1) = ldg
-    dims2(2) = n
-1   call h5ltread_dataset_double_f(gid, 'G', G, dims2, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 1
-       return
-    end if
+    DIMS2(1) = LDG
+    DIMS2(2) = N
+    CALL H5LTREAD_DATASET_DOUBLE_F(GID, 'G', G, DIMS2, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 1
+       RETURN
+    END IF
 
-    dims1(1) = n
-2   call h5ltread_dataset_int_f(gid, 'JVEC', jvec, dims1, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 2
-       return
-    end if
-  end subroutine readh1
+    DIMS1(1) = N
+    CALL H5LTREAD_DATASET_INT_F(GID, 'JVEC', JVEC, DIMS1, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 2
+       RETURN
+    END IF
+  END SUBROUTINE READH1
 
-  subroutine readh2(gid, n, ipl, invp, info)
-    implicit none
+  SUBROUTINE READH2(GID, N, IPL, INVP, INFO)
+    IMPLICIT NONE
 
-    integer(hid_t), intent(in) :: gid
-    integer, intent(in) :: n
-    integer, intent(out) :: ipl(n), invp(n), info(2)
+    INTEGER(HID_T), INTENT(IN) :: GID
+    INTEGER, INTENT(IN) :: N
+    INTEGER, INTENT(OUT) :: IPL(N), INVP(N), INFO(2)
 
-    integer(hsize_t) :: dims1(1)
+    INTEGER(HSIZE_T) :: DIMS1(1)
 
-    info = 0
+    INFO = 0
 
-    dims1(1) = n
-1   call h5ltread_dataset_int_f(gid, 'IPL', ipl, dims1, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 1
-       return
-    end if
+    DIMS1(1) = N
+    CALL H5LTREAD_DATASET_INT_F(GID, 'IPL', IPL, DIMS1, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 1
+       RETURN
+    END IF
 
-    dims1(1) = n
-2   call h5ltread_dataset_int_f(gid, 'INVP', invp, dims1, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 2
-       return
-    end if
-  end subroutine readh2
+    DIMS1(1) = N
+    CALL H5LTREAD_DATASET_INT_F(GID, 'INVP', INVP, DIMS1, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 2
+       RETURN
+    END IF
+  END SUBROUTINE READH2
 
-  subroutine dumph5(gid, m, n, G, ldg, jvec, nplus, U, ldu, V, ldv, Q, ldq, tol, iflags, status, Tcpu, info)
-    implicit none
+  SUBROUTINE DUMPH5(GID, M, N, G, LDG, JVEC, NPLUS, U, LDU, V, LDV, Q, LDQ, TOL, IFLAGS, STATUS, TCPU, INFO)
+    IMPLICIT NONE
 
-    integer(hid_t), intent(in) :: gid
-    integer, intent(in) :: m, n, ldg, jvec(n), nplus, ldu, ldv, ldq, iflags, status
-    double precision, intent(in) :: G(ldg, n), U(ldu, m), V(ldv, n), Q(ldq, m), tol, Tcpu(timlen)
-    integer, intent(out) :: info(2)
+    INTEGER(HID_T), INTENT(IN) :: GID
+    INTEGER, INTENT(IN) :: M, N, LDG, JVEC(N), NPLUS, LDU, LDV, LDQ, IFLAGS, STATUS
+    DOUBLE PRECISION, INTENT(IN) :: G(LDG,N), U(LDU,M), V(LDV,N), Q(LDQ,M), TOL, TCPU(TIMLEN)
+    INTEGER, INTENT(OUT) :: INFO(2)
 
-    integer(hsize_t) :: dims1(1), dims2(2)
-    integer(size_t) :: atrlen
+    INTEGER(HSIZE_T) :: DIMS1(1), DIMS2(2)
+    INTEGER(SIZE_T) :: ATRLEN
 
-    integer :: idummy(3)
-    double precision :: ddummy(1)
+    INTEGER :: IDUMMY(3)
+    DOUBLE PRECISION :: DDUMMY(1)
 
-    info = 0
+    INFO = 0
 
-    if (ldg .gt. 0) then
-       dims2(1) = ldg
-       dims2(2) = n
-1      call h5ltmake_dataset_double_f(gid, 'G', 2, dims2, G, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  1
-          return
-       end if
+    IF (LDG .GT. 0) THEN
+       DIMS2(1) = LDG
+       DIMS2(2) = N
+       CALL H5LTMAKE_DATASET_DOUBLE_F(GID, 'G', 2, DIMS2, G, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  1
+          RETURN
+       END IF
 
-       atrlen = 3
-       idummy(1) = m
-       idummy(2) = n
-       idummy(3) = ldg
-2      call h5ltset_attribute_int_f(gid, 'G', 'dims', idummy, atrlen, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  2
-          return
-       end if
+       ATRLEN = 3
+       IDUMMY(1) = M
+       IDUMMY(2) = N
+       IDUMMY(3) = LDG
+       CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'G', 'dims', IDUMMY, ATRLEN, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  2
+          RETURN
+       END IF
 
-       dims1(1) = n
-3      call h5ltmake_dataset_int_f(gid, 'JVEC', 1, dims1, jvec, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  3
-          return
-       end if
+       DIMS1(1) = N
+       CALL H5LTMAKE_DATASET_INT_F(GID, 'JVEC', 1, DIMS1, JVEC, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  3
+          RETURN
+       END IF
 
-       atrlen = 3
-       idummy(1) = n
-       idummy(2) = nplus
-       idummy(3) = m
-4      call h5ltset_attribute_int_f(gid, 'JVEC', 'dims', idummy, atrlen, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  4
-          return
-       end if
-    end if
+       ATRLEN = 3
+       IDUMMY(1) = N
+       IDUMMY(2) = NPLUS
+       IDUMMY(3) = M
+       CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'JVEC', 'dims', IDUMMY, ATRLEN, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  4
+          RETURN
+       END IF
+    END IF
 
-    if (ldu .gt. 0) then
-       dims2(1) = ldu
-       dims2(2) = m
-5      call h5ltmake_dataset_double_f(gid, 'U', 2, dims2, U, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  5
-          return
-       end if
+    IF (LDU .GT. 0) THEN
+       DIMS2(1) = LDU
+       DIMS2(2) = M
+       CALL H5LTMAKE_DATASET_DOUBLE_F(GID, 'U', 2, DIMS2, U, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  5
+          RETURN
+       END IF
 
-       atrlen = 3
-       idummy(1) = m
-       idummy(2) = m
-       idummy(3) = ldu
-6      call h5ltset_attribute_int_f(gid, 'U', 'dims', idummy, atrlen, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  6
-          return
-       end if
-    end if
+       ATRLEN = 3
+       IDUMMY(1) = M
+       IDUMMY(2) = M
+       IDUMMY(3) = LDU
+       CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'U', 'dims', IDUMMY, ATRLEN, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  6
+          RETURN
+       END IF
+    END IF
 
-    if (ldv .gt. 0) then
-       dims2(1) = ldv
-       dims2(2) = n
-7      call h5ltmake_dataset_double_f(gid, 'V', 2, dims2, V, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  7
-          return
-       end if
+    IF (LDV .GT. 0) THEN
+       DIMS2(1) = LDV
+       DIMS2(2) = N
+       CALL H5LTMAKE_DATASET_DOUBLE_F(GID, 'V', 2, DIMS2, V, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  7
+          RETURN
+       END IF
 
-       atrlen = 3
-       idummy(1) = n
-       idummy(2) = n
-       idummy(3) = ldv
-8      call h5ltset_attribute_int_f(gid, 'V', 'dims', idummy, atrlen, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  8
-          return
-       end if
-    end if
+       ATRLEN = 3
+       IDUMMY(1) = N
+       IDUMMY(2) = N
+       IDUMMY(3) = LDV
+       CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'V', 'dims', IDUMMY, ATRLEN, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  8
+          RETURN
+       END IF
+    END IF
 
-    if (ldq .gt. 0) then
-       dims2(1) = ldq
-       dims2(2) = m
-9      call h5ltmake_dataset_double_f(gid, 'Q', 2, dims2, Q, info(2))
-       if (info(2) .ne. 0) then
-          info(1) =  9
-          return
-       end if
+    IF (LDQ .GT. 0) THEN
+       DIMS2(1) = LDQ
+       DIMS2(2) = M
+       CALL H5LTMAKE_DATASET_DOUBLE_F(GID, 'Q', 2, DIMS2, Q, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) =  9
+          RETURN
+       END IF
 
-       atrlen = 3
-       idummy(1) = m
-       idummy(2) = m
-       idummy(3) = ldq
-10     call h5ltset_attribute_int_f(gid, 'Q', 'dims', idummy, atrlen, info(2))
-       if (info(2) .ne. 0) then
-          info(1) = 10
-          return
-       end if
-    end if
+       ATRLEN = 3
+       IDUMMY(1) = M
+       IDUMMY(2) = M
+       IDUMMY(3) = LDQ
+       CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'Q', 'dims', IDUMMY, ATRLEN, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) = 10
+          RETURN
+       END IF
+    END IF
 
-    dims1(1) = timlen
-11  call h5ltmake_dataset_double_f(gid, 'Tcpu', 1, dims1, Tcpu, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 11
-       return
-    end if
+    DIMS1(1) = TIMLEN
+    CALL H5LTMAKE_DATASET_DOUBLE_F(GID, 'Tcpu', 1, DIMS1, TCPU, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 11
+       RETURN
+    END IF
 
-    atrlen = 1
-    idummy(1) = timlen
-12  call h5ltset_attribute_int_f(gid, 'Tcpu', 'dims', idummy, atrlen, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 12
-       return
-    end if
+    ATRLEN = 1
+    IDUMMY(1) = TIMLEN
+    CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'Tcpu', 'dims', IDUMMY, ATRLEN, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 12
+       RETURN
+    END IF
 
-    dims1(1) = 2
-    idummy(1) = status
-    idummy(2) = iflags
-13  call h5ltmake_dataset_int_f(gid, 'STATUS', 1, dims1, idummy, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 13
-       return
-    end if
+    DIMS1(1) = 2
+    IDUMMY(1) = STATUS
+    IDUMMY(2) = IFLAGS
+    CALL H5LTMAKE_DATASET_INT_F(GID, 'STATUS', 1, DIMS1, IDUMMY, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 13
+       RETURN
+    END IF
 
-    atrlen = 1
-    ddummy(1) = tol
-14  call h5ltset_attribute_double_f(gid, 'STATUS', 'tol', ddummy, atrlen, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 14
-       return
-    end if
+    ATRLEN = 1
+    DDUMMY(1) = TOL
+    CALL H5LTSET_ATTRIBUTE_DOUBLE_F(GID, 'STATUS', 'tol', DDUMMY, ATRLEN, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 14
+       RETURN
+    END IF
 
-    atrlen = 1
-    idummy(1) = 2
-15  call h5ltset_attribute_int_f(gid, 'STATUS', 'dims', idummy, atrlen, info(2))
-    if (info(2) .ne. 0) then
-       info(1) = 15
-       return
-    end if
-  end subroutine dumph5
-end module h5data
+    ATRLEN = 1
+    IDUMMY(1) = 2
+    CALL H5LTSET_ATTRIBUTE_INT_F(GID, 'STATUS', 'dims', IDUMMY, ATRLEN, INFO(2))
+    IF (INFO(2) .NE. 0) THEN
+       INFO(1) = 15
+       RETURN
+    END IF
+  END SUBROUTINE DUMPH5
+END MODULE H5DATA

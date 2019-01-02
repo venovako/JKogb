@@ -1,13 +1,13 @@
-  integer, parameter :: IFLAG_INVGJP =  1
-  integer, parameter :: IFLAG_DGEQRF =  2
-  integer, parameter :: IFLAG_ROWCYC =  4
-  integer, parameter :: IFLAG_PPROCU =  8
-  integer, parameter :: IFLAG_PPROCV = 16
-  integer, parameter :: IFLAG_MAXFLG = 32
+  INTEGER, PARAMETER :: IFLAG_INVGJP =  1
+  INTEGER, PARAMETER :: IFLAG_DGEQRF =  2
+  INTEGER, PARAMETER :: IFLAG_ROWCYC =  4
+  INTEGER, PARAMETER :: IFLAG_PPROCU =  8
+  INTEGER, PARAMETER :: IFLAG_PPROCV = 16
+  INTEGER, PARAMETER :: IFLAG_MAXFLG = 32
 
-  double precision, parameter :: ZERO =  0.0D+0
-  double precision, parameter :: HALF =  5.0D-1
-  double precision, parameter ::  ONE =  1.0D+0
-  double precision, parameter :: MONE = -1.0D+0
-  double precision, parameter ::  TWO =  2.0D+0
-  double precision, parameter :: MTWO = -2.0D+0
+  DOUBLE PRECISION, PARAMETER :: ZERO =  0.0D+0
+  DOUBLE PRECISION, PARAMETER :: HALF =  5.0D-1
+  DOUBLE PRECISION, PARAMETER ::  ONE =  1.0D+0
+  DOUBLE PRECISION, PARAMETER :: MONE = -1.0D+0
+  DOUBLE PRECISION, PARAMETER ::  TWO =  2.0D+0
+  DOUBLE PRECISION, PARAMETER :: MTWO = -2.0D+0

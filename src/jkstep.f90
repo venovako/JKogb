@@ -1,91 +1,91 @@
-pure logical function ldorot(f, g, h, tol, hyp)
-  implicit none
+PURE LOGICAL FUNCTION LDOROT(F, G, H, TOL, HYP)
+  IMPLICIT NONE
 
-  double precision, intent(in) :: f, g, h, tol
-  logical, intent(in) :: hyp
+  DOUBLE PRECISION, INTENT(IN) :: F, G, H, TOL
+  LOGICAL, INTENT(IN) :: HYP
 
-  double precision :: ga
+  DOUBLE PRECISION :: GA
 
-  ga = abs(g)
-  ldorot = (f .ne. (f + ga)) .or. (h .ne. (h + ga))
-end function ldorot
+  GA = ABS(G)
+  LDOROT = (F .NE. (F + GA)) .OR. (H .NE. (H + GA))
+END FUNCTION LDOROT
 
-subroutine jkstep(upper, i, j, m, n, G, ldg, U, ldu, V, ldv, jvec, nplus, tol, sweep, swhalf, step, hyp, info)
-  implicit none
+SUBROUTINE JKSTEP(UPPER, I, J, M, N, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, SWEEP, SWHALF, STEP, HYP, INFO)
+  IMPLICIT NONE
 
-  logical, intent(in) :: upper
-  integer, intent(in) :: i, j, m, n, ldg, ldu, ldv, jvec(n), nplus, sweep, swhalf
-  double precision, intent(in) :: tol
-  double precision, intent(inout) :: G(ldg, n), U(ldu, m), V(ldv, n)
-  integer, intent(inout) :: step
-  logical, intent(out) :: hyp
-  integer, intent(out) :: info(2)
+  LOGICAL, INTENT(IN) :: UPPER
+  INTEGER, INTENT(IN) :: I, J, M, N, LDG, LDU, LDV, JVEC(N), NPLUS, SWEEP, SWHALF
+  DOUBLE PRECISION, INTENT(IN) :: TOL
+  DOUBLE PRECISION, INTENT(INOUT) :: G(LDG,N), U(LDU,M), V(LDV,N)
+  INTEGER, INTENT(INOUT) :: STEP
+  LOGICAL, INTENT(OUT) :: HYP
+  INTEGER, INTENT(OUT) :: INFO(2)
 
-  double precision :: f0, g0, h0, cu, su, cv, sv, f1, h1, paramu(5), paramv(5)
-  logical :: rhside
-  integer :: instat
+  DOUBLE PRECISION :: F0, G0, H0, CU, SU, CV, SV, F1, H1, PARAMU(5), PARAMV(5)
+  LOGICAL :: RHSIDE
+  INTEGER :: INSTAT
 
-  external :: drotm
+  EXTERNAL :: DROTM
 
-  info = 0
-  step = step + 1
-  hyp = jvec(i) .ne. jvec(j)
+  INFO = 0
+  STEP = STEP + 1
+  HYP = (JVEC(I) .NE. JVEC(J))
 
-  f0 = G(i, i)
-  h0 = G(j, j)
+  F0 = G(I,I)
+  H0 = G(J,J)
 
-  if (upper) then
-     g0 = G(i, j)
-  else
-     g0 = G(j, i)
-  end if
+  IF (UPPER) THEN
+     G0 = G(I,J)
+  ELSE
+     G0 = G(J,I)
+  END IF
 
-  if (g0 .eq. ZERO) return
+  IF (G0 .EQ. ZERO) RETURN
 
-  if (ldorot(f0, g0, h0, tol, hyp)) then
-     info(2) = 1
-     paramu(1) = MONE
-     paramv(1) = MONE
+  IF (LDOROT(F0, G0, H0, TOL, HYP)) THEN
+     INFO(2) = 1
+     PARAMU(1) = MONE
+     PARAMV(1) = MONE
 
-     if (hyp) then
-        call dkogh2(upper, f0, g0, h0, tol, rhside, cu, su, cv, sv, f1, h1, instat)
-     else
-        call dkogt2(upper, f0, g0, h0, tol, rhside, cu, su, cv, sv, f1, h1, instat)
-     end if
+     IF (HYP) THEN
+        CALL DKOGH2(UPPER, F0, G0, H0, TOL, RHSIDE, CU, SU, CV, SV, F1, H1, INSTAT)
+     ELSE
+        CALL DKOGT2(UPPER, F0, G0, H0, TOL, RHSIDE, CU, SU, CV, SV, F1, H1, INSTAT)
+     END IF
 
-     paramu(2) =  cu
-     paramu(3) = -su
-     paramu(4) =  su
-     paramu(5) =  cu
+     PARAMU(2) =  CU
+     PARAMU(3) = -SU
+     PARAMU(4) =  SU
+     PARAMU(5) =  CU
 
-     if (hyp) then
-        paramv(2) =  cv
-        paramv(3) = -sv
-        paramv(4) = -sv
-        paramv(5) =  cv
-     else
-        paramv(2) =  cv
-        paramv(3) = -sv
-        paramv(4) =  sv
-        paramv(5) =  cv
-     end if
+     IF (HYP) THEN
+        PARAMV(2) =  CV
+        PARAMV(3) = -SV
+        PARAMV(4) = -SV
+        PARAMV(5) =  CV
+     ELSE
+        PARAMV(2) =  CV
+        PARAMV(3) = -SV
+        PARAMV(4) =  SV
+        PARAMV(5) =  CV
+     END IF
 
-     if (rhside) then
-        call drotm(m, G(1, i), 1, G(1, j), 1, paramv)
-        call drotm(n, G(i, 1), ldg, G(j, 1), ldg, paramu)
-     else
-        call drotm(n, G(i, 1), ldg, G(j, 1), ldg, paramu)
-        call drotm(m, G(1, i), 1, G(1, j), 1, paramv)
-     end if
+     IF (RHSIDE) THEN
+        CALL DROTM(M, G(1,I), 1,   G(1,J), 1,   PARAMV)
+        CALL DROTM(N, G(I,1), LDG, G(J,1), LDG, PARAMU)
+     ELSE
+        CALL DROTM(N, G(I,1), LDG, G(J,1), LDG, PARAMU)
+        CALL DROTM(M, G(1,I), 1,   G(1,J), 1,   PARAMV)
+     END IF
 
-     call drotm(m, U(i, 1), ldu, U(j, 1), ldu, paramu)
-     call drotm(n, V(1, i), 1, V(1, j), 1, paramv)
+     CALL DROTM(M, U(I,1), LDU, U(J,1), LDU, PARAMU)
+     CALL DROTM(N, V(1,I), 1,   V(1,J), 1,   PARAMV)
 
-     G(i, i) = f1
-     G(j, j) = h1
-  else
-     info(2) = -1
-  end if
-  G(i, j) = ZERO
-  G(j, i) = ZERO
-end subroutine jkstep
+     G(I,I) = F1
+     G(J,J) = H1
+  ELSE
+     INFO(2) = -1
+  END IF
+  G(I,J) = ZERO
+  G(J,I) = ZERO
+END SUBROUTINE JKSTEP

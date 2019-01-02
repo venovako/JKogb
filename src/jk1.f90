@@ -1,174 +1,174 @@
 !  Pointwise J-Kogbetliantz
-module jk1
-  implicit none
+MODULE JK1
+  IMPLICIT NONE
 
-  include 'params.f90'
-  include 'c_ifcs.f90'
+  INCLUDE 'params.f90'
+  INCLUDE 'c_ifcs.f90'
 
-contains
+CONTAINS
 
-  include 'dkogul.f90'
-  include 'dkogt2.f90'
-  include 'dkogh2.f90'
-  include 'jkstep.f90'
+  INCLUDE 'dkogul.f90'
+  INCLUDE 'dkogt2.f90'
+  INCLUDE 'dkogh2.f90'
+  INCLUDE 'jkstep.f90'
 
-  subroutine djksvd(uplo, m, n, G, ldg, U, ldu, V, ldv, jvec, nplus, tol, nsweep, iflags, info)
-    implicit none
+  SUBROUTINE DJKSVD(UPLO, M, N, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, NSWEEP, IFLAGS, INFO)
+    IMPLICIT NONE
 
     !   nsweep .eq. 0: iterate until convergence
 
-    character(len=1), intent(in) :: uplo
-    integer, intent(in) :: m, n, ldg, ldu, ldv, jvec(n), nplus, nsweep, iflags
-    double precision, intent(in) :: tol
-    double precision, intent(inout) :: G(ldg, n), U(ldu, m), V(ldv, n)
-    integer, intent(out) :: info(2)
+    CHARACTER(LEN=1), INTENT(IN) :: UPLO
+    INTEGER, INTENT(IN) :: M, N, LDG, LDU, LDV, JVEC(N), NPLUS, NSWEEP, IFLAGS
+    DOUBLE PRECISION, INTENT(IN) :: TOL
+    DOUBLE PRECISION, INTENT(INOUT) :: G(LDG,N), U(LDU,M), V(LDV,N)
+    INTEGER, INTENT(OUT) :: INFO(2)
 
-    integer :: maxcyc, sweep, swhalf, step
-    integer :: i, j, status
-    logical :: upper, rowcyc, hyp
+    INTEGER :: MAXCYC, SWEEP, SWHALF, STEP
+    INTEGER :: I, J, STATUS
+    LOGICAL :: UPPER, ROWCYC, HYP
 
-    external :: dscal, dswap
-    logical, external :: lsame
+    EXTERNAL :: DSCAL, DSWAP
+    LOGICAL, EXTERNAL :: LSAME
 
-    if (lsame(uplo, 'U')) then
-       upper = .true.
-    else if (lsame(uplo, 'L')) then
-       upper = .false.
-    else
-       info(1) = -1
-       info(2) = ichar(uplo)
-       return
-    end if
+    IF (LSAME(UPLO, 'U')) THEN
+       UPPER = .TRUE.
+    ELSE IF (LSAME(UPLO, 'L')) THEN
+       UPPER = .FALSE.
+    ELSE
+       INFO(1) = -1
+       INFO(2) = ICHAR(UPLO)
+       RETURN
+    END IF
 
-    if (m .lt. 0) then
-       info(1) = -2
-       info(2) = m
-       return
-    end if
+    IF (M .LT. 0) THEN
+       INFO(1) = -2
+       INFO(2) = M
+       RETURN
+    END IF
 
-    if ((n .lt. 0) .or. (n .gt. m)) then
-       info(1) = -3
-       info(2) = n
-       return
-    end if
+    IF ((N .LT. 0) .OR. (N .GT. M)) THEN
+       INFO(1) = -3
+       INFO(2) = N
+       RETURN
+    END IF
     
-    if (ldg .lt. m) then
-       info(1) = -5
-       info(2) = ldg
-       return
-    end if
+    IF (LDG .LT. M) THEN
+       INFO(1) = -5
+       INFO(2) = LDG
+       RETURN
+    END IF
     
-    if (ldu .lt. m) then
-       info(1) = -7
-       info(2) = ldu
-       return
-    end if
+    IF (LDU .LT. M) THEN
+       INFO(1) = -7
+       INFO(2) = LDU
+       RETURN
+    END IF
 
-    if (ldv .lt. n) then
-       info(1) = -9
-       info(2) = ldv
-       return
-    end if
+    IF (LDV .LT. N) THEN
+       INFO(1) = -9
+       INFO(2) = LDV
+       RETURN
+    END IF
 
-    if ((nplus .lt. 0) .or. (nplus .gt. n)) then
-       info(1) = -11
-       info(2) = nplus
-       return
-    end if
+    IF ((NPLUS .LT. 0) .OR. (NPLUS .GT. N)) THEN
+       INFO(1) = -11
+       INFO(2) = NPLUS
+       RETURN
+    END IF
 
-    if (tol .lt. ZERO) then
-       info(1) = -12
-       info(2) = -1
-       return
-    end if
+    IF (TOL .LT. ZERO) THEN
+       INFO(1) = -12
+       INFO(2) = -1
+       RETURN
+    END IF
 
-    if (nsweep .lt. 0) then
-       info(1) = -13
-       info(2) = nsweep
-       return
-    end if
+    IF (NSWEEP .LT. 0) THEN
+       INFO(1) = -13
+       INFO(2) = NSWEEP
+       RETURN
+    END IF
 
-    if ((iflags .lt. 0) .or. (iflags .ge. IFLAG_MAXFLG)) then
-       info(1) = -14
-       info(2) = iflags
-       return
-    end if
+    IF ((IFLAGS .LT. 0) .OR. (IFLAGS .GE. IFLAG_MAXFLG)) THEN
+       INFO(1) = -14
+       INFO(2) = IFLAGS
+       RETURN
+    END IF
 
-    info = 0
+    INFO = 0
 
-    if (m .eq. 0) return
+    IF (M .EQ. 0) RETURN
 
-    rowcyc = (iand(iflags, IFLAG_ROWCYC) .ne. 0)
-    if (nsweep .eq. 0) then
-       maxcyc = huge(maxcyc)
-    else
-       maxcyc = nsweep
-    end if
+    ROWCYC = (IAND(IFLAGS, IFLAG_ROWCYC) .NE. 0)
+    IF (NSWEEP .EQ. 0) THEN
+       MAXCYC = HUGE(MAXCYC)
+    ELSE
+       MAXCYC = NSWEEP
+    END IF
 
-    if (rowcyc) then
-       do sweep = 1, maxcyc
-          do swhalf = 0, 1
-             step = 0
-             status = 0
+    IF (ROWCYC) THEN
+       DO SWEEP = 1, MAXCYC
+          DO SWHALF = 0, 1
+             STEP = 0
+             STATUS = 0
 
-             write (*,9) 'Sweep: ', sweep, ' swhalf: ', swhalf
+             WRITE (*,9) 'Sweep: ', SWEEP, ' swhalf: ', SWHALF
 
-             do i = 1, n - 1
-                do j = i + 1, n
-                   call jkstep(upper, i, j, m, n, G, ldg, U, ldu, V, ldv, jvec, nplus, tol, sweep, swhalf, step, hyp, info)
-                   if (info(1) .ne. 0) return
-                   status = max(status, info(2))
-                end do
-             end do
-             if (status .eq. 0) goto 1
-             upper = .not. upper
-          end do
-       end do
-    else
-       do sweep = 1, maxcyc
-          do swhalf = 0, 1
-             step = 0
-             status = 0
+             DO I = 1, N-1
+                DO J = I+1, N
+                   CALL JKSTEP(UPPER, I, J, M, N, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, SWEEP, SWHALF, STEP, HYP, INFO)
+                   IF (INFO(1) .NE. 0) RETURN
+                   STATUS = MAX(STATUS, INFO(2))
+                END DO
+             END DO
+             IF (STATUS .EQ. 0) GOTO 1
+             UPPER = .NOT. UPPER
+          END DO
+       END DO
+    ELSE
+       DO SWEEP = 1, MAXCYC
+          DO SWHALF = 0, 1
+             STEP = 0
+             STATUS = 0
              
-             write (*,9) 'Sweep: ', sweep, ' swhalf: ', swhalf
+             WRITE (*,9) 'Sweep: ', SWEEP, ' swhalf: ', SWHALF
 
-             do j = 2, n
-                do i = 1, j - 1
-                   call jkstep(upper, i, j, m, n, G, ldg, U, ldu, V, ldv, jvec, nplus, tol, sweep, swhalf, step, hyp, info)
-                   if (info(1) .ne. 0) return
-                   status = max(status, info(2))
-                end do
-             end do
-             if (status .eq. 0) goto 1
-             upper = .not. upper
-          end do
-       end do
-    end if
+             DO J = 2, N
+                DO I = 1, J-1
+                   CALL JKSTEP(UPPER, I, J, M, N, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, SWEEP, SWHALF, STEP, HYP, INFO)
+                   IF (INFO(1) .NE. 0) RETURN
+                   STATUS = MAX(STATUS, INFO(2))
+                END DO
+             END DO
+             IF (STATUS .EQ. 0) GOTO 1
+             UPPER = .NOT. UPPER
+          END DO
+       END DO
+    END IF
 
-1   if (sweep .le. maxcyc) then
-       info(2) = 2 * sweep + swhalf - 1
-    else
-       info(2) = -maxcyc
-    end if
+1   IF (SWEEP .LE. MAXCYC) THEN
+       INFO(2) = 2 * SWEEP + SWHALF - 1
+    ELSE
+       INFO(2) = -MAXCYC
+    END IF
 
-    if (iand(iflags, IFLAG_PPROCU) .ne. 0) then
-       do j = 1, m - 1
-          call dswap(m - j, U(j + 1, j), 1, U(j, j + 1), ldu)
-       end do
-    end if
+    IF (IAND(IFLAGS, IFLAG_PPROCU) .NE. 0) THEN
+       DO J = 1, M-1
+          CALL DSWAP(M-J, U(J+1,J), 1, U(J, J+1), LDU)
+       END DO
+    END IF
 
-    if (iand(iflags, IFLAG_PPROCV) .ne. 0) then
-       do j = 1, n
-          if (jvec(j) .ne. 1) call dscal(n, dble(jvec(j)), V(1, j), 1)
-       end do
-       do i = 1, n
-          if (jvec(i) .ne. 1) call dscal(n, dble(jvec(i)), V(i, 1), ldv)
-       end do
-       do j = 1, n - 1
-          call dswap(n - j, V(j + 1, j), 1, V(j, j + 1), ldv)
-       end do
-    end if
+    IF (IAND(IFLAGS, IFLAG_PPROCV) .NE. 0) THEN
+       DO J = 1, N
+          IF (JVEC(J) .NE. 1) CALL DSCAL(N, DBLE(JVEC(J)), V(1,J), 1)
+       END DO
+       DO I = 1, N
+          IF (JVEC(I) .NE. 1) CALL DSCAL(N, DBLE(JVEC(I)), V(I,1), LDV)
+       END DO
+       DO J = 1, N-1
+          CALL DSWAP(N-J, V(J+1,J), 1, V(J,J+1), LDV)
+       END DO
+    END IF
 
-9   format (A,I2.2,A,I1.1)
-  end subroutine djksvd
-end module jk1
+9   FORMAT (A,I2.2,A,I1.1)
+  END SUBROUTINE DJKSVD
+END MODULE JK1

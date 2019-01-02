@@ -1,14 +1,14 @@
-pure subroutine dmkldm(m, lda)
-  implicit none
+PURE SUBROUTINE DMKLDM(M, LDA)
+  IMPLICIT NONE
 
-  integer, intent(in) :: m
-  integer, intent(out) :: lda
+  INTEGER, INTENT(IN) :: M
+  INTEGER, INTENT(OUT) :: LDA
 
-  integer :: r
+  INTEGER :: R
 
-  lda = m
-  if (m .lt. 0) return
+  LDA = M
+  IF (M .LT. 0) RETURN
 
-  r = mod(lda, 8)
-  if (r .ne. 0) lda = lda + (8 - r)
-end subroutine dmkldm
+  R = MOD(LDA, 8)
+  IF (R .NE. 0) LDA = LDA + (8 - R)
+END SUBROUTINE DMKLDM

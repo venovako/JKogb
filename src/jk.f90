@@ -1,363 +1,363 @@
-program jk
+PROGRAM JK
 #ifndef NDEBUG
-  use, intrinsic :: ieee_arithmetic
-  use, intrinsic :: ieee_features
+  USE, INTRINSIC :: IEEE_ARITHMETIC
+  USE, INTRINSIC :: IEEE_FEATURES
 #endif
-  use h5data
-  use jk1
+  USE H5DATA
+  USE JK1
 
-  implicit none
+  IMPLICIT NONE
 
-  integer, parameter :: arglen = 256
+  INTEGER, PARAMETER :: ARGLEN = 256
 
-  character(len=arglen) :: ah5f, ah5g, ah5r
-  integer :: iflags
+  CHARACTER(LEN=ARGLEN) :: AH5F, AH5G, AH5R
+  INTEGER :: IFLAGS
 
-  integer(hid_t) :: fid, gid
+  INTEGER(HID_T) :: FID, GID
 
-  integer :: idadim(idalen)
-  integer :: ldg, n, nrank, nplus
-  equivalence (idadim(1), ldg), (idadim(2), n), (idadim(3), nrank), (idadim(4), nplus)
-  integer :: ldu, ldv
+  INTEGER :: IDADIM(IDALEN)
+  INTEGER :: LDG, N, NRANK, NPLUS
+  EQUIVALENCE (IDADIM(1), LDG), (IDADIM(2), N), (IDADIM(3), NRANK), (IDADIM(4), NPLUS)
+  INTEGER :: LDU, LDV
 
-  double precision, dimension(:,:), allocatable :: G, Q, U, V
-  integer, dimension(:), allocatable :: jvec, ipl, invp
-  double precision, dimension(:), allocatable :: tau, work
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: G, Q, U, V
+  INTEGER, DIMENSION(:), ALLOCATABLE :: JVEC, IPL, INVP
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: TAU, WORK
 
-  double precision :: work1(1)
-  integer :: lwork, lenwrk, i
+  DOUBLE PRECISION :: WORK1(1)
+  INTEGER :: LWORK, LENWRK, I
 
-  character(len=1) :: uplo
-  double precision :: tol
-  integer :: nsweep, status
+  CHARACTER(LEN=1) :: UPLO
+  DOUBLE PRECISION :: TOL
+  INTEGER :: NSWEEP, STATUS
 
-  double precision :: Tstart, Tstop, Tcpu(timlen)
-  logical :: fexist
-  integer :: info(2)
+  DOUBLE PRECISION :: TSTART, TSTOP, TCPU(TIMLEN)
+  LOGICAL :: FEXIST
+  INTEGER :: INFO(2)
 
-  external :: dgeqrf, dgeqlf
-  external :: dorgqr, dorgql
-  external :: dlacpy, dlaset
-  external :: dgeqrfp, dscal
+  EXTERNAL :: DGEQRF, DGEQLF
+  EXTERNAL :: DORGQR, DORGQL
+  EXTERNAL :: DLACPY, DLASET
+  EXTERNAL :: DGEQRFP, DSCAL
 
   ! EXECUTABLE STATEMENTS
 
 #ifndef NDEBUG
-  call ieee_set_halting_mode(ieee_usual, .true.)
+  CALL IEEE_SET_HALTING_MODE(IEEE_USUAL, .TRUE.)
 #endif
 
-  Tcpu = ZERO
+  TCPU = ZERO
 
-  call readcl(ah5f, ah5g, ah5r, iflags, info)
-  if (info(1) .ne. 0) then
-     print *, info(1), info(2)
-     stop 'Error reading the command line!'
+  CALL READCL(AH5F, AH5G, AH5R, IFLAGS, INFO)
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1), INFO(2)
+     STOP 'Error reading the command line!'
+  END IF
+
+  INQUIRE(FILE=AH5F, EXIST=FEXIST)
+  IF (.NOT. FEXIST) STOP 'Input file does not exist!'
+
+  CALL H5OPEN_F(INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'HDF5 not initialized!'
+
+  CALL H5FOPEN_F(AH5F, H5F_ACC_RDONLY_F, FID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error opening the input file!'
+
+  CALL H5GOPEN_F(FID, AH5G, GID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error opening the input group!'
+
+  CALL READH0(GID, IDADIM, INFO)
+  IF (INFO(1) .NE. 0) STOP 'Error reading IDADIM!'
+
+  IF ((NPLUS .LT. 0) .OR. (NRANK .LE. 0) .OR. (N .LE. 0) .OR. (LDG .LE. 0)) STOP 'IDADIM invalid!'
+  IF ((NPLUS .GT. NRANK) .OR. (NRANK .GT. N) .OR. (N .GT. LDG)) STOP 'IDADIM inconsistent!'
+
+  CALL DMKLDM(N, LDU) ! LDU >= N
+  CALL DMKLDM(NRANK, LDV) ! LDV >= NRANK
+
+  ALLOCATE(G(LDG,NRANK))
+  ALLOCATE(JVEC(NRANK))
+
+  CALL READH1(GID, N, NRANK, G, LDG, JVEC, INFO)
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(2)
+     STOP 'Error reading the input data!'
   end if
+  IF (LDG .GT. N) CALL DLASET('A', LDG-N, NRANK, ZERO, ZERO, G(N+1,1), LDG)
 
-  inquire(file=ah5f, exist=fexist)
-  if (.not. fexist) stop 'Input file does not exist!'
+  IF (IAND(IFLAGS, IFLAG_INVGJP) .NE. 0) THEN
+     ALLOCATE(IPL(NRANK))
+     ALLOCATE(INVP(NRANK))
 
-  call h5open_f(info(1))
-  if (info(1) .ne. 0) stop 'HDF5 not initialized!'
+     CALL READH2(GID, NRANK, IPL, INVP, INFO)
+     IF (INFO(1) .NE. 0) THEN
+        PRINT *, INFO(2)
+        STOP 'Error reading the permutation data!'
+     END IF
+  END IF
 
-  call h5fopen_f(ah5f, H5F_ACC_RDONLY_F, fid, info(1))
-  if (info(1) .ne. 0) stop 'Error opening the input file!'
+  CALL H5GCLOSE_F(GID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error closing the input group!'
 
-  call h5gopen_f(fid, ah5g, gid, info(1))
-  if (info(1) .ne. 0) stop 'Error opening the input group!'
+  CALL H5FCLOSE_F(FID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error closing the input file!'
 
-  call readh0(gid, idadim, info)
-  if (info(1) .ne. 0) stop 'Error reading IDADIM!'
-
-  if ((nplus .lt. 0) .or. (nrank .le. 0) .or. (n .le. 0) .or. (ldg .le. 0)) stop 'IDADIM invalid!'
-  if ((nplus .gt. nrank) .or. (nrank .gt. n) .or. (n .gt. ldg)) stop 'IDADIM inconsistent!'
-
-  call dmkldm(n, ldu) ! ldu >= n
-  call dmkldm(nrank, ldv) ! ldv >= nrank
-
-  allocate(G(ldg, nrank))
-  allocate(jvec(nrank))
-
-  call readh1(gid, n, nrank, G, ldg, jvec, info)
-  if (info(1) .ne. 0) then
-     print *, info(2)
-     stop 'Error reading the input data!'
-  end if
-  if (ldg .gt. n) call dlaset('A', ldg - n, nrank, ZERO, ZERO, G(n + 1, 1), ldg)
-
-  if (iand(iflags, IFLAG_INVGJP) .ne. 0) then
-     allocate(ipl(nrank))
-     allocate(invp(nrank))
-
-     call readh2(gid, nrank, ipl, invp, info)
-     if (info(1) .ne. 0) then
-        print *, info(2)
-        stop 'Error reading the permutation data!'
-     end if
-  end if
-
-  call h5gclose_f(gid, info(1))
-  if (info(1) .ne. 0) stop 'Error closing the input group!'
-
-  call h5fclose_f(fid, info(1))
-  if (info(1) .ne. 0) stop 'Error closing the input file!'
-
-  if (iand(iflags, IFLAG_INVGJP) .ne. 0) then
-     call cpu_time(Tstart)
-     call invgjp(n, nrank, G, ldg, jvec, ipl, invp)
-     call cpu_time(Tstop)
+  IF (IAND(IFLAGS, IFLAG_INVGJP) .NE. 0) THEN
+     CALL CPU_TIME(TSTART)
+     CALL INVGJP(N, NRANK, G, LDG, JVEC, IPL, INVP)
+     CALL CPU_TIME(TSTOP)
      
-     deallocate(invp)
-     deallocate(ipl)
+     DEALLOCATE(INVP)
+     DEALLOCATE(IPL)
 
-     Tcpu(1) = Tstop - Tstart
-     print *, 'INVGJP=', Tcpu(1), 's.'
-  else
-     Tcpu(1) = ZERO
-  end if
+     TCPU(1) = TSTOP - TSTART
+     PRINT *, 'INVGJP=', TCPU(1), 's.'
+  ELSE
+     TCPU(1) = ZERO
+  END IF
 
-  allocate(Q(ldu, n))
-  if (ldu .gt. n) call dlaset('A', ldu - n, n, ZERO, ZERO, Q(n + 1, 1), ldu)
+  ALLOCATE(Q(LDU,N))
+  IF (LDU .GT. N) CALL DLASET('A', LDU-N, N, ZERO, ZERO, Q(N+1,1), LDU)
 
-  allocate(tau(max(1, min(n, nrank))))
+  ALLOCATE(TAU(MAX(1, MIN(N, NRANK))))
 
-  lwork = -1
-  lenwrk = 1
+  LWORK = -1
+  LENWRK = 1
 
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     call dgeqrfp(n, nrank, G, ldg, tau, work1, lwork, info(1))
-  else
-     call dgeqlf(n, nrank, G, ldg, tau, work1, lwork, info(1))
-  end if
-  if (info(1) .ne. 0) then
-     print *, info(1)
-     if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-        stop 'Error in workspace query for DGEQRFP!'
-     else
-        stop 'Error in workspace query for DGEQLF!'
-     end if
-  end if
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     CALL DGEQRFP(N, NRANK, G, LDG, TAU, WORK1, LWORK, INFO(1))
+  ELSE
+     CALL DGEQLF(N, NRANK, G, LDG, TAU, WORK1, LWORK, INFO(1))
+  END IF
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1)
+     IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+        STOP 'Error in workspace query for DGEQRFP!'
+     ELSE
+        STOP 'Error in workspace query for DGEQLF!'
+     END IF
+  END IF
 
-  lenwrk = max(lenwrk, max(1, ceiling(work1(1))))
+  LENWRK = MAX(LENWRK, MAX(1, CEILING(WORK1(1))))
 
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     call dorgqr(n, n, nrank, Q, ldu, tau, work1, lwork, info(1))
-  else
-     call dorgql(n, n, nrank, Q, ldu, tau, work1, lwork, info(1))
-  end if
-  if (info(1) .ne. 0) then
-     print *, info(1)
-     if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-        stop 'Error in workspace query for DORGQR!'
-     else
-        stop 'Error in workspace query for DORGQL!'
-     end if
-  end if
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     CALL DORGQR(N, N, NRANK, Q, LDU, TAU, WORK1, LWORK, INFO(1))
+  ELSE
+     CALL DORGQL(N, N, NRANK, Q, LDU, TAU, WORK1, LWORK, INFO(1))
+  END IF
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1)
+     IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+        STOP 'Error in workspace query for DORGQR!'
+     ELSE
+        STOP 'Error in workspace query for DORGQL!'
+     END IF
+  END IF
 
-  lenwrk = max(lenwrk, max(1, ceiling(work1(1))))
+  LENWRK = MAX(LENWRK, MAX(1, CEILING(WORK1(1))))
 
-  lwork = lenwrk
-  allocate(work(lwork))
+  LWORK = LENWRK
+  ALLOCATE(WORK(LWORK))
 
-  call cpu_time(Tstart)
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     call dgeqrfp(n, nrank, G, ldg, tau, work, lwork, info(1))
-  else
-     call dgeqlf(n, nrank, G, ldg, tau, work, lwork, info(1))
-  end if
-  if (info(1) .ne. 0) then
-     print *, info(1)
-     if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-        stop 'Error in DGEQRFP!'
-     else
-        stop 'Error in DGEQLF!'
-     end if
-  end if
-  call cpu_time(Tstop)
-  Tcpu(2) = Tstop - Tstart
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     print *, 'DGEQRFP=', Tcpu(2), 's.'
-  else
-     print *, 'DGEQLF=', Tcpu(2), 's.'
-  end if
+  CALL CPU_TIME(TSTART)
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     CALL DGEQRFP(N, NRANK, G, LDG, TAU, WORK, LWORK, INFO(1))
+  ELSE
+     CALL DGEQLF(N, NRANK, G, LDG, TAU, WORK, LWORK, INFO(1))
+  END IF
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1)
+     IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+        STOP 'Error in DGEQRFP!'
+     ELSE
+        STOP 'Error in DGEQLF!'
+     END IF
+  END IF
+  CALL CPU_TIME(TSTOP)
+  TCPU(2) = TSTOP - TSTART
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     PRINT *, 'DGEQRFP=', TCPU(2), 's.'
+  ELSE
+     PRINT *, 'DGEQLF=', TCPU(2), 's.'
+  END IF
 
-  call dlacpy('A', n, nrank, G, ldg, Q, ldu)
+  CALL DLACPY('A', N, NRANK, G, LDG, Q, LDU)
 
-  call cpu_time(Tstart)
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     call dorgqr(n, n, nrank, Q, ldu, tau, work, lwork, info(1))
-  else
-     call dorgql(n, n, nrank, Q, ldu, tau, work, lwork, info(1))
-  end if
-  if (info(1) .ne. 0) then
-     print *, info(1)
-     if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-        stop 'Error in DORGQR!'
-     else
-        stop 'Error in DORGQL!'
-     end if
-  end if
-  call cpu_time(Tstop)
-  Tcpu(3) = Tstop - Tstart
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     print *, 'DORGQR=', Tcpu(3), 's.'
-  else
-     print *, 'DORGQL=', Tcpu(3), 's.'
-  end if
+  CALL CPU_TIME(TSTART)
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     CALL DORGQR(N, N, NRANK, Q, LDU, TAU, WORK, LWORK, INFO(1))
+  ELSE
+     CALL DORGQL(N, N, NRANK, Q, LDU, TAU, WORK, LWORK, INFO(1))
+  END IF
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1)
+     IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+        STOP 'Error in DORGQR!'
+     ELSE
+        STOP 'Error in DORGQL!'
+     END IF
+  END IF
+  CALL CPU_TIME(TSTOP)
+  TCPU(3) = TSTOP - TSTART
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     PRINT *, 'DORGQR=', TCPU(3), 's.'
+  ELSE
+     PRINT *, 'DORGQL=', TCPU(3), 's.'
+  END IF
 
-  deallocate(work)
-  deallocate(tau)
+  DEALLOCATE(WORK)
+  DEALLOCATE(TAU)
 
-  if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-     uplo = 'U'
-     call dlaset('L', n - 1, nrank - 1, ZERO, ZERO, G(2, 1), ldg)
-  else
-     uplo = 'L'
-     call dlaset('U', n - 1, nrank - 1, ZERO, ZERO, G(1, 2), ldg)
-  end if
+  IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+     UPLO = 'U'
+     CALL DLASET('L', N-1, NRANK-1, ZERO, ZERO, G(2,1), LDG)
+  ELSE
+     UPLO = 'L'
+     CALL DLASET('U', N-1, NRANK-1, ZERO, ZERO, G(1,2), LDG)
+  END IF
 
-  do i = 1, nrank
-     if (G(i, i) .eq. ZERO) then
-        stop 'I refuse to work on a singular matrix!'
-     else if (G(i, i) .lt. ZERO) then
-        call dscal(n, MONE, Q(1, i), 1)
-        if (iand(iflags, IFLAG_DGEQRF) .ne. 0) then
-           call dscal(nrank - i + 1, MONE, G(i, i), ldg)
-        else
-           call dscal(i, MONE, G(i, 1), ldg)
-        end if
-     end if
-  end do
+  DO I = 1, NRANK
+     IF (G(I,I) .EQ. ZERO) THEN
+        STOP 'I refuse to work on a singular matrix!'
+     ELSE IF (G(I,I) .LT. ZERO) THEN
+        CALL DSCAL(N, MONE, Q(1,I), 1)
+        IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
+           CALL DSCAL(NRANK-I+1, MONE, G(I,I), LDG)
+        ELSE
+           CALL DSCAL(I, MONE, G(I,1), LDG)
+        END IF
+     END IF
+  END DO
 
-  allocate(U(ldu, n))
-  if (ldu .gt. n) call dlaset('A', ldu - n, n, ZERO, ZERO, U(n + 1, 1), ldu)
+  ALLOCATE(U(LDU,N))
+  IF (LDU .GT. N) CALL DLASET('A', LDU-N, N, ZERO, ZERO, U(N+1,1), LDU)
 
-  call dlaset('A', ldu, n, ZERO, ONE, U, ldu) ! U = I
+  CALL DLASET('A', LDU, N, ZERO, ONE, U, LDU) ! U = I
 
-  allocate(V(ldv, nrank))
-  if (ldv .gt. nrank) call dlaset('A', ldv - nrank, nrank, ZERO, ZERO, V(nrank + 1, 1), ldv)
+  ALLOCATE(V(LDV,NRANK))
+  IF (LDV .GT. NRANK) CALL DLASET('A', LDV-NRANK, NRANK, ZERO, ZERO, V(NRANK+1,1), LDV)
 
-  call dlaset('A', ldv, nrank, ZERO, ONE, V, ldv) ! V = I
+  CALL DLASET('A', LDV, NRANK, ZERO, ONE, V, LDV) ! V = I
 
-  inquire(file=ah5r, exist=fexist)
-  if (fexist) then
-     call h5fopen_f(ah5r, H5F_ACC_RDWR_F, fid, info(1))
-     if (info(1) .ne. 0) stop 'Error opening the output file!'
-  else
-     call h5fcreate_f(ah5r, H5F_ACC_TRUNC_F, fid, info(1))
-     if (info(1) .ne. 0) stop 'Error creating the output file!'
-  end if
+  INQUIRE(FILE=AH5R, EXIST=FEXIST)
+  IF (FEXIST) THEN
+     CALL H5FOPEN_F(AH5R, H5F_ACC_RDWR_F, FID, INFO(1))
+     IF (INFO(1) .NE. 0) STOP 'Error opening the output file!'
+  ELSE
+     CALL H5FCREATE_F(AH5R, H5F_ACC_TRUNC_F, FID, INFO(1))
+     IF (INFO(1) .NE. 0) STOP 'Error creating the output file!'
+  END IF
 
-  tol = epsilon(ONE)
-  nsweep = 30
-  call cpu_time(Tstart)
-  call djksvd(uplo, n, nrank, G, ldg, U, ldu, V, ldv, jvec, nplus, tol, nsweep, iflags, info)
-  call cpu_time(Tstop)
-  if (info(1) .ne. 0) then
-     print *, info(1), info(2)
-     print *, 'Error in DJKSVD!'
-  end if
-  Tcpu(4) = Tstop - Tstart
-  print *, 'DJKSVD=', Tcpu(4), 's.'
-  status = info(2)
-  print *, 'DJKSVD:', status
+  TOL = EPSILON(ONE)
+  NSWEEP = 30
+  CALL CPU_TIME(TSTART)
+  CALL DJKSVD(UPLO, N, NRANK, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, NSWEEP, IFLAGS, INFO)
+  CALL CPU_TIME(TSTOP)
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(1), INFO(2)
+     PRINT *, 'Error in DJKSVD!'
+  END IF
+  TCPU(4) = TSTOP - TSTART
+  PRINT *, 'DJKSVD=', TCPU(4), 's.'
+  STATUS = INFO(2)
+  PRINT *, 'DJKSVD:', STATUS
 
-  call h5gcreate_f(fid, ah5g, gid, info(1))
-  if (info(1) .ne. 0) stop 'Error creating the output group!'
+  CALL H5GCREATE_F(FID, AH5G, GID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error creating the output group!'
 
-  call dumph5(gid, n, nrank, G, ldg, jvec, nplus, U, ldu, V, ldv, Q, ldu, tol, iflags, status, Tcpu, info)
-  if (info(1) .ne. 0) then
-     print *, info(2)
-     stop 'Error dumping output file!'
-  end if
+  CALL DUMPH5(GID, N, NRANK, G, LDG, JVEC, NPLUS, U, LDU, V, LDV, Q, LDU, TOL, IFLAGS, STATUS, TCPU, INFO)
+  IF (INFO(1) .NE. 0) THEN
+     PRINT *, INFO(2)
+     STOP 'Error dumping output file!'
+  END IF
 
-  deallocate(V)
-  deallocate(U)
-  deallocate(Q)
-  deallocate(jvec)
-  deallocate(G)
+  DEALLOCATE(V)
+  DEALLOCATE(U)
+  DEALLOCATE(Q)
+  DEALLOCATE(JVEC)
+  DEALLOCATE(G)
 
-  call h5gclose_f(gid, info(1))
-  if (info(1) .ne. 0) stop 'Error closing the output group!'
+  CALL H5GCLOSE_F(GID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error closing the output group!'
 
-  call h5fclose_f(fid, info(1))
-  if (info(1) .ne. 0) stop 'Error closing the output file!'
+  CALL H5FCLOSE_F(FID, INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error closing the output file!'
 
-  call h5close_f(info(1))
-  if (info(1) .ne. 0) stop 'Error shutting down HDF5!'
+  CALL H5CLOSE_F(INFO(1))
+  IF (INFO(1) .NE. 0) STOP 'Error shutting down HDF5!'
 
 #ifndef NDEBUG
-  stop 'jk.exe successfully terminated.'
+  STOP 'jk.exe successfully terminated.'
 #endif
 
-contains
+CONTAINS
 
-  include 'dmkldm.f90'
-  include 'invgjp.f90'
+  INCLUDE 'dmkldm.f90'
+  INCLUDE 'invgjp.f90'
 
-  subroutine readcl(ah5f, ah5g, ah5r, iflags, info)
-    implicit none
+  SUBROUTINE READCL(AH5F, AH5G, AH5R, IFLAGS, INFO)
+    IMPLICIT NONE
 
-    integer, parameter :: argcnt = 4
+    INTEGER, PARAMETER :: ARGCNT = 4
 
-    character(len=arglen), intent(out) :: ah5f, ah5g, ah5r
-    integer, intent(out) :: iflags, info(2)
+    CHARACTER(LEN=ARGLEN), INTENT(OUT) :: AH5F, AH5G, AH5R
+    INTEGER, INTENT(OUT) :: IFLAGS, INFO(2)
 
-    character(len=arglen) :: argstr
-    integer :: length
+    CHARACTER(LEN=ARGLEN) :: ARGSTR
+    INTEGER :: LENGTH
 
-    info(1) = command_argument_count()
-    if ((info(1) .lt. 0) .or. (info(1) .gt. argcnt)) stop 'jk.exe H5F H5G H5R IFLAGS'
+    INFO(1) = COMMAND_ARGUMENT_COUNT()
+    IF ((INFO(1) .LT. 0) .OR. (INFO(1) .GT. ARGCNT)) STOP 'jk.exe H5F H5G H5R IFLAGS'
 
-    if (info(1) .ge. 1) then
-       call get_command_argument(1, argstr, length, info(2))
-       if (info(2) .ne. 0) then
-          info(1) = -1
-          return
-       end if
-    else
-       print *, 'H5F (input file):'
-       read *, argstr
-    end if
-    ah5f = trim(argstr)
+    IF (INFO(1) .GE. 1) THEN
+       CALL GET_COMMAND_ARGUMENT(1, ARGSTR, LENGTH, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) = -1
+          RETURN
+       END IF
+    ELSE
+       PRINT *, 'H5F (input file):'
+       READ *, ARGSTR
+    END IF
+    AH5F = TRIM(ARGSTR)
 
-    if (info(1) .ge. 2) then
-       call get_command_argument(2, argstr, length, info(2))
-       if (info(2) .ne. 0) then
-          info(1) = -2
-          return
-       end if
-    else
-       print *, 'H5G (input/output group):'
-       read *, argstr
-    end if
-    ah5g = trim(argstr)
+    IF (INFO(1) .GE. 2) THEN
+       CALL GET_COMMAND_ARGUMENT(2, ARGSTR, LENGTH, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) = -2
+          RETURN
+       END IF
+    ELSE
+       PRINT *, 'H5G (input/output group):'
+       READ *, ARGSTR
+    END IF
+    AH5G = TRIM(ARGSTR)
 
-    if (info(1) .ge. 3) then
-       call get_command_argument(3, argstr, length, info(2))
-       if (info(2) .ne. 0) then
-          info(1) = -3
-          return
-       end if
-    else
-       print *, 'H5R (output file):'
-       read *, argstr
-    end if
-    ah5r = trim(argstr)
+    IF (INFO(1) .GE. 3) THEN
+       CALL GET_COMMAND_ARGUMENT(3, ARGSTR, LENGTH, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) = -3
+          RETURN
+       END IF
+    ELSE
+       PRINT *, 'H5R (output file):'
+       READ *, ARGSTR
+    END IF
+    AH5R = TRIM(ARGSTR)
 
-    if (info(1) .ge. 4) then
-       call get_command_argument(4, argstr, length, info(2))
-       if (info(2) .ne. 0) then
-          info(1) = -4
-          return
-       end if
-    else
-       print *, 'IFLAGS:'
-       read *, argstr
-    end if
-    read (argstr, *) iflags
+    IF (INFO(1) .GE. 4) THEN
+       CALL GET_COMMAND_ARGUMENT(4, ARGSTR, LENGTH, INFO(2))
+       IF (INFO(2) .NE. 0) THEN
+          INFO(1) = -4
+          RETURN
+       END IF
+    ELSE
+       PRINT *, 'IFLAGS:'
+       READ *, ARGSTR
+    END IF
+    READ (ARGSTR,*) IFLAGS
 
-    info(2) = info(1) - argcnt
-    info(1) = 0
-  end subroutine readcl
-end program jk
+    INFO(2) = INFO(1) - ARGCNT
+    INFO(1) = 0
+  END SUBROUTINE READCL
+END PROGRAM JK
