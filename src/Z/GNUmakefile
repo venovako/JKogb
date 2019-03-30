@@ -23,7 +23,7 @@ libjkz.a: binio.o blas_utils.o params.o timer.o $(MKFS)
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c binio.F90
 
-blas_utils.o blas_utils.mod: blas_utils.F90 blas_zrotm_xx.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
+blas_utils.o blas_utils.mod: blas_utils.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c blas_utils.F90
 
 params.o params.mod: params.F90 $(MKFS)
