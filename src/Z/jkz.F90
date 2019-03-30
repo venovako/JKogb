@@ -1,4 +1,6 @@
 PROGRAM JKZ
   IMPLICIT NONE
 CONTAINS
+#include "readcl.F90"
+#include "bio.F90"
 END PROGRAM JKZ
