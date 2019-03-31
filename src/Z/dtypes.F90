@@ -26,31 +26,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION PQI(P, Q)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: P, Q
-    INTEGER :: PQI
-
-    IF ((Q .LT. 2) .OR. (P .LT. 1) .OR. (P .GE. Q)) THEN
-       PQI = 0
-    ELSE
-       PQI = ((Q - 2) * (Q - 1)) / 2 + P
-    END IF
-  END FUNCTION PQI
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE FUNCTION AMAG1(APP, AQP, APQ, AQQ, JP, JQ)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
-    INTEGER, INTENT(IN) :: JP, JQ
-    REAL(KIND=DWP) :: AMAG1
-
-    AMAG1 = ABS(AQP) + ABS(APQ)
-  END FUNCTION AMAG1
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE SUBROUTINE DZBW_GEN(APP, AQP, APQ, AQQ, JP, JQ, P, Q, AM, DZ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
@@ -232,8 +207,6 @@ CONTAINS
        S(I) = 0
     END DO
   END SUBROUTINE DZBW_NCP
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
