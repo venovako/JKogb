@@ -31,48 +31,76 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_STEP(N, A, LDA, J, AM, DZ, S, INFO)
+  SUBROUTINE INIT_TRIU(N, P, Q, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, LDA, J(N)
+    INTEGER, INTENT(IN) :: N
+    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), INFO
+
+    INTEGER :: IP, IQ, I
+
+    IF (N .LT. 0) THEN
+       INFO = -1
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+    IF (N .LE. 1) RETURN
+
+    INFO = (N * (N - 1)) / 2
+
+    I = 1
+    DO IQ = 2, N
+       DO IP = 1, IQ-1
+          P(I) = IP
+          Q(I) = IQ
+          I = I + 1
+       END DO
+    END DO
+  END SUBROUTINE INIT_TRIU
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE BUILD_STEP(N, A, LDA, J, NN, P, Q, AM, DZ, N_2, S, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     PROCEDURE(AMAG) :: AM
-    TYPE(DZBW), INTENT(OUT), TARGET :: DZ((N*(N-1))/2)
-    INTEGER, INTENT(OUT) :: S(N/2), INFO
+    TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
+    INTEGER, INTENT(OUT) :: S(N_2), INFO
 
-    INTEGER :: NN, N_2, P, Q, I
+    INTEGER :: IP, IQ, I
 
     IF (N .LT. 0) THEN
        INFO = -1
     ELSE IF (LDA .LT. N) THEN
        INFO = -3
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -5
+    ELSE IF (NN .GT. ((N * (N - 1)) / 2)) THEN
+       INFO = -5
+    ELSE IF (N_2 .LT. 0) THEN
+       INFO = -10
+    ELSE IF (N_2 .GT. (N / 2)) THEN
+       INFO = -10
     ELSE
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
     IF (N .EQ. 0) RETURN
+    IF (NN .EQ. 0) RETURN
+    IF (N_2 .EQ. 0) RETURN
 
-    I = 1
-    DO Q = 2, N
-       DO P = 1, Q-1
-          DZ(I)%P = P
-          DZ(I)%Q = Q
-          I = I + 1
-       END DO
-    END DO
-
-    NN = (N * (N - 1)) / 2
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(P,Q,I) SHARED(N,A,J,DZ)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,A,J,P,Q,DZ)
     DO I = 1, NN
-       P = DZ(I)%P
-       Q = DZ(I)%Q
-       CALL DZBW_GEN(A(P,P), A(Q,P), A(P,Q), A(Q,Q), J(P), J(Q), P, Q, AM, DZ(I))
+       IP = P(I)
+       IQ = Q(I)
+       CALL DZBW_GEN(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ), IP, IQ, AM, DZ(I))
     END DO
     !$OMP END PARALLEL DO
 
     CALL DZBW_SRT(NN, DZ, INFO)
     IF (INFO .NE. 0) RETURN
 
-    N_2 = N / 2
     CALL DZBW_NCP(NN, DZ, N_2, S, INFO)
   END SUBROUTINE BUILD_STEP
 
