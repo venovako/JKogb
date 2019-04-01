@@ -22,7 +22,27 @@ MODULE DTYPES
      END FUNCTION AMAG
   END INTERFACE
 
+  TYPE MAXSAM
+     INTEGER :: MAXS
+     PROCEDURE(AMAG), POINTER, NOPASS :: AM
+  END TYPE MAXSAM
+
 CONTAINS
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE DZBW_OUT(OU, DZ)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: OU
+    TYPE(DZBW), INTENT(IN) :: DZ
+
+    IF (OU .GE. 0) THEN
+       WRITE (UNIT=OU,FMT=1) '{ ', DZ%W, ', ', DZ%P, ', ', DZ%Q, ', ', DZ%B, ' }'
+    ELSE ! OU < 0
+       WRITE (UNIT=-OU,FMT=1,ADVANCE='NO') '{ ', DZ%W, ', ', DZ%P, ', ', DZ%Q, ', ', DZ%B, ' }'
+    END IF
+1   FORMAT(A,ES25.17E3,A,I11,A,I11,A,I11,A)
+  END SUBROUTINE DZBW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

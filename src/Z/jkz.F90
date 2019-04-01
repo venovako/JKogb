@@ -1,5 +1,113 @@
 PROGRAM JKZ
+  USE BINIO
+  USE BLAS_UTILS
+  USE JSTEP
   IMPLICIT NONE
+
+  CHARACTER(LEN=FNL,KIND=c_char) :: FN
+  INTEGER :: N, N_2, ID, INFO, NN, SZ(3), FD(3)
+  TYPE(MAXSAM) :: AMS
+
+  COMPLEX(KIND=DWP), ALLOCATABLE, TARGET :: ZARR(:,:)
+  COMPLEX(KIND=DWP), POINTER, CONTIGUOUS :: A(:,:), U(:,:), Z(:,:)
+  REAL(KIND=DWP), ALLOCATABLE, TARGET :: DARR(:)
+  REAL(KIND=DWP), POINTER, CONTIGUOUS :: SA(:)
+  INTEGER, ALLOCATABLE, TARGET :: IARR(:)
+  INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), R(:), S(:)
+  TYPE(DZBW), ALLOCATABLE, TARGET :: DZ(:)
+  
+  CALL READCL(FN, N, N_2, ID, INFO)
+  IF (INFO .NE. 0) STOP 'jkz.exe FN N N_2 ID'
+#ifndef NDEBUG
+  WRITE (ULOG,'(A,A)')   '  FN=', TRIM(FN)
+  WRITE (ULOG,'(A,I11)') '   N=', N
+  WRITE (ULOG,'(A,I11)') ' N_2=', N_2
+  WRITE (ULOG,'(A,I11)') '  ID=', ID
+#endif
+  IF (N .LE. 1) STOP 'N < 2'
+
+  CALL BOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     STOP 'BOPEN_YJ_RO'
+  END IF
+
+  ALLOCATE(ZARR(N, 3 * N))
+#ifndef NDEBUG
+  !DIR$ VECTOR ALWAYS
+  ZARR = Z_ZERO
+#endif
+  A => ZARR(:,1:N)
+  U => ZARR(:,N+1:2*N)
+  Z => ZARR(:,2*N+1:3*N)
+
+  ALLOCATE(DARR(N))
+#ifndef NDEBUG
+  !DIR$ VECTOR ALWAYS
+  DARR = D_ZERO
+#endif
+  SA => DARR(1:N)
+
+  ALLOCATE(IARR(N * (N + 1)))
+#ifndef NDEBUG
+  !DIR$ VECTOR ALWAYS
+  IARR = 0
+#endif
+  NN = (N * (N - 1)) / 2
+  INFO = (N / 2) + MOD(N, 2)
+  J => IARR(1:N)
+  P => IARR(N+1:NN+N)
+  Q => IARR(NN+N+1:2*NN+N)
+  R => IARR(2*NN+N+1:2*NN+N+INFO)
+  S => IARR(2*NN+N+INFO+1:2*NN+N+2*INFO)
+
+  ALLOCATE(DZ(NN))
+
+  CALL BREAD_YJ(FD, A, J, N, N, SZ, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     STOP 'BREAD_YJ'
+  END IF
+  CALL BCLOSEN(FD, 3)
+
+  CALL INIT_JSTEP(N, N_2, ID, AMS, P, Q, INFO)
+  IF (INFO .NE. NN) THEN
+     WRITE (ULOG, '(A,I11)') 'INFO=', INFO
+     STOP 'INIT_JSTEP'
+  END IF
+#ifndef NDEBUG
+  WRITE (ULOG,'(A,I11)') '  NN=', NN
+  WRITE (ULOG,'(A,I11)') ' N_2=', N_2
+  WRITE (ULOG,'(A,I11)') '  ID=', ID
+#endif
+
+  INFO = BLAS_PREPARE()
+
+!   CALL BUILD_STEP(N, A, N, J, NN, P, Q, AMS%AM, DZ, N_2, S, INFO)
+!   IF (INFO .NE. N_2) THEN
+!      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+!      STOP 'BUILD_STEP'
+!   END IF
+! #ifndef NDEBUG
+!   DO INFO = 1, N_2
+!      WRITE (ULOG,'(I11,A)',ADVANCE='NO') INFO, '='
+!      CALL DZBW_OUT(ULOG, DZ(INFO))
+!   END DO
+! #endif
+
+  IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
+  S => NULL()
+  R => NULL()
+  Q => NULL()
+  P => NULL()
+  J => NULL()
+  IF (ALLOCATED(IARR)) DEALLOCATE(IARR)
+  SA => NULL()
+  IF (ALLOCATED(DARR)) DEALLOCATE(DARR)
+  Z => NULL()
+  U => NULL()
+  A => NULL()
+  IF (ALLOCATED(ZARR)) DEALLOCATE(ZARR)
 CONTAINS
 #include "readcl.F90"
 #include "bio.F90"

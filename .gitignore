@@ -27,3 +27,15 @@
 *.exe
 *.out
 *.app
+
+# Debug
+*.dSYM
+
+# Input
+*.Y
+*.J
+
+# Output
+*.YU
+*.SY
+*.Z

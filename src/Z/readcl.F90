@@ -1,0 +1,70 @@
+SUBROUTINE READCL(FN, N, N_2, ID, INFO)
+  IMPLICIT NONE
+  CHARACTER(LEN=*,KIND=c_char), INTENT(OUT) :: FN
+  INTEGER, INTENT(OUT) :: N, N_2, ID, INFO
+
+  CHARACTER(LEN=FNL) :: ARG
+  INTEGER :: ARGC, TMP
+
+  ARGC = COMMAND_ARGUMENT_COUNT()
+  IF (ARGC .LT. 2) THEN
+     INFO = -5
+  ELSE IF (ARGC .GT. 4) THEN
+     INFO = 5
+  ELSE
+     INFO = 0
+  END IF
+  IF (INFO .NE. 0) RETURN
+
+  CALL GET_COMMAND_ARGUMENT(1, ARG, TMP, INFO)
+  IF (INFO .NE. 0) THEN
+     INFO = -1
+     RETURN
+  END IF
+  FN = TRIM(ARG)
+  IF (LEN_TRIM(FN) .LE. 0) THEN
+     INFO = 1
+     RETURN
+  END IF
+
+  CALL GET_COMMAND_ARGUMENT(2, ARG, TMP, INFO)
+  IF (INFO .NE. 0) THEN
+     INFO = -2
+     RETURN
+  END IF
+  READ (ARG,*) N
+  IF (N .LT. 0) THEN
+     INFO = 2
+     RETURN
+  END IF
+
+  IF (ARGC .GE. 3) THEN
+     CALL GET_COMMAND_ARGUMENT(3, ARG, TMP, INFO)
+     IF (INFO .NE. 0) THEN
+        INFO = -3
+        RETURN
+     END IF
+     READ (ARG,*) N_2
+     IF (N_2 .LT. 0) THEN
+        INFO = 3
+        RETURN
+     END IF
+  ELSE
+     N_2 = 0
+  END IF
+
+  IF (ARGC .GE. 4) THEN
+     CALL GET_COMMAND_ARGUMENT(4, ARG, TMP, INFO)
+     IF (INFO .NE. 0) THEN
+        INFO = -4
+        RETURN
+     END IF
+     READ (ARG,*) ID
+     IF (ID .LE. 0) THEN
+        INFO = 4
+        RETURN
+     END IF
+  ELSE
+     ID = 0
+  END IF
+END SUBROUTINE READCL

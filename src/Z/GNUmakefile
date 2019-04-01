@@ -39,9 +39,9 @@ timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c timer.F90
 
 jkz.exe: jkz.o libjkz.a ../../../JACSD/libvn.a $(MKFS)
-	$(FC) $(FFLAGS) jkz.o -o$@ -L../../../JACSD -lvn $(LDFLAGS)
+	$(FC) $(FFLAGS) jkz.o -o$@ -L. -ljkz -L../../../JACSD -lvn $(LDFLAGS)
 
-jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod dtypes.mod params.mod timer.mod $(MKFS)
+jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod dtypes.mod jstep.mod params.mod timer.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jkz.F90
 
 clean:

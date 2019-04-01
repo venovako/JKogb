@@ -2,6 +2,8 @@ MODULE JSTEP
   USE DTYPES
   IMPLICIT NONE
 
+  INTEGER, PARAMETER :: AMAG_CNT = 1
+
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -31,7 +33,57 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE INIT_TRIU(N, P, Q, INFO)
+  PURE SUBROUTINE INIT_AMAG(N, N_2, ID, AMS, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, N_2, ID
+    TYPE(MAXSAM), INTENT(OUT) :: AMS
+    INTEGER, INTENT(OUT) :: INFO
+
+    INTEGER :: MAX_N_2
+
+    IF (N .LT. 0) THEN
+       INFO = -1
+    ELSE ! N >= 0
+       MAX_N_2 = N / 2
+       IF (N_2 .LT. 0) THEN
+          INFO = -2
+       ELSE IF (N_2 .GT. MAX_N_2) THEN
+          INFO = -2
+       ELSE IF (ID .LT. 0) THEN
+          INFO = -3
+       ELSE IF (ID .GT. AMAG_CNT) THEN
+          INFO = -3
+       ELSE
+          INFO = 0
+       END IF
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    IF (N_2 .EQ. 0) THEN
+       AMS%MAXS = MAX_N_2
+    ELSE
+       AMS%MAXS = N_2
+    END IF
+
+    IF (ID .EQ. 0) THEN
+       INFO = 1
+    ELSE
+       INFO = ID
+    END IF
+
+    SELECT CASE (INFO)
+    CASE (1)
+       AMS%AM => AMAG1
+    CASE DEFAULT
+       ! should never happen
+       AMS%AM => NULL()
+       INFO = -3
+    END SELECT
+  END SUBROUTINE INIT_AMAG
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE INIT_TRIU(N, P, Q, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N
     INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), INFO
@@ -57,6 +109,24 @@ CONTAINS
        END DO
     END DO
   END SUBROUTINE INIT_TRIU
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE INIT_JSTEP(N, N_2, ID, AMS, P, Q, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N
+    INTEGER, INTENT(INOUT) :: N_2, ID
+    TYPE(MAXSAM), INTENT(OUT) :: AMS
+    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), INFO
+
+    CALL INIT_AMAG(N, N_2, ID, AMS, INFO)
+    IF (INFO .LE. 0) RETURN
+
+    N_2 = AMS%MAXS
+    ID = INFO
+
+    CALL INIT_TRIU(N, P, Q, INFO)
+  END SUBROUTINE INIT_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
