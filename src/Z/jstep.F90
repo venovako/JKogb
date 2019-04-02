@@ -33,53 +33,44 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE INIT_AMAG(N, N_2, ID, AMS, INFO)
+  PURE SUBROUTINE AMP_INIT(ID, AM, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, N_2, ID
-    TYPE(MAXSAM), INTENT(OUT) :: AMS
+    INTEGER, INTENT(IN) :: ID
+    TYPE(AMP), INTENT(OUT) :: AM
     INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: MAX_N_2
-
-    IF (N .LT. 0) THEN
+    IF (ID .LT. 0) THEN
        INFO = -1
-    ELSE ! N >= 0
-       MAX_N_2 = N / 2
-       IF (N_2 .LT. 0) THEN
-          INFO = -2
-       ELSE IF (N_2 .GT. MAX_N_2) THEN
-          INFO = -2
-       ELSE IF (ID .LT. 0) THEN
-          INFO = -3
-       ELSE IF (ID .GT. AMAG_CNT) THEN
-          INFO = -3
-       ELSE
-          INFO = 0
-       END IF
-    END IF
-    IF (INFO .NE. 0) RETURN
-
-    IF (N_2 .EQ. 0) THEN
-       AMS%MAXS = MAX_N_2
-    ELSE
-       AMS%MAXS = N_2
-    END IF
-
-    IF (ID .EQ. 0) THEN
+    ELSE IF (ID .EQ. 0) THEN
        INFO = 1
     ELSE
        INFO = ID
     END IF
+    IF (INFO .LE. 0) RETURN
 
     SELECT CASE (INFO)
     CASE (1)
-       AMS%AM => AMAG1
+       AM%AM => AMAG1
     CASE DEFAULT
        ! should never happen
-       AMS%AM => NULL()
-       INFO = -3
+       AM%AM => NULL()
+       INFO = 0
     END SELECT
-  END SUBROUTINE INIT_AMAG
+  END SUBROUTINE AMP_INIT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE FUNCTION JSTEP_LEN(N, N_2)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, N_2
+    INTEGER :: JSTEP_LEN
+
+    IF (N_2 .EQ. 0) THEN
+       JSTEP_LEN = MAX((N / 2), 0)
+    ELSE
+       JSTEP_LEN = MIN(MAX(N_2, 0), (N / 2))
+    END IF
+  END FUNCTION JSTEP_LEN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -112,25 +103,29 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE INIT_JSTEP(N, N_2, ID, AMS, P, Q, INFO)
+  PURE SUBROUTINE INIT_JSTEP(N, N_2, ID, AM, P, Q, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N
     INTEGER, INTENT(INOUT) :: N_2, ID
-    TYPE(MAXSAM), INTENT(OUT) :: AMS
-    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), INFO
+    TYPE(AMP), INTENT(OUT) :: AM
+    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), STEP(*), INFO
 
-    CALL INIT_AMAG(N, N_2, ID, AMS, INFO)
+    N_2 = JSTEP_LEN(N, N_2)
+    CALL AMP_INIT(ID, AM, INFO)
     IF (INFO .LE. 0) RETURN
-
-    N_2 = AMS%MAXS
     ID = INFO
+
+    !DIR$ VECTOR ALWAYS
+    DO INFO = 1, N_2
+       STEP(INFO) = 0
+    END DO
 
     CALL INIT_TRIU(N, P, Q, INFO)
   END SUBROUTINE INIT_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_STEP(N, A, LDA, J, NN, P, Q, AM, DZ, N_2, S, INFO)
+  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, AM, DZ, N_2, S, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -172,7 +167,7 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     CALL DZBW_NCP(NN, DZ, N_2, S, INFO)
-  END SUBROUTINE BUILD_STEP
+  END SUBROUTINE BUILD_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -3,15 +3,6 @@ MODULE DTYPES
   USE VN_SORT_F
   IMPLICIT NONE
 
-  TYPE, BIND(C) :: DZBW
-     ! W = |A_pq|+|A_qp|
-     REAL(KIND=DWP) :: W ! weight
-     INTEGER :: P ! row * sign(J_p)
-     INTEGER :: Q ! column * sign(J_q)
-     ! |B| = |Q| - |P| > 0
-     INTEGER :: B ! band * sign(J_p) * sign(J_q)
-  END TYPE DZBW
-
   ABSTRACT INTERFACE
      PURE FUNCTION AMAG(APP, AQP, APQ, AQQ, JP, JQ)
        USE PARAMS
@@ -22,10 +13,18 @@ MODULE DTYPES
      END FUNCTION AMAG
   END INTERFACE
 
-  TYPE MAXSAM
-     INTEGER :: MAXS
+  TYPE AMP
      PROCEDURE(AMAG), POINTER, NOPASS :: AM
-  END TYPE MAXSAM
+  END TYPE AMP
+
+  TYPE, BIND(C) :: DZBW
+     ! W = |A_pq|+|A_qp|
+     REAL(KIND=DWP) :: W ! weight
+     INTEGER :: P ! row * sign(J_p)
+     INTEGER :: Q ! column * sign(J_q)
+     ! |B| = |Q| - |P| > 0
+     INTEGER :: B ! band * sign(J_p) * sign(J_q)
+  END TYPE DZBW
 
 CONTAINS
 
