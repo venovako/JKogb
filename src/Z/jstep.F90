@@ -51,9 +51,11 @@ CONTAINS
     SELECT CASE (INFO)
     CASE (1)
        AM%AM => AMAG1
+       AM%DESC = 'AMAG1'
     CASE DEFAULT
        ! should never happen
        AM%AM => NULL()
+       AM%DESC = 'UNKNOWN!'
        INFO = 0
     END SELECT
   END SUBROUTINE AMP_INIT
@@ -74,15 +76,17 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE INIT_TRIU(N, P, Q, INFO)
+  PURE SUBROUTINE INIT_TRIU(N, P, Q, NN, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N
-    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), INFO
+    INTEGER, INTENT(IN) :: N, NN
+    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
 
     INTEGER :: IP, IQ, I
 
     IF (N .LT. 0) THEN
        INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -4
     ELSE
        INFO = 0
     END IF
@@ -94,34 +98,13 @@ CONTAINS
     I = 1
     DO IQ = 2, N
        DO IP = 1, IQ-1
+          IF (I .GT. NN) RETURN
           P(I) = IP
           Q(I) = IQ
           I = I + 1
        END DO
     END DO
   END SUBROUTINE INIT_TRIU
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE INIT_JSTEP(N, N_2, ID, AM, P, Q, STEP, INFO)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N
-    INTEGER, INTENT(INOUT) :: N_2, ID
-    TYPE(AMP), INTENT(OUT) :: AM
-    INTEGER, INTENT(OUT) :: P((N*(N-1))/2), Q((N*(N-1))/2), STEP(*), INFO
-
-    N_2 = JSTEP_LEN(N, N_2)
-    CALL AMP_INIT(ID, AM, INFO)
-    IF (INFO .LE. 0) RETURN
-    ID = INFO
-
-    !DIR$ VECTOR ALWAYS
-    DO INFO = 1, N_2
-       STEP(INFO) = 0
-    END DO
-
-    CALL INIT_TRIU(N, P, Q, INFO)
-  END SUBROUTINE INIT_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

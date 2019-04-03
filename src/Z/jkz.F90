@@ -26,6 +26,21 @@ PROGRAM JKZ
 #endif
   IF (N .LE. 1) STOP 'N < 2'
 
+  INFO = JSTEP_LEN(N, N_2)
+  N_2 = INFO
+#ifndef NDEBUG
+  WRITE (ULOG,'(A,I11)') '_N_2=', N_2
+#endif
+  IF (INFO .LE. 0) STOP 'JSTEP_LEN'
+
+  CALL AMP_INIT(ID, AM, INFO)
+  ID = INFO
+#ifndef NDEBUG
+  WRITE (ULOG,'(A,I11)') ' _ID=', ID
+  WRITE (ULOG,'(A,A)') 'DESC=', TRIM(AM%DESC)
+#endif
+  IF (INFO .LE. 0) STOP 'AMP_INIT'
+
   CALL BOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
@@ -48,8 +63,7 @@ PROGRAM JKZ
 #endif
   S => DARR(1:N)
 
-  INFO = N / 2
-  ALLOCATE(IARR(N * N + INFO))
+  ALLOCATE(IARR(N * N + N_2))
 #ifndef NDEBUG
   !DIR$ VECTOR ALWAYS
   IARR = 0
@@ -58,9 +72,18 @@ PROGRAM JKZ
   J => IARR(1:N)
   P => IARR(N+1:NN+N)
   Q => IARR(NN+N+1:2*NN+N)
-  STEP => IARR(2*NN+N+1:2*NN+N+INFO)
+  STEP => IARR(2*NN+N+1:2*NN+N+N_2)
 
   ALLOCATE(DZ(NN))
+#ifndef NDEBUG
+  !DIR$ VECTOR ALWAYS
+  DO INFO = 1, NN
+     DZ(INFO)%W = D_ZERO
+     DZ(INFO)%P = 0
+     DZ(INFO)%Q = 0
+     DZ(INFO)%B = 0
+  END DO
+#endif
 
   CALL BREAD_YJ(FD, A, J, N, N, SZ, INFO)
   IF (INFO .NE. 0) THEN
@@ -69,15 +92,13 @@ PROGRAM JKZ
   END IF
   CALL BCLOSEN(FD, 3)
 
-  CALL INIT_JSTEP(N, N_2, ID, AM, P, Q, STEP, INFO)
+  CALL INIT_TRIU(N, P, Q, NN, INFO)
   IF (INFO .NE. NN) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'INIT_JSTEP'
+     STOP 'INIT_TRIU'
   END IF
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') '  NN=', NN
-  WRITE (ULOG,'(A,I11)') ' N_2=', N_2
-  WRITE (ULOG,'(A,I11)') '  ID=', ID
 #endif
 
   INFO = BLAS_PREPARE()
