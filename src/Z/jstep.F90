@@ -117,13 +117,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, S, INFO)
+  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(AMC), INTENT(IN) :: R
     TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
-    INTEGER, INTENT(OUT) :: S(N_2), INFO
+    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: IP, IQ, I
 
@@ -154,7 +154,7 @@ CONTAINS
     CALL DZBW_SORT(NN, DZ, R%CMP, INFO)
     IF (INFO .NE. 0) RETURN
 
-    CALL DZBW_NCP(NN, DZ, N_2, S, INFO)
+    CALL DZBW_NCP(NN, DZ, N_2, STEP, INFO)
   END SUBROUTINE BUILD_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
