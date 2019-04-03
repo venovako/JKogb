@@ -214,7 +214,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_SRT(NN, A, CMP, INFO)
+  SUBROUTINE DZBW_SORT(NN, A, CMP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN
     TYPE(DZBW), INTENT(INOUT), TARGET :: A(NN)
@@ -230,7 +230,7 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     CALL VN_QSORT(C_LOC(A), INT(NN,c_size_t), C_SIZEOF(A(1)), C_FUNLOC(CMP))
-  END SUBROUTINE DZBW_SRT
+  END SUBROUTINE DZBW_SORT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
