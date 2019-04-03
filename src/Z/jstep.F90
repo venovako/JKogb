@@ -2,8 +2,6 @@ MODULE JSTEP
   USE DTYPES
   IMPLICIT NONE
 
-  INTEGER, PARAMETER :: AMAG_CNT = 1
-
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -33,32 +31,43 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AMP_INIT(ID, AM, INFO)
+  PURE SUBROUTINE AMC_INIT(ID_AM, ID_CMP, R, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: ID
-    TYPE(AMP), INTENT(OUT) :: AM
+    INTEGER, INTENT(INOUT) :: ID_AM, ID_CMP
+    TYPE(AMC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (ID .LT. 0) THEN
+    IF (ID_AM .LT. 0) THEN
        INFO = -1
-    ELSE IF (ID .EQ. 0) THEN
-       INFO = 1
+    ELSE IF (ID_CMP .LT. 0) THEN
+       INFO = -2
     ELSE
-       INFO = ID
+       INFO = 0
     END IF
-    IF (INFO .LE. 0) RETURN
+    IF (INFO .NE. 0) RETURN
 
-    SELECT CASE (INFO)
+    IF (ID_AM .EQ. 0) ID_AM = 1
+    SELECT CASE (ID_AM)
     CASE (1)
-       AM%AM => AMAG1
-       AM%DESC = 'AMAG1'
+       R%AM => AMAG1
     CASE DEFAULT
        ! should never happen
-       AM%AM => NULL()
-       AM%DESC = 'UNKNOWN!'
-       INFO = 0
+       R%AM => NULL()
+       INFO = -1
     END SELECT
-  END SUBROUTINE AMP_INIT
+
+    IF (ID_CMP .EQ. 0) ID_CMP = 2
+    SELECT CASE (ID_CMP)
+    CASE (1)
+       R%CMP => DZBW_CMP1
+    CASE (2)
+       R%CMP => DZBW_CMP2
+    CASE DEFAULT
+       ! should never happen
+       R%CMP => NULL()
+       INFO = -2
+    END SELECT
+  END SUBROUTINE AMC_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -108,11 +117,11 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, AM, DZ, N_2, S, INFO)
+  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, S, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
-    PROCEDURE(AMAG) :: AM
+    TYPE(AMC), INTENT(IN) :: R
     TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: S(N_2), INFO
 
@@ -124,11 +133,7 @@ CONTAINS
        INFO = -3
     ELSE IF (NN .LT. 0) THEN
        INFO = -5
-    ELSE IF (NN .GT. ((N * (N - 1)) / 2)) THEN
-       INFO = -5
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -10
-    ELSE IF (N_2 .GT. (N / 2)) THEN
        INFO = -10
     ELSE
        INFO = 0
@@ -138,15 +143,15 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
     IF (N_2 .EQ. 0) RETURN
 
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,A,J,P,Q,DZ)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,A,J,P,Q,R,DZ)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
-       CALL DZBW_GEN(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ), IP, IQ, AM, DZ(I))
+       CALL DZBW_GEN(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ), IP, IQ, R%AM, DZ(I))
     END DO
     !$OMP END PARALLEL DO
 
-    CALL DZBW_SRT(NN, DZ, INFO)
+    CALL DZBW_SRT(NN, DZ, R%CMP, INFO)
     IF (INFO .NE. 0) RETURN
 
     CALL DZBW_NCP(NN, DZ, N_2, S, INFO)

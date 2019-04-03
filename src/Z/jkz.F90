@@ -6,8 +6,8 @@ PROGRAM JKZ
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: N, N_2, ID, INFO, NN, NT, SZ(3), FD(3)
-  TYPE(AMP) :: AM
+  INTEGER :: N, N_2, ID_AM, ID_CMP, INFO, NN, NT, SZ(3), FD(3)
+  TYPE(AMC) :: R
 
   COMPLEX(KIND=DWP), ALLOCATABLE, TARGET :: ZARR(:,:)
   COMPLEX(KIND=DWP), POINTER, CONTIGUOUS :: A(:,:), U(:,:), Z(:,:)
@@ -17,30 +17,27 @@ PROGRAM JKZ
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(DZBW), ALLOCATABLE, TARGET :: DZ(:)
   
-  CALL READCL(FN, N, N_2, ID, INFO)
-  IF (INFO .NE. 0) STOP 'jkz.exe FN N N_2 ID'
+  CALL READCL(FN, N, N_2, ID_AM, ID_CMP, INFO)
+  IF (INFO .NE. 0) STOP 'jkz.exe FN N N_2 ID_AM ID_CMP'
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,A)')   '  FN=', TRIM(FN)
-  WRITE (ULOG,'(A,I11)') '   N=', N
-  WRITE (ULOG,'(A,I11)') ' N_2=', N_2
-  WRITE (ULOG,'(A,I11)') '  ID=', ID
+  WRITE (ULOG,'(A,A)')   '    FN=', TRIM(FN)
+  WRITE (ULOG,'(A,I11)') '     N=', N
 #endif
   IF (N .LE. 1) STOP 'N < 2'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '_N_2=', N_2
+  WRITE (ULOG,'(A,I11)') '   N_2=', N_2
 #endif
   IF (INFO .LE. 0) STOP 'JSTEP_LEN'
 
-  CALL AMP_INIT(ID, AM, INFO)
-  ID = INFO
+  CALL AMC_INIT(ID_AM, ID_CMP, R, INFO)
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') ' _ID=', ID
-  WRITE (ULOG,'(A,A)') 'DESC=', TRIM(AM%DESC)
+  WRITE (ULOG,'(A,I11)') ' ID_AM=', ID_AM
+  WRITE (ULOG,'(A,I11)') 'ID_CMP=', ID_CMP
 #endif
-  IF (INFO .LE. 0) STOP 'AMP_INIT'
+  IF (INFO .NE. 0) STOP 'AMC_INIT'
 
   CALL BOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
@@ -99,14 +96,14 @@ PROGRAM JKZ
      STOP 'INIT_TRIU'
   END IF
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '  NN=', NN
+  WRITE (ULOG,'(A,I11)') '    NN=', NN
 #endif
 
   INFO = BLAS_PREPARE()
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '  NT=', NT
+  WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
