@@ -214,10 +214,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_SORT(NN, A, CMP, INFO)
+  SUBROUTINE DZBW_SORT(NN, DZ, CMP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN
-    TYPE(DZBW), INTENT(INOUT), TARGET :: A(NN)
+    TYPE(DZBW), INTENT(INOUT), TARGET :: DZ(NN)
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
@@ -229,16 +229,16 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
-    CALL VN_QSORT(C_LOC(A), INT(NN,c_size_t), C_SIZEOF(A(1)), C_FUNLOC(CMP))
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
   END SUBROUTINE DZBW_SORT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DZBW_NCP(NN, A, N_2, S, INFO)
+  PURE SUBROUTINE DZBW_NCP(NN, DZ, N_2, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN, N_2
-    TYPE(DZBW), INTENT(IN) :: A(NN)
-    INTEGER, INTENT(OUT) :: S(N_2), INFO
+    TYPE(DZBW), INTENT(IN) :: DZ(NN)
+    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
     LOGICAL :: C
@@ -258,15 +258,15 @@ CONTAINS
 
     J = 1
     DO I = 1, N_2
-       S(I) = J
+       STEP(I) = J
        J = J + 1
        DO WHILE (J .LE. NN)
-          AP = ABS(A(J)%P)
-          AQ = ABS(A(J)%Q)
+          AP = ABS(DZ(J)%P)
+          AQ = ABS(DZ(J)%Q)
           C = .FALSE.
           DO K = I, 1, -1
-             BP = ABS(A(S(K))%P)
-             BQ = ABS(A(S(K))%Q)
+             BP = ABS(DZ(STEP(K))%P)
+             BQ = ABS(DZ(STEP(K))%Q)
              IF ((AP .EQ. BP) .OR. (AP .EQ. BQ) .OR. (AQ .EQ. BP) .OR. (AQ .EQ. BQ)) THEN
                 C = .TRUE.
                 EXIT
@@ -284,7 +284,7 @@ CONTAINS
 
     !DIR$ VECTOR ALWAYS
     DO I = INFO+1, N_2
-       S(I) = 0
+       STEP(I) = 0
     END DO
   END SUBROUTINE DZBW_NCP
 
