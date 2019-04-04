@@ -13,9 +13,20 @@ MODULE DTYPES
      END FUNCTION AMAG
   END INTERFACE
 
+  ABSTRACT INTERFACE
+     PURE FUNCTION ACVG(N, APP, AQP, APQ, AQQ, JP, JQ)
+       USE PARAMS
+       IMPLICIT NONE
+       INTEGER, INTENT(IN) :: N, JP, JQ
+       COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
+       INTEGER :: ACVG
+     END FUNCTION ACVG
+  END INTERFACE
+
   TYPE AMC
-     PROCEDURE(AMAG), POINTER, NOPASS :: AM
+     PROCEDURE(AMAG), POINTER, NOPASS :: AMP
      PROCEDURE(VN_QSORT_CMP), POINTER, NOPASS :: CMP
+     PROCEDURE(ACVG), POINTER, NOPASS :: CVG
   END TYPE AMC
 
   TYPE, BIND(C) :: DZBW
@@ -46,14 +57,14 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DZBW_GEN(APP, AQP, APQ, AQQ, JP, JQ, P, Q, AM, DZ)
+  PURE SUBROUTINE DZBW_GEN(APP, AQP, APQ, AQQ, JP, JQ, P, Q, AMP, DZ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
     INTEGER, INTENT(IN) :: JP, JQ, P, Q
-    PROCEDURE(AMAG) :: AM
+    PROCEDURE(AMAG) :: AMP
     TYPE(DZBW), INTENT(OUT) :: DZ
 
-    DZ%W = AM(APP, AQP, APQ, AQQ, JP, JQ)
+    DZ%W = AMP(APP, AQP, APQ, AQQ, JP, JQ)
     IF (JP .GE. 0) THEN
        IF (JQ .GE. 0) THEN
           DZ%P = P
@@ -261,9 +272,13 @@ CONTAINS
        STEP(I) = J
        J = J + 1
        DO WHILE (J .LE. NN)
+          C = .NOT. (DZ(J)%W .EQ. DZ(J)%W)
+          IF (C) THEN
+             J = J + 1
+             CYCLE
+          END IF
           AP = ABS(DZ(J)%P)
           AQ = ABS(DZ(J)%Q)
-          C = .FALSE.
           DO K = I, 1, -1
              BP = ABS(DZ(STEP(K))%P)
              BQ = ABS(DZ(STEP(K))%Q)
