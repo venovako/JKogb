@@ -42,17 +42,18 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_OUT(OU, DZ)
+  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: OU
-    TYPE(DZBW), INTENT(IN) :: DZ
+    INTEGER, INTENT(IN) :: OU, NN
+    CHARACTER(LEN=*), INTENT(IN) :: HDR
+    TYPE(DZBW), INTENT(IN) :: DZ(NN)
 
-    IF (OU .GE. 0) THEN
-       WRITE (UNIT=OU,FMT=1) '{ ', DZ%W, ', ', DZ%P, ', ', DZ%Q, ', ', DZ%B, ' }'
-    ELSE ! OU < 0
-       WRITE (UNIT=-OU,FMT=1,ADVANCE='NO') '{ ', DZ%W, ', ', DZ%P, ', ', DZ%Q, ', ', DZ%B, ' }'
-    END IF
-1   FORMAT(A,ES25.17E3,A,I11,A,I11,A,I11,A)
+    INTEGER :: I
+
+    IF (LEN_TRIM(HDR) .GT. 0) WRITE (OU,'(A)') TRIM(HDR)
+    DO I = 1, NN
+       WRITE (OU,'(ES25.17E3,3(A,I11))') DZ(I)%W, ', ', DZ(I)%P, ', ', DZ(I)%Q, ', ', DZ(I)%B
+    END DO
   END SUBROUTINE DZBW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
