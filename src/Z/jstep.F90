@@ -212,7 +212,7 @@ CONTAINS
        IF (IT .NE. 0) THEN
           DZ(I)%W = R%AMP(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
        ELSE ! NaN
-          DZ(I)%W = TRANSFER(-1_DWP, D_ZERO)
+          DZ(I)%W = QUIET_NAN(I)
        END IF
     END DO
     !$OMP END PARALLEL DO
