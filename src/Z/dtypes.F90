@@ -42,52 +42,34 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ)
+  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: OU, NN
     CHARACTER(LEN=*), INTENT(IN) :: HDR
     TYPE(DZBW), INTENT(IN) :: DZ(NN)
+    INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: I
 
-    IF (LEN_TRIM(HDR) .GT. 0) WRITE (OU,'(A)') TRIM(HDR)
+    IF (OU .LT. 0) THEN
+       INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -3
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    IF (LEN_TRIM(HDR) .GT. 0) THEN
+       WRITE (OU,'(A)') TRIM(HDR)
+    ELSE
+       WRITE (OU,'(A)') '"I","W","P","Q","B"'
+    END IF
+
     DO I = 1, NN
-       WRITE (OU,'(ES25.17E3,3(A,I11))') DZ(I)%W, ', ', DZ(I)%P, ', ', DZ(I)%Q, ', ', DZ(I)%B
+       WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
     END DO
   END SUBROUTINE DZBW_OUT
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE DZBW_GEN(APP, AQP, APQ, AQQ, JP, JQ, P, Q, AMP, DZ)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
-    INTEGER, INTENT(IN) :: JP, JQ, P, Q
-    PROCEDURE(AMAG) :: AMP
-    TYPE(DZBW), INTENT(OUT) :: DZ
-
-    DZ%W = AMP(APP, AQP, APQ, AQQ, JP, JQ)
-    IF (JP .GE. 0) THEN
-       IF (JQ .GE. 0) THEN
-          DZ%P = P
-          DZ%Q = Q
-          DZ%B = Q - P
-       ELSE ! JQ < 0
-          DZ%P = P
-          DZ%Q = -Q
-          DZ%B = P - Q
-       END IF
-    ELSE ! JP < 0
-       IF (JQ .GE. 0) THEN
-          DZ%P = -P
-          DZ%Q = Q
-          DZ%B = P - Q
-       ELSE ! JQ < 0
-          DZ%P = -P
-          DZ%Q = -Q
-          DZ%B = Q - P
-       END IF
-    END IF
-  END SUBROUTINE DZBW_GEN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
