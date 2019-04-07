@@ -28,8 +28,9 @@
 *.out
 *.app
 
-# Debug
+# Other compiler-generated files
 *.dSYM
+*.optrpt
 
 # Input
 *.Y
