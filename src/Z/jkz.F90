@@ -17,9 +17,7 @@ PROGRAM JKZ
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(DZBW), ALLOCATABLE, TARGET :: DZ(:)
 
-#ifdef NDEBUG
   IF (.NOT. VERIFY_MIN_MAX()) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
-#endif
   CALL READCL(FN, N, N_2, ID_AMP, ID_CMP, ID_CVG, INFO)
   IF (INFO .NE. 0) STOP 'jkz.exe FN N N_2 [ID_AMP [ID_CMP [ID_CVG]]]'
 #ifndef NDEBUG
