@@ -4,8 +4,13 @@ MKFS=GNUmakefile x64.mk
 else ifeq ($(CPU),x200) # Knights Landing / Intel Fortran
 include x200.mk
 MKFS=GNUmakefile x200.mk
-else # !CPU
-CPU=x86_64 # GNU Fortran
+else ifeq ($(CPU),llvm) # Flang
+include llvm.mk
+MKFS=GNUmakefile llvm.mk
+else # GNU Fortran
+ifndef CPU
+CPU=gnu
+endif # !CPU
 include gnu.mk
 MKFS=GNUmakefile gnu.mk
 endif # ?CPU
@@ -15,7 +20,7 @@ endif # ?CPU
 all: libjkz.a jkz.exe
 
 help:
-	@echo "make [CPU=x64|x100|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x100|x200|llvm|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjkz.a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o jstep.o params.o timer.o
