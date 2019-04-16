@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(CPU).mk
 all: libjkz.a jkz.exe
 
 help:
-	@echo "gmake [CPU=x64|x100|x200|llvm|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjkz.a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o jstep.o params.o timer.o
