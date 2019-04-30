@@ -31,10 +31,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION ACVG1(N, APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION ACVG1(APP, AQP, APQ, AQQ, JP, JQ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
-    INTEGER, INTENT(IN) :: N, JP, JQ
+    INTEGER, INTENT(IN) :: JP, JQ
     INTEGER :: ACVG1
 
     REAL(KIND=DWP) :: AAPP, AAQQ, MAXPQ, MINPQ
@@ -124,6 +124,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! column-cyclic
   PURE SUBROUTINE INIT_TRIU(N, P, Q, NN, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN
@@ -208,7 +209,7 @@ CONTAINS
              DZ(I)%B = IQ - IP
           END IF
        END IF
-       IT = R%CVG(N, A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
+       IT = R%CVG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
        IF (IT .NE. 0) THEN
           DZ(I)%W = R%AMP(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
        ELSE ! NaN
