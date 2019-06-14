@@ -4,7 +4,9 @@ MODULE BINIO
 
 CONTAINS
   ! _RO: read-only, _RW: read-write, _WO: overwrite
-  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE BOPEN_RO(FN, SZ, FD)
     IMPLICIT NONE
     CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
@@ -15,6 +17,8 @@ CONTAINS
     FD = INT(VN_BOPEN_RO((TRIM(FN)//c_null_char), C_SZ))
     SZ = INT(C_SZ)
   END SUBROUTINE BOPEN_RO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE BOPEN_RW(FN, SZ, FD)
     IMPLICIT NONE
@@ -29,6 +33,8 @@ CONTAINS
     SZ = INT(C_SZ)
   END SUBROUTINE BOPEN_RW
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE BOPEN_WO(FN, SZ, FD)
     IMPLICIT NONE
     CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
@@ -41,12 +47,16 @@ CONTAINS
     SZ = INT(C_SZ)
   END SUBROUTINE BOPEN_WO
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   INTEGER FUNCTION BWRITE(FD, BUF, nB, OFF)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: FD, nB, OFF
     TYPE(c_ptr), INTENT(IN) :: BUF
     BWRITE = INT(VN_BWRITE(INT(FD,c_int), BUF, INT(nB,c_size_t), INT(OFF,c_size_t)))
   END FUNCTION BWRITE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   INTEGER FUNCTION BREAD(FD, BUF, nB, OFF)
     IMPLICIT NONE
@@ -55,11 +65,15 @@ CONTAINS
     BREAD = INT(VN_BREAD(INT(FD,c_int), BUF, INT(nB,c_size_t), INT(OFF,c_size_t)))
   END FUNCTION BREAD
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE BCLOSE(FD)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: FD
     IF (FD .GE. 0) FD = INT(VN_BCLOSE(INT(FD,c_int)))
   END SUBROUTINE BCLOSE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE BCLOSEN(FD, N)
     IMPLICIT NONE
@@ -72,4 +86,7 @@ CONTAINS
        CALL BCLOSE(FD(I))
     END DO
   END SUBROUTINE BCLOSEN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE BINIO

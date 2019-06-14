@@ -124,6 +124,8 @@ MODULE PARAMS
 
 CONTAINS
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE FUNCTION S_QUIET_NAN(PAYLOAD)
     IMPLICIT NONE
     INTEGER(KIND=c_int), INTENT(IN) :: PAYLOAD
@@ -131,12 +133,16 @@ CONTAINS
     S_QUIET_NAN = TRANSFER(IOR(PAYLOAD, S_QNAN_MASK), 0.0_c_float)
   END FUNCTION S_QUIET_NAN
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE FUNCTION D_QUIET_NAN(PAYLOAD)
     IMPLICIT NONE
     INTEGER(KIND=c_int64_t), INTENT(IN) :: PAYLOAD
     REAL(KIND=c_double) :: D_QUIET_NAN
     D_QUIET_NAN = TRANSFER(IOR(PAYLOAD, D_QNAN_MASK), 0.0_c_double)
   END FUNCTION D_QUIET_NAN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef NDEBUG
   PURE FUNCTION S_VERIFY_MIN()
@@ -156,6 +162,8 @@ CONTAINS
 #endif
   END FUNCTION S_VERIFY_MIN
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef NDEBUG
   PURE FUNCTION D_VERIFY_MIN()
 #else
@@ -173,6 +181,8 @@ CONTAINS
     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
 #endif
   END FUNCTION D_VERIFY_MIN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! #ifdef NDEBUG
 !   PURE FUNCTION S_VERIFY_MIN()
@@ -194,6 +204,8 @@ CONTAINS
 ! #endif
 !   END FUNCTION S_VERIFY_MIN
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! #ifdef NDEBUG
 !   PURE FUNCTION D_VERIFY_MIN()
 ! #else
@@ -214,6 +226,8 @@ CONTAINS
 ! #endif
 !   END FUNCTION D_VERIFY_MIN
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef NDEBUG
   PURE FUNCTION VERIFY_MIN()
 #else
@@ -223,6 +237,8 @@ CONTAINS
     LOGICAL :: VERIFY_MIN
     VERIFY_MIN = (S_VERIFY_MIN() .AND. D_VERIFY_MIN())
   END FUNCTION VERIFY_MIN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef NDEBUG
   PURE FUNCTION S_VERIFY_MAX()
@@ -242,6 +258,8 @@ CONTAINS
 #endif
   END FUNCTION S_VERIFY_MAX
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef NDEBUG
   PURE FUNCTION D_VERIFY_MAX()
 #else
@@ -259,6 +277,8 @@ CONTAINS
     CALL IEEE_SET_HALTING_MODE(IEEE_INVALID, HM_INV)
 #endif
   END FUNCTION D_VERIFY_MAX
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! #ifdef NDEBUG
 !   PURE FUNCTION S_VERIFY_MAX()
@@ -280,6 +300,8 @@ CONTAINS
 ! #endif
 !   END FUNCTION S_VERIFY_MAX
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! #ifdef NDEBUG
 !   PURE FUNCTION D_VERIFY_MAX()
 ! #else
@@ -300,6 +322,8 @@ CONTAINS
 ! #endif
 !   END FUNCTION D_VERIFY_MAX
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef NDEBUG
   PURE FUNCTION VERIFY_MAX()
 #else
@@ -310,6 +334,8 @@ CONTAINS
     VERIFY_MAX = (S_VERIFY_MAX() .AND. D_VERIFY_MAX())
   END FUNCTION VERIFY_MAX
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef NDEBUG
   PURE FUNCTION VERIFY_MIN_MAX()
 #else
@@ -319,6 +345,8 @@ CONTAINS
     LOGICAL :: VERIFY_MIN_MAX
     VERIFY_MIN_MAX = (VERIFY_MIN() .AND. VERIFY_MAX())
   END FUNCTION VERIFY_MIN_MAX
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   PURE FUNCTION LDALIGN(M, TALIGN)
     IMPLICIT NONE
@@ -336,4 +364,7 @@ CONTAINS
        END IF
     END IF
   END FUNCTION LDALIGN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE PARAMS
