@@ -58,74 +58,8 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AMC_INIT(ID_AMP, ID_CMP, ID_CVG, R, INFO)
-    IMPLICIT NONE
-    INTEGER, INTENT(INOUT) :: ID_AMP, ID_CMP, ID_CVG
-    TYPE(AMC), INTENT(OUT) :: R
-    INTEGER, INTENT(OUT) :: INFO
-
-    IF (ID_AMP .LT. 0) THEN
-       INFO = -1
-    ELSE IF (ID_CMP .LT. 0) THEN
-       INFO = -2
-    ELSE IF (ID_CVG .LT. 0) THEN
-       INFO = -3
-    ELSE
-       INFO = 0
-    END IF
-    IF (INFO .NE. 0) RETURN
-
-    IF (ID_AMP .EQ. 0) ID_AMP = 1
-    SELECT CASE (ID_AMP)
-    CASE (1)
-       R%AMP => AMAG1
-    CASE DEFAULT
-       ! should never happen
-       R%AMP => NULL()
-       INFO = -1
-    END SELECT
-
-    IF (ID_CMP .EQ. 0) ID_CMP = 1
-    SELECT CASE (ID_CMP)
-    CASE (1)
-       R%CMP => DZBW_CMP1
-    CASE (2)
-       R%CMP => DZBW_CMP2
-    CASE DEFAULT
-       ! should never happen
-       R%CMP => NULL()
-       INFO = -2
-    END SELECT
-
-    IF (ID_CVG .EQ. 0) ID_CVG = 1
-    SELECT CASE (ID_CVG)
-    CASE (1)
-       R%CVG => ACVG1
-    CASE DEFAULT
-       ! should never happen
-       R%CVG => NULL()
-       INFO = -3
-    END SELECT
-  END SUBROUTINE AMC_INIT
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE FUNCTION JSTEP_LEN(N, N_2)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, N_2
-    INTEGER :: JSTEP_LEN
-
-    IF (N_2 .EQ. 0) THEN
-       JSTEP_LEN = MAX((N / 2), 0)
-    ELSE
-       JSTEP_LEN = MIN(MAX(N_2, 0), (N / 2))
-    END IF
-  END FUNCTION JSTEP_LEN
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   ! column-cyclic
-  PURE SUBROUTINE INIT_TRIU(N, P, Q, NN, INFO)
+  PURE SUBROUTINE ATRU1(N, P, Q, NN, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN
     INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
@@ -153,7 +87,120 @@ CONTAINS
           I = I + 1
        END DO
     END DO
-  END SUBROUTINE INIT_TRIU
+  END SUBROUTINE ATRU1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! row-cyclic
+  PURE SUBROUTINE ATRU2(N, P, Q, NN, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, NN
+    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
+
+    INTEGER :: IP, IQ, I
+
+    IF (N .LT. 0) THEN
+       INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -4
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+    IF (N .LE. 1) RETURN
+
+    INFO = (N * (N - 1)) / 2
+
+    I = 1
+    DO IP = 1, N-1
+       DO IQ = IP+1, N
+          IF (I .GT. NN) RETURN
+          P(I) = IP
+          Q(I) = IQ
+          I = I + 1
+       END DO
+    END DO
+  END SUBROUTINE ATRU2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE APROC_INIT(ID_MAG, ID_CMP, ID_CVG, ID_TRU, R, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_CVG, ID_TRU
+    TYPE(APROC), INTENT(OUT) :: R
+    INTEGER, INTENT(OUT) :: INFO
+
+    IF (ID_MAG .LT. 0) THEN
+       INFO = -1
+    ELSE IF (ID_CMP .LT. 0) THEN
+       INFO = -2
+    ELSE IF (ID_CVG .LT. 0) THEN
+       INFO = -3
+    ELSE IF (ID_TRU .LT. 0) THEN
+       INFO = -4
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    IF (ID_MAG .EQ. 0) ID_MAG = 1
+    SELECT CASE (ID_MAG)
+    CASE (1)
+       R%MAG => AMAG1
+    CASE DEFAULT
+       ! should never happen
+       R%MAG => NULL()
+       INFO = -1
+    END SELECT
+
+    IF (ID_CMP .EQ. 0) ID_CMP = 1
+    SELECT CASE (ID_CMP)
+    CASE (1)
+       R%CMP => DZBW_CMP1
+    CASE (2)
+       R%CMP => DZBW_CMP2
+    CASE DEFAULT
+       ! should never happen
+       R%CMP => NULL()
+       INFO = -2
+    END SELECT
+
+    IF (ID_CVG .EQ. 0) ID_CVG = 1
+    SELECT CASE (ID_CVG)
+    CASE (1)
+       R%CVG => ACVG1
+    CASE DEFAULT
+       ! should never happen
+       R%CVG => NULL()
+       INFO = -3
+    END SELECT
+
+    IF (ID_TRU .EQ. 0) ID_TRU = 1
+    SELECT CASE (ID_TRU)
+    CASE (1)
+       R%TRU => ATRU1
+    CASE (2)
+       R%TRU => ATRU2
+    CASE DEFAULT
+       ! should never happen
+       R%TRU => NULL()
+       INFO = -4
+    END SELECT
+  END SUBROUTINE APROC_INIT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE FUNCTION JSTEP_LEN(N, N_2)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, N_2
+    INTEGER :: JSTEP_LEN
+
+    IF (N_2 .EQ. 0) THEN
+       JSTEP_LEN = MAX((N / 2), 0)
+    ELSE
+       JSTEP_LEN = MIN(MAX(N_2, 0), (N / 2))
+    END IF
+  END FUNCTION JSTEP_LEN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -161,7 +208,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
-    TYPE(AMC), INTENT(IN) :: R
+    TYPE(APROC), INTENT(IN) :: R
     TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
@@ -211,7 +258,7 @@ CONTAINS
        END IF
        IT = R%CVG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
        IF (IT .NE. 0) THEN
-          DZ(I)%W = R%AMP(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
+          DZ(I)%W = R%MAG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
        ELSE ! NaN
           DZ(I)%W = QUIET_NAN(I)
        END IF
