@@ -263,11 +263,7 @@ CONTAINS
        ELSE ! NaN
           DZ(I)%W = QUIET_NAN(I)
        END IF
-       IF (I .EQ. 1) THEN
-          IT = II
-       ELSE
-          IT = IT + II
-       END IF
+       IT = IT + II
     END DO
     !$OMP END PARALLEL DO
 
