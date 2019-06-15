@@ -70,7 +70,7 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -4
-    ELSE
+    ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
@@ -103,7 +103,7 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -4
-    ELSE
+    ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
@@ -148,7 +148,6 @@ CONTAINS
     CASE (1)
        R%MAG => MAG1
     CASE DEFAULT
-       ! should never happen
        R%MAG => NULL()
        INFO = -1
     END SELECT
@@ -160,7 +159,6 @@ CONTAINS
     CASE (2)
        R%CMP => DZBW_CMP2
     CASE DEFAULT
-       ! should never happen
        R%CMP => NULL()
        INFO = -2
     END SELECT
@@ -170,7 +168,6 @@ CONTAINS
     CASE (1)
        R%CVG => CVG1
     CASE DEFAULT
-       ! should never happen
        R%CVG => NULL()
        INFO = -3
     END SELECT
@@ -182,7 +179,6 @@ CONTAINS
     CASE (2)
        R%TRU => TRU2
     CASE DEFAULT
-       ! should never happen
        R%TRU => NULL()
        INFO = -4
     END SELECT
@@ -204,15 +200,15 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(APROC), INTENT(IN) :: R
     TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
-    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER :: IP, IQ, I, IT
+    INTEGER :: IP, IQ, I, II, IT
 
     IF (N .LT. 0) THEN
        INFO = -1
@@ -222,16 +218,20 @@ CONTAINS
        INFO = -5
     ELSE IF (N_2 .LT. 0) THEN
        INFO = -10
-    ELSE
+    ELSE ! all OK
+       !DIR$ VECTOR ALWAYS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
-    IF (N .EQ. 0) RETURN
-    IF (NN .EQ. 0) RETURN
-    IF (N_2 .EQ. 0) RETURN
+
+    INFO = GET_THREAD_NS()
+    SL = 0
+    IF (N .EQ. 0) GOTO 1
+    IF (NN .EQ. 0) GOTO 1
+    IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,J,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I,II) SHARED(NN,N,A,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
@@ -256,22 +256,47 @@ CONTAINS
              DZ(I)%B = IQ - IP
           END IF
        END IF
-       IT = R%CVG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
-       IF (IT .NE. 0) THEN
+       II = R%CVG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
+       IF (II .NE. 0) THEN
           DZ(I)%W = R%MAG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
+          II = 1
        ELSE ! NaN
           DZ(I)%W = QUIET_NAN(I)
+       END IF
+       IF (I .EQ. 1) THEN
+          IT = II
+       ELSE
+          IT = IT + II
        END IF
     END DO
     !$OMP END PARALLEL DO
 
-    IF (IT .EQ. 0) RETURN
+    IF (IT .EQ. 0) GOTO 1
 
-    CALL DZBW_SORT(NN, DZ, R%CMP, INFO)
-    IF (INFO .LT. 0) RETURN
+    CALL DZBW_SORT(NN, DZ, R%CMP, I)
+    IF (I .LT. 0) THEN
+       INFO = -9
+       RETURN
+    END IF
+#ifndef NDEBUG
+    CALL DZBW_OUT(ULOG, '', NN, DZ)
+    WRITE (ULOG,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', (I * DNS2S), ' s, '
+#endif
 
     IT = MIN(IT, N_2)
-    CALL DZBW_NCP(NN, DZ, IT, STEP, INFO)
+    CALL DZBW_NCP(NN, DZ, IT, SL, STEP, II)
+    IF (II .LT. 0) THEN
+       INFO = -11
+       RETURN
+    END IF
+#ifndef NDEBUG
+    WRITE (ULOG,'(A,F12.6,A)',ADVANCE='NO') 'NCP: ', (II * DNS2S), ' s, '
+#endif
+
+1   INFO = GET_THREAD_NS() - INFO
+#ifndef NDEBUG
+    WRITE (ULOG,'(A,F12.6,A)') 'BUILD: ', (INFO * DNS2S), ' s'
+#endif
   END SUBROUTINE BUILD_JSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

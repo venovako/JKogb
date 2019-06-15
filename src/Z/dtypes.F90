@@ -51,25 +51,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ, INFO)
+  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: OU, NN
     CHARACTER(LEN=*), INTENT(IN) :: HDR
     TYPE(DZBW), INTENT(IN) :: DZ(NN)
-    INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: I
-
-    IF (OU .LT. 0) THEN
-       INFO = -1
-    ELSE IF (NN .LT. 0) THEN
-       INFO = -3
-    ELSE
-       INFO = 0
-    END IF
-    IF (INFO .NE. 0) RETURN
-
-    INFO = GET_THREAD_NS()
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
@@ -80,8 +68,6 @@ CONTAINS
     DO I = 1, NN
        WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
     END DO
-
-    INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -230,7 +216,7 @@ CONTAINS
 
     IF (NN .LT. 0) THEN
        INFO = -1
-    ELSE
+    ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
@@ -243,11 +229,11 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DZBW_NCP(NN, DZ, N_2, STEP, INFO)
+  SUBROUTINE DZBW_NCP(NN, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN, N_2
     TYPE(DZBW), INTENT(IN) :: DZ(NN)
-    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
     LOGICAL :: C
@@ -258,12 +244,15 @@ CONTAINS
        INFO = -3
     ELSE IF (N_2 .GT. NN) THEN
        INFO = -3
-    ELSE
+    ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
-    IF (NN .EQ. 0) RETURN
-    IF (N_2 .EQ. 0) RETURN
+
+    INFO = GET_THREAD_NS()
+    SL = 0
+    IF (NN .EQ. 0) GOTO 1
+    IF (N_2 .EQ. 0) GOTO 1
 
     J = 1
     DO I = 1, N_2
@@ -291,14 +280,16 @@ CONTAINS
              EXIT
           END IF
        END DO
-       INFO = I
+       SL = I
        IF (J .GT. NN) EXIT
     END DO
 
     !DIR$ VECTOR ALWAYS
-    DO I = INFO+1, N_2
+    DO I = SL+1, N_2
        STEP(I) = 0
     END DO
+
+1   INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_NCP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
