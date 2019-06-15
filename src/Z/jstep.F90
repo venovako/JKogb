@@ -209,6 +209,9 @@ CONTAINS
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: IP, IQ, I, II, IT
+#ifndef NDEBUG
+    REAL(KIND=DWP) :: T
+#endif
 
     IF (N .LT. 0) THEN
        INFO = -1
@@ -268,15 +271,20 @@ CONTAINS
     !$OMP END PARALLEL DO
 
     IF (IT .EQ. 0) GOTO 1
-
-    CALL DZBW_SORT(NN, DZ, R%CMP, I)
-    IF (I .LT. 0) THEN
+#ifndef NDEBUG
+    I = OPEN_LOG('BUILD_JSTEP')
+#endif
+    CALL DZBW_SORT(NN, DZ, R%CMP, II)
+    IF (II .LT. 0) THEN
        INFO = -9
        RETURN
     END IF
 #ifndef NDEBUG
-    CALL DZBW_OUT(ULOG, 'DZ(ALL)', NN, DZ, 0, STEP, II)
-    WRITE (ULOG,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', (I * DNS2S), ' s, '
+    IF (I .NE. -1) THEN
+       T = II * DNS2S
+       CALL DZBW_OUT(I, '', NN, DZ, 0, STEP, II)
+       WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', T, ' s, '
+    END IF
 #endif
 
     IT = MIN(IT, N_2)
@@ -286,13 +294,20 @@ CONTAINS
        RETURN
     END IF
 #ifndef NDEBUG
-    WRITE (ULOG,'(A,F12.6,A)',ADVANCE='NO') 'NCP: ', (II * DNS2S), ' s, '
+    IF (I .NE. -1) THEN
+       T = II * DNS2S
+       WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'NCP: ', T, ' s, '
+    END IF
 #endif
 
 1   INFO = GET_THREAD_NS() - INFO
 #ifndef NDEBUG
-    WRITE (ULOG,'(A,F12.6,A)') 'BUILD: ', (INFO * DNS2S), ' s'
-    CALL DZBW_OUT(ULOG, 'DZ(STEP)', NN, DZ, SL, STEP, I)
+    IF (I .NE. -1) THEN
+       T = INFO * DNS2S
+       WRITE (I,'(A,F12.6,A)') 'BUILD: ', T, ' s'
+       CALL DZBW_OUT(I, '', NN, DZ, SL, STEP, II)
+       CLOSE(UNIT=I, IOSTAT=II)
+    END IF
 #endif
   END SUBROUTINE BUILD_JSTEP
 

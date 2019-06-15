@@ -51,6 +51,26 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  INTEGER FUNCTION OPEN_LOG(FN)
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: FN
+
+    INTEGER, SAVE :: S = 0
+    CHARACTER(LEN=LEN_TRIM(FN)+12) :: F
+    INTEGER :: U, I
+
+    WRITE (F,'(A,A,I11.11)') TRIM(FN), '.', S
+    OPEN(NEWUNIT=U, IOSTAT=I, FILE=F, STATUS='REPLACE', ACCESS='SEQUENTIAL', ACTION='WRITE')
+    IF (I .EQ. 0) THEN
+       OPEN_LOG = U
+       S = S + 1
+    ELSE ! error
+       OPEN_LOG = -1
+    END IF
+  END FUNCTION OPEN_LOG
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: OU, NN, SL, STEP(SL)
@@ -60,7 +80,7 @@ CONTAINS
 
     INTEGER :: I, J
 
-    IF (OU .LT. 0) THEN
+    IF (OU .EQ. -1) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -3
