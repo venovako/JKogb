@@ -20,10 +20,10 @@ binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
 blas_utils.o blas_utils.mod: blas_utils.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c blas_utils.F90
 
-dtypes.o dtypes.mod: dtypes.F90 params.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+dtypes.o dtypes.mod: dtypes.F90 timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c dtypes.F90
 
-jstep.o jstep.mod: jstep.F90 dtypes.mod params.mod $(MKFS)
+jstep.o jstep.mod: jstep.F90 dtypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jstep.F90
 
 params.o params.mod: params.F90 $(MKFS)
@@ -35,7 +35,7 @@ timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 jkz.exe: jkz.o libjkz.a ../../../JACSD/libvn.a $(MKFS)
 	$(FC) $(FFLAGS) jkz.o -o$@ -L. -ljkz -L../../../JACSD -lvn $(LDFLAGS)
 
-jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod dtypes.mod jstep.mod params.mod timer.mod $(MKFS)
+jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod jstep.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jkz.F90
 
 clean:

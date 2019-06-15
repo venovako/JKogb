@@ -1,5 +1,5 @@
 MODULE DTYPES
-  USE PARAMS
+  USE TIMER
   USE VN_SORT_F
   IMPLICIT NONE
 
@@ -69,6 +69,8 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+    INFO = GET_THREAD_NS()
+
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
     ELSE ! default header
@@ -78,6 +80,8 @@ CONTAINS
     DO I = 1, NN
        WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
     END DO
+
+    INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -232,7 +236,9 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
+    INFO = GET_THREAD_NS()
     CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+    INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_SORT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
