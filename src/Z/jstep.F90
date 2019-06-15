@@ -275,7 +275,7 @@ CONTAINS
        RETURN
     END IF
 #ifndef NDEBUG
-    CALL DZBW_OUT(ULOG, '', NN, DZ)
+    CALL DZBW_OUT(ULOG, 'DZ(ALL)', NN, DZ, 0, STEP, II)
     WRITE (ULOG,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', (I * DNS2S), ' s, '
 #endif
 
@@ -292,6 +292,7 @@ CONTAINS
 1   INFO = GET_THREAD_NS() - INFO
 #ifndef NDEBUG
     WRITE (ULOG,'(A,F12.6,A)') 'BUILD: ', (INFO * DNS2S), ' s'
+    CALL DZBW_OUT(ULOG, 'DZ(STEP)', NN, DZ, SL, STEP, I)
 #endif
   END SUBROUTINE BUILD_JSTEP
 

@@ -51,13 +51,27 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ)
+  SUBROUTINE DZBW_OUT(OU, HDR, NN, DZ, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: OU, NN
+    INTEGER, INTENT(IN) :: OU, NN, SL, STEP(SL)
     CHARACTER(LEN=*), INTENT(IN) :: HDR
     TYPE(DZBW), INTENT(IN) :: DZ(NN)
+    INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: I
+    INTEGER :: I, J
+
+    IF (OU .LT. 0) THEN
+       INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -3
+    ELSE IF (SL .LT. 0) THEN
+       INFO = -5
+    ELSE ! all OK
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    INFO = GET_THREAD_NS()
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
@@ -65,9 +79,18 @@ CONTAINS
        WRITE (OU,'(A)') '"I","W","P","Q","B"'
     END IF
 
-    DO I = 1, NN
-       WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
-    END DO
+    IF (SL .EQ. 0) THEN
+       DO I = 1, NN
+          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
+       END DO
+    ELSE ! SL > 0
+       DO I = 1, SL
+          J = STEP(I)
+          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
+       END DO
+    END IF
+
+    INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
