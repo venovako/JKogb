@@ -24,10 +24,18 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE INTEGER FUNCTION TIMER2INT(CLK)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: CLK(3)
+    TIMER2INT = CLK(2) - CLK(1)
+  END FUNCTION TIMER2INT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE REAL(KIND=DWP) FUNCTION TIMER2DBLE(CLK)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: CLK(3)
-    TIMER2DBLE = (CLK(2) - CLK(1)) / REAL(CLK(3), DWP)
+    TIMER2DBLE = TIMER2INT(CLK) / REAL(CLK(3), DWP)
   END FUNCTION TIMER2DBLE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -54,7 +62,7 @@ CONTAINS
 
     INTEGER :: C, Q, R
 
-    C = CLK(2) - CLK(1)
+    C = TIMER2INT(CLK)
     Q = C / CLK(3)
     R = MOD(C, CLK(3))
 

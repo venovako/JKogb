@@ -20,22 +20,22 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION AMAG1(APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION MAG1(APP, AQP, APQ, AQQ, JP, JQ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
     INTEGER, INTENT(IN) :: JP, JQ
-    REAL(KIND=DWP) :: AMAG1
+    REAL(KIND=DWP) :: MAG1
 
-    AMAG1 = ABS(AQP) + ABS(APQ)
-  END FUNCTION AMAG1
+    MAG1 = ABS(AQP) + ABS(APQ)
+  END FUNCTION MAG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION ACVG1(APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION CVG1(APP, AQP, APQ, AQQ, JP, JQ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
     INTEGER, INTENT(IN) :: JP, JQ
-    INTEGER :: ACVG1
+    INTEGER :: CVG1
 
     REAL(KIND=DWP) :: AAPP, AAQQ, MAXPQ, MINPQ
 
@@ -50,16 +50,16 @@ CONTAINS
     END IF
 
     IF (MAX(ABS(AQP), ABS(APQ)) .GT. ((MAXPQ * D_EPS) * MINPQ)) THEN
-       ACVG1 = 1
+       CVG1 = 1
     ELSE ! no transform
-       ACVG1 = 0
+       CVG1 = 0
     END IF
-  END FUNCTION ACVG1
+  END FUNCTION CVG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! column-cyclic
-  PURE SUBROUTINE ATRU1(N, P, Q, NN, INFO)
+  PURE SUBROUTINE TRU1(N, P, Q, NN, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN
     INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
@@ -87,12 +87,12 @@ CONTAINS
           I = I + 1
        END DO
     END DO
-  END SUBROUTINE ATRU1
+  END SUBROUTINE TRU1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! row-cyclic
-  PURE SUBROUTINE ATRU2(N, P, Q, NN, INFO)
+  PURE SUBROUTINE TRU2(N, P, Q, NN, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN
     INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
@@ -120,7 +120,7 @@ CONTAINS
           I = I + 1
        END DO
     END DO
-  END SUBROUTINE ATRU2
+  END SUBROUTINE TRU2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -146,7 +146,7 @@ CONTAINS
     IF (ID_MAG .EQ. 0) ID_MAG = 1
     SELECT CASE (ID_MAG)
     CASE (1)
-       R%MAG => AMAG1
+       R%MAG => MAG1
     CASE DEFAULT
        ! should never happen
        R%MAG => NULL()
@@ -168,7 +168,7 @@ CONTAINS
     IF (ID_CVG .EQ. 0) ID_CVG = 1
     SELECT CASE (ID_CVG)
     CASE (1)
-       R%CVG => ACVG1
+       R%CVG => CVG1
     CASE DEFAULT
        ! should never happen
        R%CVG => NULL()
@@ -178,9 +178,9 @@ CONTAINS
     IF (ID_TRU .EQ. 0) ID_TRU = 1
     SELECT CASE (ID_TRU)
     CASE (1)
-       R%TRU => ATRU1
+       R%TRU => TRU1
     CASE (2)
-       R%TRU => ATRU2
+       R%TRU => TRU2
     CASE DEFAULT
        ! should never happen
        R%TRU => NULL()
@@ -268,7 +268,7 @@ CONTAINS
     IF (IT .EQ. 0) RETURN
 
     CALL DZBW_SORT(NN, DZ, R%CMP, INFO)
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .LT. 0) RETURN
 
     IT = MIN(IT, N_2)
     CALL DZBW_NCP(NN, DZ, IT, STEP, INFO)
