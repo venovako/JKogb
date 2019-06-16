@@ -95,18 +95,20 @@ CONTAINS
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
-    ELSE ! default header
-       WRITE (OU,'(A)') '"I","W","P","Q","B"'
+    ELSE IF (SL .EQ. 0) THEN
+       WRITE (OU,'(A)') '"J","W","P","Q","B"'
+    ELSE ! SL > 0
+       WRITE (OU,'(A)') '"I","J","W","P","Q","B"'
     END IF
 
     IF (SL .EQ. 0) THEN
-       DO I = 1, NN
-          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') I, ',', DZ(I)%W, ',', DZ(I)%P, ',', DZ(I)%Q, ',', DZ(I)%B
+       DO J = 1, NN
+          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
        END DO
     ELSE ! SL > 0
        DO I = 1, SL
           J = STEP(I)
-          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
+          WRITE (OU,'(2(I11,A),ES25.17E3,3(A,I11))') I, ',', J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
        END DO
     END IF
 
