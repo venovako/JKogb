@@ -109,6 +109,8 @@ PROGRAM JKZ
   WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
+  CALL BUILD_JSTEP(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
+
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
   STEP => NULL()
   Q => NULL()
