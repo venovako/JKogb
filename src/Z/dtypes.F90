@@ -1,5 +1,6 @@
 MODULE DTYPES
   USE TIMER
+  USE UTILS
   USE VN_SORT_F
   IMPLICIT NONE
 
@@ -48,26 +49,6 @@ MODULE DTYPES
   END TYPE DZBW
 
 CONTAINS
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  INTEGER FUNCTION OPEN_LOG(FN)
-    IMPLICIT NONE
-    CHARACTER(LEN=*), INTENT(IN) :: FN
-
-    INTEGER, SAVE :: S = 0
-    CHARACTER(LEN=LEN_TRIM(FN)+12) :: F
-    INTEGER :: U, I
-
-    WRITE (F,'(A,A,I11.11)') TRIM(FN), '.', S
-    OPEN(NEWUNIT=U, IOSTAT=I, FILE=F, STATUS='REPLACE', ACCESS='SEQUENTIAL', ACTION='WRITE')
-    IF (I .EQ. 0) THEN
-       OPEN_LOG = U
-       S = S + 1
-    ELSE ! error
-       OPEN_LOG = -1
-    END IF
-  END FUNCTION OPEN_LOG
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -268,7 +249,8 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+    ! CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+    CALL PAR_SORT(C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP))
     INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE DZBW_SORT
 
@@ -277,7 +259,7 @@ CONTAINS
   SUBROUTINE DZBW_NCP(NN, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN, N_2
-    TYPE(DZBW), INTENT(IN) :: DZ(NN)
+    TYPE(DZBW), INTENT(INOUT) :: DZ(NN)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ

@@ -3,11 +3,12 @@ ARCH=$(shell uname)
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
-CC=icc
+CC=icc -std=c11
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions
-FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-DHAVE_IMAGINARY
-C11FLAGS=$(CPUFLAGS) -std=c11
+CXX=icpc -std=c++17
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp -fexceptions
+FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads #-DHAVE_IMAGINARY
+C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost
 OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
@@ -32,13 +33,29 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include -qopenmp
+LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${TBBROOT}/include -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+ifndef NDEBUG
+LIBFLAGS += -DTBB_USE_DEBUG=1
+endif # !NDEBUG
 ifeq ($(ARCH),Darwin)
-LDFLAGS=-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+LDFLAGS=-L${TBBROOT}/lib -Wl,-rpath,${TBBROOT}/lib
+ifdef NDEBUG
+LDFLAGS += -ltbb -ltbbmalloc
+else # DEBUG
+LDFLAGS += -ltbb_debug -ltbbmalloc_debug
+endif # ?NDEBUG
+LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
-LDFLAGS=-L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+LDFLAGS=-L${TBBROOT}/lib -Wl,-rpath=${TBBROOT}/lib
+ifdef NDEBUG
+LDFLAGS += -ltbb -ltbbmalloc
+else # DEBUG
+LDFLAGS += -ltbb_debug -ltbbmalloc_debug
+endif # ?NDEBUG
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
+CXXFLAGS=$(CFLAGS)

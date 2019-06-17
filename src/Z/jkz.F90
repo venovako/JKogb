@@ -109,7 +109,7 @@ PROGRAM JKZ
   WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
-  CALL BUILD_JSTEP(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
+  ! CALL BUILD_JSTEP(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
   STEP => NULL()
@@ -139,7 +139,7 @@ PROGRAM JKZ
   A => NULL()
   IF (ALLOCATED(ZARR)) DEALLOCATE(ZARR)
 
-  STOP 'jkz.exe successfully terminated'
+  STOP !'jkz.exe successfully terminated'
 CONTAINS
 #include "readcl.F90"
 #include "bio.F90"
