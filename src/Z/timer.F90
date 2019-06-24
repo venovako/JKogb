@@ -3,9 +3,6 @@ MODULE TIMER
   USE PARAMS
   IMPLICIT NONE
 
-  REAL(KIND=DWP), PARAMETER :: DUS2S = 1E-6_DWP
-  REAL(KIND=DWP), PARAMETER :: DNS2S = 1E-9_DWP
-
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

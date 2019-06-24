@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(CPU).mk
 all: libjkz.a jkz.exe
 
 help:
-	@echo "gmake [CPU=x64|x200|pgi|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjkz.a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o
@@ -26,8 +26,8 @@ dtypes.o dtypes.mod: dtypes.F90 timer.mod utils.mod ../../../JACSD/vn/vn_sort_f.
 jstep.o jstep.mod: jstep.F90 dtypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jstep.F90
 
-params.o params.mod: params.F90 $(MKFS)
-	$(FC) $(FFLAGS) -c params.F90
+params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -I../../../JACSD/vn -c params.F90
 
 timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c timer.F90
