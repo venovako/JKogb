@@ -26,7 +26,7 @@ dtypes.o dtypes.mod: dtypes.F90 timer.mod utils.mod ../../../JACSD/vn/vn_sort_f.
 jstep.o jstep.mod: jstep.F90 dtypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c jstep.F90
 
-params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod $(MKFS)
+params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -I../../../JACSD/vn -c params.F90
 
 timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
