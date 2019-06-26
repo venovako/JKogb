@@ -50,7 +50,7 @@ PROGRAM JK
 
   CALL READCL(AH5F, AH5G, AH5R, IFLAGS, INFO)
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1), INFO(2)
+     WRITE (*,*) INFO(1), INFO(2)
      STOP 'Error reading the command line!'
   END IF
 
@@ -80,7 +80,7 @@ PROGRAM JK
 
   CALL READH1(GID, N, NRANK, G, LDG, JVEC, INFO)
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(2)
+     WRITE (*,*) INFO(2)
      STOP 'Error reading the input data!'
   end if
   IF (LDG .GT. N) CALL DLASET('A', LDG-N, NRANK, ZERO, ZERO, G(N+1,1), LDG)
@@ -91,7 +91,7 @@ PROGRAM JK
 
      CALL READH2(GID, NRANK, IPL, INVP, INFO)
      IF (INFO(1) .NE. 0) THEN
-        PRINT *, INFO(2)
+        WRITE (*,*) INFO(2)
         STOP 'Error reading the permutation data!'
      END IF
   END IF
@@ -111,7 +111,7 @@ PROGRAM JK
      DEALLOCATE(IPL)
 
      TCPU(1) = TSTOP - TSTART
-     PRINT *, 'INVGJP=', TCPU(1), 's.'
+     WRITE (*,*) 'INVGJP=', TCPU(1), 's.'
   ELSE
      TCPU(1) = ZERO
   END IF
@@ -130,7 +130,7 @@ PROGRAM JK
      CALL DGEQLF(N, NRANK, G, LDG, TAU, WORK1, LWORK, INFO(1))
   END IF
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1)
+     WRITE (*,*) INFO(1)
      IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
         STOP 'Error in workspace query for DGEQRFP!'
      ELSE
@@ -146,7 +146,7 @@ PROGRAM JK
      CALL DORGQL(N, N, NRANK, Q, LDU, TAU, WORK1, LWORK, INFO(1))
   END IF
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1)
+     WRITE (*,*) INFO(1)
      IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
         STOP 'Error in workspace query for DORGQR!'
      ELSE
@@ -166,7 +166,7 @@ PROGRAM JK
      CALL DGEQLF(N, NRANK, G, LDG, TAU, WORK, LWORK, INFO(1))
   END IF
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1)
+     WRITE (*,*) INFO(1)
      IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
         STOP 'Error in DGEQRFP!'
      ELSE
@@ -176,9 +176,9 @@ PROGRAM JK
   CALL CPU_TIME(TSTOP)
   TCPU(2) = TSTOP - TSTART
   IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
-     PRINT *, 'DGEQRFP=', TCPU(2), 's.'
+     WRITE (*,*) 'DGEQRFP=', TCPU(2), 's.'
   ELSE
-     PRINT *, 'DGEQLF=', TCPU(2), 's.'
+     WRITE (*,*) 'DGEQLF=', TCPU(2), 's.'
   END IF
 
   CALL DLACPY('A', N, NRANK, G, LDG, Q, LDU)
@@ -190,7 +190,7 @@ PROGRAM JK
      CALL DORGQL(N, N, NRANK, Q, LDU, TAU, WORK, LWORK, INFO(1))
   END IF
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1)
+     WRITE (*,*) INFO(1)
      IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
         STOP 'Error in DORGQR!'
      ELSE
@@ -200,9 +200,9 @@ PROGRAM JK
   CALL CPU_TIME(TSTOP)
   TCPU(3) = TSTOP - TSTART
   IF (IAND(IFLAGS, IFLAG_DGEQRF) .NE. 0) THEN
-     PRINT *, 'DORGQR=', TCPU(3), 's.'
+     WRITE (*,*) 'DORGQR=', TCPU(3), 's.'
   ELSE
-     PRINT *, 'DORGQL=', TCPU(3), 's.'
+     WRITE (*,*) 'DORGQL=', TCPU(3), 's.'
   END IF
 
   DEALLOCATE(WORK)
@@ -254,20 +254,20 @@ PROGRAM JK
   CALL DJKSVD(UPLO, N, NRANK, G, LDG, U, LDU, V, LDV, JVEC, NPLUS, TOL, NSWEEP, IFLAGS, INFO)
   CALL CPU_TIME(TSTOP)
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(1), INFO(2)
-     PRINT *, 'Error in DJKSVD!'
+     WRITE (*,*) INFO(1), INFO(2)
+     WRITE (*,*) 'Error in DJKSVD!'
   END IF
   TCPU(4) = TSTOP - TSTART
-  PRINT *, 'DJKSVD=', TCPU(4), 's.'
+  WRITE (*,*) 'DJKSVD=', TCPU(4), 's.'
   STATUS = INFO(2)
-  PRINT *, 'DJKSVD:', STATUS
+  WRITE (*,*) 'DJKSVD:', STATUS
 
   CALL H5GCREATE_F(FID, AH5G, GID, INFO(1))
   IF (INFO(1) .NE. 0) STOP 'Error creating the output group!'
 
   CALL DUMPH5(GID, N, NRANK, G, LDG, JVEC, NPLUS, U, LDU, V, LDV, Q, LDU, TOL, IFLAGS, STATUS, TCPU, INFO)
   IF (INFO(1) .NE. 0) THEN
-     PRINT *, INFO(2)
+     WRITE (*,*) INFO(2)
      STOP 'Error dumping output file!'
   END IF
 
@@ -316,7 +316,7 @@ CONTAINS
           RETURN
        END IF
     ELSE
-       PRINT *, 'H5F (input file):'
+       WRITE (*,*) 'H5F (input file):'
        READ *, ARGSTR
     END IF
     AH5F = TRIM(ARGSTR)
@@ -328,7 +328,7 @@ CONTAINS
           RETURN
        END IF
     ELSE
-       PRINT *, 'H5G (input/output group):'
+       WRITE (*,*) 'H5G (input/output group):'
        READ *, ARGSTR
     END IF
     AH5G = TRIM(ARGSTR)
@@ -340,7 +340,7 @@ CONTAINS
           RETURN
        END IF
     ELSE
-       PRINT *, 'H5R (output file):'
+       WRITE (*,*) 'H5R (output file):'
        READ *, ARGSTR
     END IF
     AH5R = TRIM(ARGSTR)
@@ -352,7 +352,7 @@ CONTAINS
           RETURN
        END IF
     ELSE
-       PRINT *, 'IFLAGS:'
+       WRITE (*,*) 'IFLAGS:'
        READ *, ARGSTR
     END IF
     READ (ARGSTR,*) IFLAGS
