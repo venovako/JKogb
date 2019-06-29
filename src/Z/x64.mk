@@ -6,7 +6,10 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icc -std=c11
 FC=ifort
 CXX=icpc -std=c++17
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp -fexceptions
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions -qopenmp
+ifdef PROFILE
+CPUFLAGS += -DVN_PROFILE=$(PROFILE) -finstrument-functions
+endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
@@ -33,12 +36,13 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I${TBBROOT}/include -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${TBBROOT}/include -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LDFLAGS=-L../../../JACSD -lvn
 ifndef NDEBUG
 LIBFLAGS += -DTBB_USE_DEBUG=1
 endif # !NDEBUG
 ifeq ($(ARCH),Darwin)
-LDFLAGS=-L${TBBROOT}/lib -Wl,-rpath,${TBBROOT}/lib
+LDFLAGS += -L${TBBROOT}/lib -Wl,-rpath,${TBBROOT}/lib
 ifdef NDEBUG
 LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
@@ -47,7 +51,7 @@ endif # ?NDEBUG
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
-LDFLAGS=-L${TBBROOT}/lib -Wl,-rpath=${TBBROOT}/lib
+LDFLAGS += -L${TBBROOT}/lib -Wl,-rpath=${TBBROOT}/lib
 ifdef NDEBUG
 LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG

@@ -6,7 +6,10 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icc -std=c11
 FC=ifort
 CXX=icpc -std=c++17
-CPUFLAGS=-DUSE_INTEL -DUSE_X200 -qopenmp -fexceptions
+CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fexceptions -qopenmp
+ifdef PROFILE
+CPUFLAGS += -DVN_PROFILE=$(PROFILE) -finstrument-functions
+endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
@@ -30,7 +33,8 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LDFLAGS=-L../../../JACSD -lvn
 ifdef NDEBUG
 LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
