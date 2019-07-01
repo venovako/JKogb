@@ -8,7 +8,7 @@ FC=ifort
 CXX=icpc -std=c++17
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions -qopenmp
 ifdef PROFILE
-CPUFLAGS += -DVN_PROFILE=$(PROFILE) -finstrument-functions
+CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions
 endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS)

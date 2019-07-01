@@ -5,7 +5,7 @@ AR=ar
 ARFLAGS=rsv
 CPUFLAGS=-DUSE_GNU -DUSE_X64 -fexceptions -fopenmp
 ifdef PROFILE
-CPUFLAGS += -DVN_PROFILE=$(PROFILE) -finstrument-functions
+CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions
 endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays #-DHAVE_IMAGINARY
 C11FLAGS=$(CPUFLAGS) -fopenmp
