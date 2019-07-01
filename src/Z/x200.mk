@@ -34,7 +34,7 @@ FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn
+LDFLAGS=-L../../../JACSD -lvn$(PROFILE)
 ifdef NDEBUG
 LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG

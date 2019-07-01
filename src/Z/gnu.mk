@@ -49,7 +49,7 @@ FPUFFLAGS=$(FPUFLAGS) -ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${TBBROOT}/include -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn
+LDFLAGS=-L../../../JACSD -lvn$(PROFILE)
 ifndef NDEBUG
 LIBFLAGS += -DTBB_USE_DEBUG=1
 endif # !NDEBUG
