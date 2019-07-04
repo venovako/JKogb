@@ -10,7 +10,7 @@ CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fexceptions -qopenmp
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions -rdynamic
 endif # PROFILE
-FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads #-DHAVE_IMAGINARY
+FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost

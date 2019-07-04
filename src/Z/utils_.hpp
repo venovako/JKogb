@@ -10,6 +10,6 @@ struct dzbw {
 };
 
 typedef int (*qcmp)(const dzbw *const, const dzbw *const);
-extern "C" void par_sort(dzbw *const a, const size_t n, const qcmp c);
+extern "C" void par_sort(dzbw *const a, const size_t n, const qcmp c) throw();
 
 #endif // !UTILS_HPP

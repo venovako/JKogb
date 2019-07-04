@@ -7,7 +7,7 @@ CPUFLAGS=-DUSE_GNU -DUSE_X64 -fexceptions -fopenmp
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions -rdynamic
 endif # PROFILE
-FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays #-DHAVE_IMAGINARY
+FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
 C11FLAGS=$(CPUFLAGS) -fopenmp
 ifeq ($(ARCH),Darwin)
 CC=gcc-8
