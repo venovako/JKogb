@@ -1,4 +1,9 @@
 SHELL=/bin/bash
+ifdef NDEBUG
+DEBUG=
+else # DEBUG
+DEBUG=g
+endif # ?NDEBUG
 ARCH=$(shell uname)
 RM=rm -rfv
 AR=ar
@@ -35,13 +40,13 @@ FPUFFLAGS=$(FPUFLAGS)
 FPUCFLAGS=$(FPUFLAGS)
 OPTFFLAGS += -DMKL_DIRECT_CALL
 else # DEBUG
-OPTFLAGS=-Og -march=native
+OPTFLAGS=-O$(DEBUG) -march=native
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
 endif # Darwin
 OPTFFLAGS=$(OPTFLAGS)
 OPTCFLAGS=$(OPTFLAGS)
-DBGFLAGS=-g
+DBGFLAGS=-$(DEBUG)
 DBGFFLAGS=$(DBGFLAGS) -fcheck=all -finit-local-zero -finit-real=snan -finit-derived -pedantic -Wall -Wextra -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 DBGCFLAGS=$(DBGFLAGS) -ftrapv
 FPUFLAGS=-ffp-contract=fast
@@ -49,7 +54,7 @@ FPUFFLAGS=$(FPUFLAGS) -ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../../../JACSD/vn -I${TBBROOT}/include -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-LDFLAGS=-L../../../JACSD -lvn$(PROFILE)
+LDFLAGS=-L../../../JACSD -lvn$(PROFILE)$(DEBUG)
 ifndef NDEBUG
 LIBFLAGS += -DTBB_USE_DEBUG=1
 endif # !NDEBUG

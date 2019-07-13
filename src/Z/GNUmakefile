@@ -6,12 +6,12 @@ MKFS=GNUmakefile $(CPU).mk
 
 .PHONY: all help clean
 
-all: libjkz.a jkz.exe
+all: libjkz$(PROFILE)$(DEBUG).a jkz.exe
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libjkz.a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o $(MKFS)
+libjkz$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o
 
 binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
@@ -38,8 +38,8 @@ utils.o utils.mod: utils.F90 utils_.hpp $(MKFS)
 utils_.o: utils_.cpp utils_.hpp $(MKFS)
 	$(CXX) $(CXXFLAGS) -c utils_.cpp
 
-jkz.exe: jkz.o libjkz.a ../../../JACSD/libvn.a $(MKFS)
-	$(FC) $(FFLAGS) jkz.o -o$@ -L. -ljkz $(LDFLAGS)
+jkz.exe: jkz.o libjkz$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) jkz.o -o$@ -L. -ljkz$(PROFILE)$(DEBUG) $(LDFLAGS)
 
 jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod jstep.mod $(MKFS)
 	$(FC) $(FFLAGS) -c jkz.F90
