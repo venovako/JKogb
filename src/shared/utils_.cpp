@@ -6,10 +6,10 @@ struct Qcmp {
   const qcmp _c;
   Qcmp(const qcmp c) throw() : _c(c) {}
   Qcmp(const Qcmp &q) throw() : _c(q._c) {}
-  bool operator()(const dzbw &a, const dzbw &b) const throw() { return (_c(&a, &b) < 0); }
+  bool operator()(const aw &a, const aw &b) const throw() { return (_c(&a, &b) < 0); }
 };
 
-void par_sort(dzbw *const a, const size_t n, const qcmp c) throw()
+void par_sort(aw *const a, const size_t n, const qcmp c) throw()
 {
   if (!a)
     return;

@@ -1,48 +1,27 @@
 ifndef CPU
 CPU=gnu
 endif # !CPU
-include $(CPU).mk
-MKFS=GNUmakefile $(CPU).mk
+include ../$(CPU).mk
+MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
-all: libjkz$(PROFILE)$(DEBUG).a jkz.exe
+all: zjk.exe
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libjkz$(PROFILE)$(DEBUG).a: binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o $(MKFS)
-	$(AR) $(ARFLAGS) $@ binio.o blas_utils.o dtypes.o jstep.o params.o timer.o utils.o utils_.o
+ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod ../shared/timer.mod ../shared/utils.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+	$(FC) $(FFLAGS) -c ztypes.F90
 
-binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
-	$(FC) $(FFLAGS) -c binio.F90
+zstep.o zstep.mod: zstep.F90 ztypes.mod $(MKFS)
+	$(FC) $(FFLAGS) -c zstep.F90
 
-blas_utils.o blas_utils.mod: blas_utils.F90 params.mod ../../../JACSD/vn/vn_blas_f.mod $(MKFS)
-	$(FC) $(FFLAGS) -c blas_utils.F90
+zjk.exe: zjk.o zstep.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) zjk.o zstep.o ztypes.o -o$@ $(LDFLAGS)
 
-dtypes.o dtypes.mod: dtypes.F90 timer.mod utils.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
-	$(FC) $(FFLAGS) -c dtypes.F90
-
-jstep.o jstep.mod: jstep.F90 dtypes.mod $(MKFS)
-	$(FC) $(FFLAGS) -c jstep.F90
-
-params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
-	$(FC) $(FFLAGS) -c params.F90
-
-timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
-	$(FC) $(FFLAGS) -c timer.F90
-
-utils.o utils.mod: utils.F90 utils_.hpp $(MKFS)
-	$(FC) $(FFLAGS) -c utils.F90
-
-utils_.o: utils_.cpp utils_.hpp $(MKFS)
-	$(CXX) $(CXXFLAGS) -c utils_.cpp
-
-jkz.exe: jkz.o libjkz$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) jkz.o -o$@ -L. -ljkz$(PROFILE)$(DEBUG) $(LDFLAGS)
-
-jkz.o: jkz.F90 bio.F90 readcl.F90 binio.mod blas_utils.mod jstep.mod $(MKFS)
-	$(FC) $(FFLAGS) -c jkz.F90
+zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod ../shared/blas_utils.mod $(MKFS)
+	$(FC) $(FFLAGS) -c zjk.F90
 
 clean:
 	-$(RM) *.exe
@@ -50,6 +29,4 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
-	-$(RM) *__genmod.f90
-	-$(RM) *__genmod.mod
 	-$(RM) *.dSYM

@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE ZOPEN_YJ_RO(FN, M, N, SZ, FD, INFO)
+SUBROUTINE DOPEN_YJ_RO(FN, M, N, SZ, FD, INFO)
   IMPLICIT NONE
   CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
   INTEGER, INTENT(IN) :: M, N
@@ -20,7 +20,7 @@ SUBROUTINE ZOPEN_YJ_RO(FN, M, N, SZ, FD, INFO)
   END IF
   IF (INFO .NE. 0) RETURN
 
-  EXPTSZ(1) = M * N * C_SIZEOF(Z_ZERO)
+  EXPTSZ(1) = M * N * C_SIZEOF(D_ZERO)
   EXPTSZ(2) = M     * C_SIZEOF(0)
 
   DIFFSZ = 0
@@ -50,14 +50,14 @@ SUBROUTINE ZOPEN_YJ_RO(FN, M, N, SZ, FD, INFO)
   RETURN
 
 1 SZ = DIFFSZ
-END SUBROUTINE ZOPEN_YJ_RO
+END SUBROUTINE DOPEN_YJ_RO
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE ZREAD_YJ(FD, Y, J, M, N, SZ, INFO)
+SUBROUTINE DREAD_YJ(FD, Y, J, M, N, SZ, INFO)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: FD(2), M, N
-  COMPLEX(KIND=DWP), INTENT(OUT), TARGET :: Y(M,N)
+  REAL(KIND=DWP), INTENT(OUT), TARGET :: Y(M,N)
   INTEGER, INTENT(OUT), TARGET :: J(M)
   INTEGER, INTENT(OUT) :: SZ(2), INFO
 
@@ -68,11 +68,11 @@ SUBROUTINE ZREAD_YJ(FD, Y, J, M, N, SZ, INFO)
 
   SZ(2) = BREAD(FD(2), C_LOC(J), C_SIZEOF(J), 0)
   IF (SZ(2) .NE. C_SIZEOF(J)) INFO = 2
-END SUBROUTINE ZREAD_YJ
+END SUBROUTINE DREAD_YJ
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE ZOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
+SUBROUTINE DOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
   IMPLICIT NONE
   CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
   INTEGER, INTENT(IN) :: M, N
@@ -90,8 +90,8 @@ SUBROUTINE ZOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
   END IF
   IF (INFO .NE. 0) RETURN
 
-  SZ(1) = M * N * C_SIZEOF(Z_ZERO) ! YU
-  SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+  SZ(1) = M * N * C_SIZEOF(D_ZERO) ! YU
+  SZ(2) = N * N * C_SIZEOF(D_ZERO) !  Z
   SZ(3) =     N * C_SIZEOF(D_ZERO) ! SY
 
   CALL BOPEN_RW((TRIM(FN)//c_char_'.YU'), SZ(1), FD(1))
@@ -111,21 +111,20 @@ SUBROUTINE ZOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
      INFO = 3
      RETURN
   END IF
-END SUBROUTINE ZOPEN_UZS_RW
+END SUBROUTINE DOPEN_UZS_RW
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBROUTINE ZWRITE_UZS(FD, YU, Z, SY, M, N, INFO)
+SUBROUTINE DWRITE_UZS(FD, YU, Z, SY, M, N, INFO)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: FD(3), M, N
-  COMPLEX(KIND=DWP), INTENT(IN), TARGET :: YU(M,N), Z(N,N)
-  REAL(KIND=DWP), INTENT(IN), TARGET :: SY(N)
+  REAL(KIND=DWP), INTENT(IN), TARGET :: YU(M,N), Z(N,N), SY(N)
   INTEGER, INTENT(OUT) :: INFO
 
   INTEGER(c_size_t) :: SZ(3), S
 
-  SZ(1) = M * N * C_SIZEOF(Z_ZERO) ! YU
-  SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+  SZ(1) = M * N * C_SIZEOF(D_ZERO) ! YU
+  SZ(2) = N * N * C_SIZEOF(D_ZERO) !  Z
   SZ(3) =     N * C_SIZEOF(D_ZERO) ! SY
 
   INFO = 0
@@ -136,6 +135,6 @@ SUBROUTINE ZWRITE_UZS(FD, YU, Z, SY, M, N, INFO)
   IF (S .NE. SZ(2)) INFO = 2
   S = BWRITE(FD(3), C_LOC(SY), C_SIZEOF(SY), 0)
   IF (S .NE. SZ(3)) INFO = 3
-END SUBROUTINE ZWRITE_UZS
+END SUBROUTINE DWRITE_UZS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

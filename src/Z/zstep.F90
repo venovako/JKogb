@@ -1,41 +1,28 @@
-MODULE JSTEP
-  USE DTYPES
+MODULE ZSTEP
+  USE ZTYPES
+  USE JSTEP
   IMPLICIT NONE
 
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION PQI(P, Q)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: P, Q
-    INTEGER :: PQI
-
-    IF ((Q .LT. 2) .OR. (P .LT. 1) .OR. (P .GE. Q)) THEN
-       PQI = 0
-    ELSE
-       PQI = ((Q - 2) * (Q - 1)) / 2 + P
-    END IF
-  END FUNCTION PQI
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE FUNCTION MAG1(APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION ZMAG1(APP, AQP, APQ, AQQ, JP, JQ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
     INTEGER, INTENT(IN) :: JP, JQ
-    REAL(KIND=DWP) :: MAG1
+    REAL(KIND=DWP) :: ZMAG1
 
-    MAG1 = ABS(AQP) + ABS(APQ)
-  END FUNCTION MAG1
+    ZMAG1 = ABS(AQP) + ABS(APQ)
+  END FUNCTION ZMAG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION CVG1(APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION ZCVG1(APP, AQP, APQ, AQQ, JP, JQ)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
     INTEGER, INTENT(IN) :: JP, JQ
-    INTEGER :: CVG1
+    INTEGER :: ZCVG1
 
     REAL(KIND=DWP) :: AAPP, AAQQ, MAXPQ, MINPQ
 
@@ -50,84 +37,18 @@ CONTAINS
     END IF
 
     IF (MAX(ABS(AQP), ABS(APQ)) .GT. ((MAXPQ * D_EPS) * MINPQ)) THEN
-       CVG1 = 1
+       ZCVG1 = 1
     ELSE ! no transform
-       CVG1 = 0
+       ZCVG1 = 0
     END IF
-  END FUNCTION CVG1
+  END FUNCTION ZCVG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! column-cyclic
-  PURE SUBROUTINE TRU1(N, P, Q, NN, INFO)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, NN
-    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
-
-    INTEGER :: IP, IQ, I
-
-    IF (N .LT. 0) THEN
-       INFO = -1
-    ELSE IF (NN .LT. 0) THEN
-       INFO = -4
-    ELSE ! all OK
-       INFO = 0
-    END IF
-    IF (INFO .NE. 0) RETURN
-    IF (N .LE. 1) RETURN
-
-    INFO = (N * (N - 1)) / 2
-
-    I = 1
-    DO IQ = 2, N
-       DO IP = 1, IQ-1
-          IF (I .GT. NN) RETURN
-          P(I) = IP
-          Q(I) = IQ
-          I = I + 1
-       END DO
-    END DO
-  END SUBROUTINE TRU1
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  ! row-cyclic
-  PURE SUBROUTINE TRU2(N, P, Q, NN, INFO)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, NN
-    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
-
-    INTEGER :: IP, IQ, I
-
-    IF (N .LT. 0) THEN
-       INFO = -1
-    ELSE IF (NN .LT. 0) THEN
-       INFO = -4
-    ELSE ! all OK
-       INFO = 0
-    END IF
-    IF (INFO .NE. 0) RETURN
-    IF (N .LE. 1) RETURN
-
-    INFO = (N * (N - 1)) / 2
-
-    I = 1
-    DO IP = 1, N-1
-       DO IQ = IP+1, N
-          IF (I .GT. NN) RETURN
-          P(I) = IP
-          Q(I) = IQ
-          I = I + 1
-       END DO
-    END DO
-  END SUBROUTINE TRU2
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE APROC_INIT(ID_MAG, ID_CMP, ID_CVG, ID_TRU, R, INFO)
+  PURE SUBROUTINE ZPROC_INIT(ID_MAG, ID_CMP, ID_CVG, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_CVG, ID_TRU
-    TYPE(APROC), INTENT(OUT) :: R
+    TYPE(ZPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
     IF (ID_MAG .LT. 0) THEN
@@ -146,7 +67,7 @@ CONTAINS
     IF (ID_MAG .EQ. 0) ID_MAG = 1
     SELECT CASE (ID_MAG)
     CASE (1)
-       R%MAG => MAG1
+       R%MAG => ZMAG1
     CASE DEFAULT
        R%MAG => NULL()
        INFO = -1
@@ -155,9 +76,9 @@ CONTAINS
     IF (ID_CMP .EQ. 0) ID_CMP = 1
     SELECT CASE (ID_CMP)
     CASE (1)
-       R%CMP => DZBW_CMP1
+       R%CMP => AW_CMP1
     CASE (2)
-       R%CMP => DZBW_CMP2
+       R%CMP => AW_CMP2
     CASE DEFAULT
        R%CMP => NULL()
        INFO = -2
@@ -166,7 +87,7 @@ CONTAINS
     IF (ID_CVG .EQ. 0) ID_CVG = 1
     SELECT CASE (ID_CVG)
     CASE (1)
-       R%CVG => CVG1
+       R%CVG => ZCVG1
     CASE DEFAULT
        R%CVG => NULL()
        INFO = -3
@@ -182,30 +103,16 @@ CONTAINS
        R%TRU => NULL()
        INFO = -4
     END SELECT
-  END SUBROUTINE APROC_INIT
+  END SUBROUTINE ZPROC_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION JSTEP_LEN(N, N_2)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, N_2
-    INTEGER :: JSTEP_LEN
-
-    IF (N_2 .EQ. 0) THEN
-       JSTEP_LEN = MAX((N / 2), 0)
-    ELSE
-       JSTEP_LEN = MIN(MAX(N_2, 0), (N / 2))
-    END IF
-  END FUNCTION JSTEP_LEN
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  SUBROUTINE BUILD_JSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE BUILD_ZSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
-    TYPE(APROC), INTENT(IN) :: R
-    TYPE(DZBW), INTENT(OUT), TARGET :: DZ(NN)
+    TYPE(ZPROC), INTENT(IN) :: R
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: IP, IQ, I, II, IT
@@ -274,7 +181,7 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('BUILD_JSTEP')
 #endif
-    CALL DZBW_SORT(NN, DZ, R%CMP, II)
+    CALL AW_SORT(NN, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
        INFO = -9
        RETURN
@@ -282,13 +189,13 @@ CONTAINS
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
        T = II * DNS2S
-       CALL DZBW_OUT(I, '', NN, DZ, 0, STEP, II)
+       CALL AW_OUT(I, '', NN, DZ, 0, STEP, II)
        WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', T, ' s, '
     END IF
 #endif
 
     IT = MIN(IT, N_2)
-    CALL DZBW_NCP(NN, DZ, IT, SL, STEP, II)
+    CALL AW_NCP(NN, DZ, IT, SL, STEP, II)
     IF (II .LT. 0) THEN
        INFO = -11
        RETURN
@@ -305,12 +212,12 @@ CONTAINS
     IF (I .NE. -1) THEN
        T = INFO * DNS2S
        WRITE (I,'(A,F12.6,A)') 'BUILD: ', T, ' s'
-       CALL DZBW_OUT(I, '', NN, DZ, SL, STEP, II)
+       CALL AW_OUT(I, '', NN, DZ, SL, STEP, II)
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
 #endif
-  END SUBROUTINE BUILD_JSTEP
+  END SUBROUTINE BUILD_ZSTEP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE JSTEP
+END MODULE ZSTEP
