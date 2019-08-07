@@ -7,27 +7,19 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION ZMAG1(APP, AQP, APQ, AQQ, JP, JQ)
+  PURE FUNCTION ZMAG1(N, P, Q, A, LDA, J)
     IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
-    INTEGER, INTENT(IN) :: JP, JQ
+    INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     REAL(KIND=DWP) :: ZMAG1
 
-    ZMAG1 = ABS(AQP) + ABS(APQ)
-  END FUNCTION ZMAG1
+    REAL(KIND=DWP) :: AAPP, AAQP, AAPQ, AAQQ, MAXPQ, MINPQ
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    AAPP = ABS(A(P,P))
+    AAQP = ABS(A(Q,P))
+    AAPQ = ABS(A(P,Q))
+    AAQQ = ABS(A(Q,Q))
 
-  PURE FUNCTION ZCVG1(APP, AQP, APQ, AQQ, JP, JQ)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: APP, AQP, APQ, AQQ
-    INTEGER, INTENT(IN) :: JP, JQ
-    INTEGER :: ZCVG1
-
-    REAL(KIND=DWP) :: AAPP, AAQQ, MAXPQ, MINPQ
-
-    AAPP = ABS(APP)
-    AAQQ = ABS(AQQ)
     IF (AAPP .GE. AAQQ) THEN
        MAXPQ = AAPP
        MINPQ = AAQQ
@@ -36,18 +28,18 @@ CONTAINS
        MINPQ = AAPP
     END IF
 
-    IF (MAX(ABS(AQP), ABS(APQ)) .GT. ((MAXPQ * D_EPS) * MINPQ)) THEN
-       ZCVG1 = 1
+    IF (MAX(AAQP, AAPQ) .GT. ((MAXPQ * D_EPS) * MINPQ)) THEN
+       ZMAG1 = AAQP + AAPQ
     ELSE ! no transform
-       ZCVG1 = 0
+       ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
-  END FUNCTION ZCVG1
+  END FUNCTION ZMAG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZPROC_INIT(ID_MAG, ID_CMP, ID_CVG, ID_TRU, R, INFO)
+  PURE SUBROUTINE ZPROC_INIT(ID_MAG, ID_CMP, ID_TRU, R, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_CVG, ID_TRU
+    INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_TRU
     TYPE(ZPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
@@ -55,10 +47,8 @@ CONTAINS
        INFO = -1
     ELSE IF (ID_CMP .LT. 0) THEN
        INFO = -2
-    ELSE IF (ID_CVG .LT. 0) THEN
-       INFO = -3
     ELSE IF (ID_TRU .LT. 0) THEN
-       INFO = -4
+       INFO = -3
     ELSE
        INFO = 0
     END IF
@@ -77,20 +67,9 @@ CONTAINS
     SELECT CASE (ID_CMP)
     CASE (1)
        R%CMP => AW_CMP1
-    CASE (2)
-       R%CMP => AW_CMP2
     CASE DEFAULT
        R%CMP => NULL()
        INFO = -2
-    END SELECT
-
-    IF (ID_CVG .EQ. 0) ID_CVG = 1
-    SELECT CASE (ID_CVG)
-    CASE (1)
-       R%CVG => ZCVG1
-    CASE DEFAULT
-       R%CVG => NULL()
-       INFO = -3
     END SELECT
 
     IF (ID_TRU .EQ. 0) ID_TRU = 1
@@ -103,7 +82,7 @@ CONTAINS
        R%TRU => TRU2
     CASE DEFAULT
        R%TRU => NULL()
-       INFO = -4
+       INFO = -3
     END SELECT
   END SUBROUTINE ZPROC_INIT
 
@@ -143,7 +122,7 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I,II) SHARED(NN,N,A,J,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
@@ -168,14 +147,8 @@ CONTAINS
              DZ(I)%B = IQ - IP
           END IF
        END IF
-       II = R%CVG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
-       IF (II .NE. 0) THEN
-          DZ(I)%W = R%MAG(A(IP,IP), A(IQ,IP), A(IP,IQ), A(IQ,IQ), J(IP), J(IQ))
-          II = 1
-       ELSE ! NaN
-          DZ(I)%W = QUIET_NAN(I)
-       END IF
-       IT = IT + II
+       DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
+       IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
     !$OMP END PARALLEL DO
 
