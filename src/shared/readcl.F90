@@ -1,16 +1,16 @@
-SUBROUTINE READCL(FN, N, N_2, B, ID_MAG, ID_CMP, ID_TRU, INFO)
+SUBROUTINE READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
   IMPLICIT NONE
   CHARACTER(LEN=*,KIND=c_char), INTENT(OUT) :: FN
-  INTEGER, INTENT(OUT) :: N, N_2, B, ID_MAG, ID_CMP, ID_TRU, INFO
+  INTEGER, INTENT(OUT) :: N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO
 
   CHARACTER(LEN=FNL) :: ARG
   INTEGER :: ARGC, TMP
 
   ARGC = COMMAND_ARGUMENT_COUNT()
   IF (ARGC .LT. 2) THEN
-     INFO = -8
-  ELSE IF (ARGC .GT. 7) THEN
-     INFO = 8
+     INFO = -7
+  ELSE IF (ARGC .GT. 6) THEN
+     INFO = 7
   ELSE
      INFO = 0
   END IF
@@ -59,13 +59,13 @@ SUBROUTINE READCL(FN, N, N_2, B, ID_MAG, ID_CMP, ID_TRU, INFO)
         INFO = -4
         RETURN
      END IF
-     READ (ARG,*) B
-     IF (B .LT. 0) THEN
+     READ (ARG,*) ID_MAG
+     IF (ID_MAG .LT. 0) THEN
         INFO = 4
         RETURN
      END IF
   ELSE
-     B = 0
+     ID_MAG = 0
   END IF
 
   IF (ARGC .GE. 5) THEN
@@ -74,13 +74,13 @@ SUBROUTINE READCL(FN, N, N_2, B, ID_MAG, ID_CMP, ID_TRU, INFO)
         INFO = -5
         RETURN
      END IF
-     READ (ARG,*) ID_MAG
-     IF (ID_MAG .LT. 0) THEN
+     READ (ARG,*) ID_CMP
+     IF (ID_CMP .LT. 0) THEN
         INFO = 5
         RETURN
      END IF
   ELSE
-     ID_MAG = 0
+     ID_CMP = 0
   END IF
 
   IF (ARGC .GE. 6) THEN
@@ -89,24 +89,9 @@ SUBROUTINE READCL(FN, N, N_2, B, ID_MAG, ID_CMP, ID_TRU, INFO)
         INFO = -6
         RETURN
      END IF
-     READ (ARG,*) ID_CMP
-     IF (ID_CMP .LT. 0) THEN
-        INFO = 6
-        RETURN
-     END IF
-  ELSE
-     ID_CMP = 0
-  END IF
-
-  IF (ARGC .GE. 7) THEN
-     CALL GET_COMMAND_ARGUMENT(7, ARG, TMP, INFO)
-     IF (INFO .NE. 0) THEN
-        INFO = -7
-        RETURN
-     END IF
      READ (ARG,*) ID_TRU
      IF (ID_TRU .LT. 0) THEN
-        INFO = 7
+        INFO = 6
         RETURN
      END IF
   ELSE

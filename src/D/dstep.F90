@@ -126,27 +126,9 @@ CONTAINS
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
-       IF (J(IP) .GE. 0) THEN
-          IF (J(IQ) .GE. 0) THEN
-             DZ(I)%P = IP
-             DZ(I)%Q = IQ
-             DZ(I)%B = IQ - IP
-          ELSE ! JQ < 0
-             DZ(I)%P = IP
-             DZ(I)%Q = -IQ
-             DZ(I)%B = IP - IQ
-          END IF
-       ELSE ! JP < 0
-          IF (J(IQ) .GE. 0) THEN
-             DZ(I)%P = -IP
-             DZ(I)%Q = IQ
-             DZ(I)%B = IP - IQ
-          ELSE ! JQ < 0
-             DZ(I)%P = -IP
-             DZ(I)%Q = -IQ
-             DZ(I)%B = IQ - IP
-          END IF
-       END IF
+       DZ(I)%P = IP
+       DZ(I)%Q = IQ
+       DZ(I)%B = IQ - IP
        DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
