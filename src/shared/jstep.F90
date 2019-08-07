@@ -5,17 +5,43 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION PQI1(P, Q)
+  ! column-cyclic
+  PURE INTEGER FUNCTION PQI1(N, P, Q)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: P, Q
-    INTEGER :: PQI1
+    INTEGER, INTENT(IN) :: N, P, Q
 
-    IF ((Q .LT. 2) .OR. (P .LT. 1) .OR. (P .GE. Q)) THEN
+    IF (N .LT. 2) THEN
+       PQI1 = -1
+    ELSE IF ((P .LT. 1) .OR. (P .GT. N)) THEN
+       PQI1 = -2
+    ELSE IF ((Q .LT. 2) .OR. (Q .GT. N)) THEN
+       PQI1 = -3
+    ELSE IF (P .GE. Q) THEN
        PQI1 = 0
-    ELSE
+    ELSE ! all OK
        PQI1 = ((Q - 2) * (Q - 1)) / 2 + P
     END IF
   END FUNCTION PQI1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! row-cyclic
+  PURE INTEGER FUNCTION PQI2(N, P, Q)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, P, Q
+
+    IF (N .LT. 2) THEN
+       PQI2 = -1
+    ELSE IF ((P .LT. 1) .OR. (P .GT. N)) THEN
+       PQI2 = -2
+    ELSE IF ((Q .LT. 2) .OR. (Q .GT. N)) THEN
+       PQI2 = -3
+    ELSE IF (P .GE. Q) THEN
+       PQI2 = 0
+    ELSE ! all OK
+       PQI2 = (2 * N - P) * (P - 1) + (Q - P)
+    END IF
+  END FUNCTION PQI2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
