@@ -7,11 +7,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION ZMAG1(N, P, Q, A, LDA, J)
+  PURE REAL(KIND=DWP) FUNCTION ZMAG1(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
-    REAL(KIND=DWP) :: ZMAG1
 
     REAL(KIND=DWP) :: AAPP, AAQP, AAPQ, AAQQ, MAXPQ, MINPQ
 
@@ -88,7 +87,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_ZSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE ZSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -173,7 +172,7 @@ CONTAINS
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
 #endif
-  END SUBROUTINE BUILD_ZSTEP
+  END SUBROUTINE ZSTEP_BUILD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -108,7 +108,7 @@ PROGRAM ZJK
   WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
-  ! CALL BUILD_ZSTEP(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
+  ! CALL ZSTEP_BUILD(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
   STEP => NULL()

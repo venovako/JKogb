@@ -7,11 +7,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION DMAG1(N, P, Q, A, LDA, J)
+  PURE REAL(KIND=DWP) FUNCTION DMAG1(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
-    REAL(KIND=DWP) :: DMAG1
 
     REAL(KIND=DWP) :: AAPP, AAQP, AAPQ, AAQQ, MAXPQ, MINPQ
 
@@ -88,7 +87,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BUILD_DSTEP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE DSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -173,7 +172,7 @@ CONTAINS
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
 #endif
-  END SUBROUTINE BUILD_DSTEP
+  END SUBROUTINE DSTEP_BUILD
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

@@ -121,7 +121,7 @@ SUBROUTINE DWRITE_UZS(FD, YU, Z, SY, M, N, INFO)
   REAL(KIND=DWP), INTENT(IN), TARGET :: YU(M,N), Z(N,N), SY(N)
   INTEGER, INTENT(OUT) :: INFO
 
-  INTEGER(c_size_t) :: SZ(3), S
+  INTEGER(KIND=c_size_t) :: SZ(3), S
 
   SZ(1) = M * N * C_SIZEOF(D_ZERO) ! YU
   SZ(2) = N * N * C_SIZEOF(D_ZERO) !  Z

@@ -111,10 +111,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE FUNCTION JSTEP_LEN(N, N_2)
+  PURE INTEGER FUNCTION JSTEP_LEN(N, N_2)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, N_2
-    INTEGER :: JSTEP_LEN
 
     IF (N_2 .EQ. 0) THEN
        JSTEP_LEN = MAX((N / 2), 0)

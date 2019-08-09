@@ -80,10 +80,9 @@ CONTAINS
   !   same magnitude ==> sorting by subdiagonals (bands)
   !     outer bands first
   !       within a band, the lower elements first
-  FUNCTION AW_CMP1(PA, PB)
+  INTEGER(KIND=c_int) FUNCTION AW_CMP1(PA, PB)
     IMPLICIT NONE
-    INTEGER(c_intptr_t), INTENT(IN), VALUE :: PA, PB
-    INTEGER(c_int) :: AW_CMP1
+    INTEGER(KIND=c_intptr_t), INTENT(IN), VALUE :: PA, PB
 
     TYPE(AW), POINTER :: A, B
 
