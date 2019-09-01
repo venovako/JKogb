@@ -100,7 +100,7 @@ PROGRAM DJK
   WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
-  ! CALL DSTEP_BUILD(N, A, N, J, NN, P, Q, R, DZ, N_2, FD(1), STEP, INFO)
+  ! CALL DSTEP_EXEC(N, A, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
   STEP => NULL()

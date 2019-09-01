@@ -183,4 +183,22 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  SUBROUTINE ZSTEP_EXEC(N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
+    TYPE(ZPROC), INTENT(IN) :: R
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
+    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
+
+    INTEGER :: SL
+
+    CALL ZSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+    IF (SL .LT. 1) RETURN
+    ! perform the transformations
+    CONTINUE
+  END SUBROUTINE ZSTEP_EXEC
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE ZSTEP
