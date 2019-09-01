@@ -127,7 +127,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SORT(NN, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT1(NN, DZ, CMP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NN)
@@ -143,10 +143,31 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    ! CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
     CALL PAR_SORT(C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP))
     INFO = GET_THREAD_NS() - INFO
-  END SUBROUTINE AW_SORT
+  END SUBROUTINE AW_SRT1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE AW_SRT2(NN, DZ, CMP, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: NN
+    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NN)
+    PROCEDURE(VN_QSORT_CMP) :: CMP
+    INTEGER, INTENT(OUT) :: INFO
+
+    IF (NN .LT. 0) THEN
+       INFO = -1
+    ELSE ! all OK
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+    IF (NN .EQ. 0) RETURN
+
+    INFO = GET_THREAD_NS()
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+    INFO = GET_THREAD_NS() - INFO
+  END SUBROUTINE AW_SRT2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

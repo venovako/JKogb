@@ -1,4 +1,5 @@
 MODULE DSTEP
+  USE OMP_LIB
   USE DTYPES
   USE JSTEP
   IMPLICIT NONE
@@ -36,7 +37,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DPROC_INIT(ID_MAG, ID_CMP, ID_TRU, R, INFO)
+  SUBROUTINE DPROC_INIT(ID_MAG, ID_CMP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_TRU
     TYPE(DPROC), INTENT(OUT) :: R
@@ -83,6 +84,12 @@ CONTAINS
        R%TRU => NULL()
        INFO = -3
     END SELECT
+
+    IF (INT(OMP_GET_MAX_THREADS()) .GT. 1) THEN
+       R%SRT => AW_SRT1
+    ELSE ! <= 1 (single-threaded)
+       R%SRT => AW_SRT2
+    END IF
   END SUBROUTINE DPROC_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -137,7 +144,7 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('BUILD_JSTEP')
 #endif
-    CALL AW_SORT(NN, DZ, R%CMP, II)
+    CALL R%SRT(NN, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
        INFO = -9
        RETURN
