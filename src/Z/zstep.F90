@@ -94,9 +94,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
@@ -107,14 +107,16 @@ CONTAINS
     REAL(KIND=DWP) :: T
 #endif
 
-    IF (N .LT. 0) THEN
+    IF (S .LT. 0) THEN
        INFO = -1
+    ELSE IF (N .LT. 0) THEN
+       INFO = -2
     ELSE IF (LDA .LT. N) THEN
-       INFO = -3
+       INFO = -4
     ELSE IF (NN .LT. 0) THEN
-       INFO = -5
+       INFO = -6
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -10
+       INFO = -11
     ELSE ! all OK
        !DIR$ VECTOR ALWAYS
        INFO = 0
@@ -142,11 +144,11 @@ CONTAINS
 
     IF (IT .EQ. 0) GOTO 1
 #ifndef NDEBUG
-    I = OPEN_LOG('BUILD_JSTEP')
+    I = OPEN_LOG('ZSTEP_BUILD', S)
 #endif
     CALL R%SRT(NN, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
-       INFO = -9
+       INFO = -10
        RETURN
     END IF
 #ifndef NDEBUG
@@ -160,7 +162,7 @@ CONTAINS
     IT = MIN(IT, N_2)
     CALL AW_NCP(NN, DZ, IT, SL, STEP, II)
     IF (II .LT. 0) THEN
-       INFO = -11
+       INFO = -12
        RETURN
     END IF
 #ifndef NDEBUG
@@ -183,10 +185,24 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  SUBROUTINE ZSTEP_TRANSF(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: S, N, LDA, J(N), NN, P(NN), Q(NN), N_2, SL, STEP(N_2)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
+    TYPE(ZPROC), INTENT(IN) :: R
+    TYPE(AW), INTENT(IN) :: DZ(NN)
+    INTEGER, INTENT(OUT) :: INFO
+
+    ! perform the transformations
+    CONTINUE
+  END SUBROUTINE ZSTEP_TRANSF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE ZSTEP_EXEC(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
-    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
@@ -195,7 +211,7 @@ CONTAINS
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
-    CALL ZSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+    CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IF (INFO .LT. 0) THEN
        SL = INFO
        INFO = 0
@@ -210,8 +226,7 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    ! perform the transformations
-    CONTINUE
+    CALL ZSTEP_TRANSF(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IT = GET_THREAD_NS() - IT
     WRITE (ULOG,'(F12.6)') (IT * DNS2S)
     FLUSH(ULOG)
