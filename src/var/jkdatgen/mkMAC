@@ -1,0 +1,139 @@
+AR=ar
+ARFLAGS=rsv
+
+RM=rm -f
+
+F90=h5fc
+F90FLAGS=-O3 -cpp -march=native -Wa,-q
+
+XDATAGEN_O=gendat.o genlam.o ixamax.o jpart.o seedix.o seedok.o txtlam.o xa2g.o xaxpy.o xcopy.o xdot.o xgemv.o xger.o xgjgt.o xlacpy.o xlaev2.o xlagsy.o xlaran.o xlarnd.o xlarnv.o xlaruv.o xlaset.o xnrm2.o xrot.o xscal.o xswap.o xsybpc.o xsyjf2.o xsymv.o xsyr.o xsyr2.o
+SUPPORT_O=lsame.o xerbla.o
+DDATAGEN_O=dlaran.o dlarnd.o
+
+all: jkdatgen.exe xdatagen.a support.a ddatagen.a
+
+jkdatgen.exe: jkdatgen.f90 xdatagen.a support.a ddatagen.a mkMAC
+	$(F90) $(F90FLAGS) jkdatgen.f90 -o $@ xdatagen.a support.a ddatagen.a
+
+xdatagen.a: $(XDATAGEN_O) mkMAC
+	$(AR) $(ARFLAGS) $@ $(XDATAGEN_O)
+
+support.a: $(SUPPORT_O) mkMAC
+	$(AR) $(ARFLAGS) $@ $(SUPPORT_O)
+
+ddatagen.a: $(DDATAGEN_O) mkMAC
+	$(AR) $(ARFLAGS) $@ $(DDATAGEN_O)
+
+dlaran.o: dlaran.f90 mkMAC
+	$(F90) $(F90FLAGS) -c dlaran.f90
+
+dlarnd.o: dlarnd.f90 mkMAC
+	$(F90) $(F90FLAGS) -c dlarnd.f90
+
+gendat.o: gendat.f90 mkMAC
+	$(F90) $(F90FLAGS) -c gendat.f90
+
+genlam.o: genlam.f90 mkMAC
+	$(F90) $(F90FLAGS) -c genlam.f90
+
+ixamax.o: ixamax.f90 mkMAC
+	$(F90) $(F90FLAGS) -c ixamax.f90
+
+jpart.o: jpart.f90 mkMAC
+	$(F90) $(F90FLAGS) -c jpart.f90
+
+lsame.o: lsame.f90 mkMAC
+	$(F90) $(F90FLAGS) -c lsame.f90
+
+seedix.o: seedix.f90 mkMAC
+	$(F90) $(F90FLAGS) -c seedix.f90
+
+seedok.o: seedok.f90 mkMAC
+	$(F90) $(F90FLAGS) -c seedok.f90
+
+txtlam.o: txtlam.f90 mkMAC
+	$(F90) $(F90FLAGS) -c txtlam.f90
+
+xa2g.o: xa2g.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xa2g.f90
+
+xaxpy.o: xaxpy.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xaxpy.f90
+
+xcopy.o: xcopy.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xcopy.f90
+
+xdot.o: xdot.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xdot.f90
+
+xerbla.o: xerbla.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xerbla.f90
+
+xgemv.o: xgemv.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xgemv.f90
+
+xger.o: xger.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xger.f90
+
+xgjgt.o: xgjgt.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xgjgt.f90
+
+xlacpy.o: xlacpy.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlacpy.f90
+
+xlaev2.o: xlaev2.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlaev2.f90
+
+xlagsy.o: xlagsy.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlagsy.f90
+
+xlaran.o: xlaran.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlaran.f90
+
+xlarnd.o: xlarnd.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlarnd.f90
+
+xlarnv.o: xlarnv.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlarnv.f90
+
+xlaruv.o: xlaruv.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlaruv.f90
+
+xlaset.o: xlaset.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xlaset.f90
+
+xnrm2.o: xnrm2.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xnrm2.f90
+
+xrot.o: xrot.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xrot.f90
+
+xscal.o: xscal.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xscal.f90
+
+xswap.o: xswap.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xswap.f90
+
+xsybpc.o: xsybpc.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xsybpc.f90
+
+xsyjf2.o: xsyjf2.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xsyjf2.f90
+
+xsymv.o: xsymv.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xsymv.f90
+
+xsyr.o: xsyr.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xsyr.f90
+
+xsyr2.o: xsyr2.f90 mkMAC
+	$(F90) $(F90FLAGS) -c xsyr2.f90
+
+clean:
+	-$(RM) $(DDATAGEN_O)
+	-$(RM) ddatagen.a
+	-$(RM) $(SUPPORT_O)
+	-$(RM) support.a
+	-$(RM) $(XDATAGEN_O)
+	-$(RM) xdatagen.a
+	-$(RM) jkdatgen.exe
