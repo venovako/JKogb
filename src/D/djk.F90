@@ -103,7 +103,7 @@ PROGRAM DJK
 #endif
 
   FD(1) = GET_THREAD_NS()
-  CALL DSTEP_LOOP(N, A, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  CALL DSTEP_LOOP(N, U, N, A, N, Z, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
   FD(1) = GET_THREAD_NS() - FD(1)
   IF (INFO .GE. 0) THEN
      WRITE (UOUT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
