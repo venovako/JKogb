@@ -11,15 +11,19 @@ MODULE UTILS
      END SUBROUTINE PAR_SORT
   END INTERFACE
 
+  TYPE(c_funptr) :: OldCtrlC = C_NULL_FUNPTR
+  INTEGER(c_int), PARAMETER :: SigCtrlC = 2_c_int ! SIGINT
+  INTEGER(c_int), VOLATILE :: CtrlC = 0_c_int
+
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  INTEGER FUNCTION OPEN_LOG(FN)
+  INTEGER FUNCTION OPEN_LOG(FN, S)
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: FN
+    INTEGER, INTENT(IN) :: S
 
-    INTEGER, SAVE :: S = 0
     CHARACTER(LEN=LEN_TRIM(FN)+12) :: F
     INTEGER :: U, I
 
@@ -27,11 +31,32 @@ CONTAINS
     OPEN(NEWUNIT=U, IOSTAT=I, FILE=F, STATUS='REPLACE', ACCESS='SEQUENTIAL', ACTION='WRITE')
     IF (I .EQ. 0) THEN
        OPEN_LOG = U
-       S = S + 1
     ELSE ! error
        OPEN_LOG = -1
     END IF
   END FUNCTION OPEN_LOG
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE OnCtrlC(S) BIND(C)
+    IMPLICIT NONE
+    INTEGER(c_int), INTENT(IN), VALUE :: S
+    IF (S .EQ. SigCtrlC) CtrlC = 1_c_int
+  END SUBROUTINE OnCtrlC
+
+  SUBROUTINE SetCtrlC
+    IMPLICIT NONE
+    INTERFACE
+       FUNCTION C_SIGNAL(S, H) BIND(C,NAME='signal')
+         USE, INTRINSIC :: ISO_C_BINDING
+         INTEGER(c_int), INTENT(IN), VALUE :: S
+         TYPE(c_funptr), INTENT(IN), VALUE :: H
+         TYPE(c_funptr) :: C_SIGNAL
+       END FUNCTION C_SIGNAL
+    END INTERFACE
+
+    OldCtrlC = C_SIGNAL(SigCtrlC, C_FUNLOC(OnCtrlC))
+  END SUBROUTINE SetCtrlC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
