@@ -16,6 +16,8 @@ PROGRAM DJK
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
   IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+  CALL SetCtrlC
+
   CALL READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
   IF (INFO .NE. 0) STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
 #ifndef NDEBUG
