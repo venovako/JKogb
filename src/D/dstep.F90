@@ -235,4 +235,24 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  SUBROUTINE DSTEP_LOOP(N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    REAL(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
+    TYPE(DPROC), INTENT(IN) :: R
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
+    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
+
+    INTEGER :: S
+
+    S = 0; INFO = 0
+    DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
+       CALL DSTEP_EXEC(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+       IF (INFO .LE. 0) EXIT
+       S = S + 1
+    END DO
+  END SUBROUTINE DSTEP_LOOP
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 END MODULE DSTEP
