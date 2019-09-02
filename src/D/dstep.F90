@@ -172,7 +172,7 @@ CONTAINS
     END IF
 #endif
 
-1   INFO = GET_THREAD_NS() - INFO
+1   INFO = MAX(GET_THREAD_NS() - INFO, 1)
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
        T = INFO * DNS2S
@@ -209,6 +209,8 @@ CONTAINS
 
     INTEGER :: SL, IT
 
+    IF (CtrlC .NE. 0) RETURN
+
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
     CALL DSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
@@ -218,9 +220,15 @@ CONTAINS
     END IF
     WRITE (ULOG,'(I10,A,F12.6,A)',ADVANCE='NO') SL, ',', (INFO * DNS2S), ','
     FLUSH(ULOG)
+
     IF (SL .LT. 1) THEN
        INFO = SL
        WRITE (ULOG,'(F12.6)') D_ZERO
+       FLUSH(ULOG)
+       RETURN
+    ELSE IF (CtrlC .NE. 0) THEN
+       INFO = 0
+       WRITE (ULOG,'(F12.6)') D_MZERO
        FLUSH(ULOG)
        RETURN
     END IF
