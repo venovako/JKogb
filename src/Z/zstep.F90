@@ -183,20 +183,39 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_EXEC(N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE ZSTEP_EXEC(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
-    INTEGER :: SL
+    INTEGER :: SL, IT
 
+    WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
+    FLUSH(ULOG)
     CALL ZSTEP_BUILD(N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
-    IF (SL .LT. 1) RETURN
+    IF (INFO .LT. 0) THEN
+       SL = INFO
+       INFO = 0
+    END IF
+    WRITE (ULOG,'(I10,A,F12.6,A)',ADVANCE='NO') SL, ',', (INFO * DNS2S), ','
+    FLUSH(ULOG)
+    IF (SL .LT. 1) THEN
+       INFO = SL
+       WRITE (ULOG,'(F12.6)') D_ZERO
+       FLUSH(ULOG)
+       RETURN
+    END IF
+
+    IT = GET_THREAD_NS()
     ! perform the transformations
     CONTINUE
+    IT = GET_THREAD_NS() - IT
+    WRITE (ULOG,'(F12.6)') (IT * DNS2S)
+    FLUSH(ULOG)
+    INFO = INFO + IT
   END SUBROUTINE ZSTEP_EXEC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
