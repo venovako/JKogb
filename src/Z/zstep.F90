@@ -209,6 +209,7 @@ CONTAINS
 
     INTEGER :: SL, IT
 
+    INFO = 0
     IF (CtrlC .NE. 0) RETURN
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
@@ -253,7 +254,11 @@ CONTAINS
 
     INTEGER :: S
 
-    S = 0; INFO = 0
+    INFO = 0
+    WRITE (ULOG,'(A)') '"STEP","BUILDs","TRANSFs"'
+    FLUSH(ULOG)
+
+    S = 0
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
        CALL ZSTEP_EXEC(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
        IF (INFO .LE. 0) EXIT
