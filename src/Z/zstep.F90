@@ -87,8 +87,10 @@ CONTAINS
 
     IF (INT(OMP_GET_MAX_THREADS()) .GT. 1) THEN
        R%SRT => AW_SRT1
+       R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
        R%SRT => AW_SRT2
+       R%NCP => AW_NCP2
     END IF
   END SUBROUTINE ZPROC_INIT
 
@@ -160,7 +162,7 @@ CONTAINS
 #endif
 
     IT = MIN(IT, N_2)
-    CALL AW_NCP(NN, DZ, IT, SL, STEP, II)
+    CALL R%NCP(NN, DZ, IT, SL, STEP, II)
     IF (II .LT. 0) THEN
        INFO = -12
        RETURN
