@@ -259,6 +259,7 @@ CONTAINS
        IF (INFO .LE. 0) EXIT
        S = S + 1
     END DO
+    IF (INFO .GE. 0) INFO = S
   END SUBROUTINE ZSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

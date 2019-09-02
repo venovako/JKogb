@@ -102,7 +102,16 @@ PROGRAM DJK
   WRITE (ULOG,'(A,I11)') '    NT=', NT
 #endif
 
-  ! CALL DSTEP_LOOP(N, A, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  FD(1) = GET_THREAD_NS()
+  CALL DSTEP_LOOP(N, A, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  FD(1) = GET_THREAD_NS() - FD(1)
+  IF (INFO .GE. 0) THEN
+     WRITE (UOUT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
+     FLUSH(UOUT)
+  ELSE ! error
+     WRITE (ULOG,'(A,I10,A,F12.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DNS2s), ' s'
+     FLUSH(ULOG)
+  END IF
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
   STEP => NULL()
@@ -111,19 +120,19 @@ PROGRAM DJK
   J => NULL()
   IF (ALLOCATED(IARR)) DEALLOCATE(IARR)
 
-  ! CALL DOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
-  ! IF (INFO .NE. 0) THEN
-  !    WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-  !    STOP 'DOPEN_UZS_RW'
-  ! END IF
+  CALL DOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     STOP 'DOPEN_UZS_RW'
+  END IF
 
-  ! CALL DWRITE_UZS(FD, U, Z, S, N, N, INFO)
-  ! IF (INFO .NE. 0) THEN
-  !    WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-  !    STOP 'DWRITE_UZS'
-  ! END IF
+  CALL DWRITE_UZS(FD, U, Z, S, N, N, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     STOP 'DWRITE_UZS'
+  END IF
 
-  ! CALL BCLOSEN(FD, 3)
+  CALL BCLOSEN(FD, 3)
 
   S => NULL()
   Z => NULL()
