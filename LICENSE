@@ -6,8 +6,8 @@ Copyright (c) 2011-2019 Vedran Novaković <venovako@venovako.eu>.
 <from March 2018 to September 2018 for Vedran Novaković: novakoni@uji.es>
 <also externally for Vedran Novaković: venovako@math.hr>
 Parts of src/old: also Sanja Singer <ssinger@fsb.hr>
-Parts of var/jkdatgen: modified from code of Saša Singer <singer@math.hr> (see comments in the files)
-BLAS/LAPACK parts of var/jkdatgen: modified from Netlib LAPACK sources (see copyrights in the files)
+Parts of src/var/old/jkdatgen: modified from code of Saša Singer <singer@math.hr> (see comments in the files)
+BLAS/LAPACK parts of src/var/old/jkdatgen: modified from Netlib LAPACK sources (see copyrights in the files)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
