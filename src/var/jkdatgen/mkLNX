@@ -17,9 +17,9 @@ endif # STATIC
 
 F90=ifort
 ifdef STATIC
-F90FLAGS=$(HDF5INC) -O3 -fpp -nofpscomp -standard-semantics -xSSE4.1 -fno-omit-frame-pointer -fp-model source -fma -no-complex-limited-range -no-fast-transcendentals -no-ftz -prec-div -prec-sqrt -vec-report -traceback -static
+F90FLAGS=$(HDF5INC) -DUSE_INTEL -O3 -nofpscomp -standard-semantics -xSSE4.1 -fno-omit-frame-pointer -fp-model source -fma -no-complex-limited-range -no-fast-transcendentals -no-ftz -prec-div -prec-sqrt -vec-report -traceback -static
 else # DYNAMIC
-F90FLAGS=$(HDF5INC) -O3 -fpp -nofpscomp -standard-semantics -xHost -fno-omit-frame-pointer -fp-model source -fma -no-complex-limited-range -no-fast-transcendentals -no-ftz -prec-div -prec-sqrt -vec-report -traceback
+F90FLAGS=$(HDF5INC) -DUSE_INTEL -O3 -nofpscomp -standard-semantics -xHost -fno-omit-frame-pointer -fp-model source -fma -no-complex-limited-range -no-fast-transcendentals -no-ftz -prec-div -prec-sqrt -vec-report -traceback
 endif # STATIC
 LDFLAGS=-s $(HDF5LIB)
 
@@ -29,8 +29,8 @@ DDATAGEN_O=dlaran.o dlarnd.o
 
 all: jkdatgen.exe xdatagen.a support.a ddatagen.a
 
-jkdatgen.exe: jkdatgen.f90 xdatagen.a support.a ddatagen.a mkLNX
-	$(F90) $(F90FLAGS) jkdatgen.f90 -o $@ $(LDFLAGS) xdatagen.a support.a ddatagen.a
+jkdatgen.exe: jkdatgen.F90 xdatagen.a support.a ddatagen.a mkLNX
+	$(F90) $(F90FLAGS) jkdatgen.F90 -o $@ $(LDFLAGS) xdatagen.a support.a ddatagen.a
 
 xdatagen.a: $(XDATAGEN_O) mkLNX
 	$(AR) $(ARFLAGS) $@ $(XDATAGEN_O)
@@ -41,110 +41,110 @@ support.a: $(SUPPORT_O) mkLNX
 ddatagen.a: $(DDATAGEN_O) mkLNX
 	$(AR) $(ARFLAGS) $@ $(DDATAGEN_O)
 
-dlaran.o: dlaran.f90 mkLNX
-	$(F90) $(F90FLAGS) -c dlaran.f90
+dlaran.o: dlaran.F90 mkLNX
+	$(F90) $(F90FLAGS) -c dlaran.F90
 
-dlarnd.o: dlarnd.f90 mkLNX
-	$(F90) $(F90FLAGS) -c dlarnd.f90
+dlarnd.o: dlarnd.F90 mkLNX
+	$(F90) $(F90FLAGS) -c dlarnd.F90
 
-gendat.o: gendat.f90 mkLNX
-	$(F90) $(F90FLAGS) -c gendat.f90
+gendat.o: gendat.F90 mkLNX
+	$(F90) $(F90FLAGS) -c gendat.F90
 
-genlam.o: genlam.f90 mkLNX
-	$(F90) $(F90FLAGS) -c genlam.f90
+genlam.o: genlam.F90 mkLNX
+	$(F90) $(F90FLAGS) -c genlam.F90
 
-ixamax.o: ixamax.f90 mkLNX
-	$(F90) $(F90FLAGS) -c ixamax.f90
+ixamax.o: ixamax.F90 mkLNX
+	$(F90) $(F90FLAGS) -c ixamax.F90
 
-jpart.o: jpart.f90 mkLNX
-	$(F90) $(F90FLAGS) -c jpart.f90
+jpart.o: jpart.F90 mkLNX
+	$(F90) $(F90FLAGS) -c jpart.F90
 
-lsame.o: lsame.f90 mkLNX
-	$(F90) $(F90FLAGS) -c lsame.f90
+lsame.o: lsame.F90 mkLNX
+	$(F90) $(F90FLAGS) -c lsame.F90
 
-seedix.o: seedix.f90 mkLNX
-	$(F90) $(F90FLAGS) -c seedix.f90
+seedix.o: seedix.F90 mkLNX
+	$(F90) $(F90FLAGS) -c seedix.F90
 
-seedok.o: seedok.f90 mkLNX
-	$(F90) $(F90FLAGS) -c seedok.f90
+seedok.o: seedok.F90 mkLNX
+	$(F90) $(F90FLAGS) -c seedok.F90
 
-txtlam.o: txtlam.f90 mkLNX
-	$(F90) $(F90FLAGS) -c txtlam.f90
+txtlam.o: txtlam.F90 mkLNX
+	$(F90) $(F90FLAGS) -c txtlam.F90
 
-xa2g.o: xa2g.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xa2g.f90
+xa2g.o: xa2g.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xa2g.F90
 
-xaxpy.o: xaxpy.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xaxpy.f90
+xaxpy.o: xaxpy.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xaxpy.F90
 
-xcopy.o: xcopy.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xcopy.f90
+xcopy.o: xcopy.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xcopy.F90
 
-xdot.o: xdot.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xdot.f90
+xdot.o: xdot.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xdot.F90
 
-xerbla.o: xerbla.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xerbla.f90
+xerbla.o: xerbla.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xerbla.F90
 
-xgemv.o: xgemv.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xgemv.f90
+xgemv.o: xgemv.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xgemv.F90
 
-xger.o: xger.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xger.f90
+xger.o: xger.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xger.F90
 
-xgjgt.o: xgjgt.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xgjgt.f90
+xgjgt.o: xgjgt.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xgjgt.F90
 
-xlacpy.o: xlacpy.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlacpy.f90
+xlacpy.o: xlacpy.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlacpy.F90
 
-xlaev2.o: xlaev2.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlaev2.f90
+xlaev2.o: xlaev2.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlaev2.F90
 
-xlagsy.o: xlagsy.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlagsy.f90
+xlagsy.o: xlagsy.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlagsy.F90
 
-xlaran.o: xlaran.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlaran.f90
+xlaran.o: xlaran.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlaran.F90
 
-xlarnd.o: xlarnd.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlarnd.f90
+xlarnd.o: xlarnd.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlarnd.F90
 
-xlarnv.o: xlarnv.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlarnv.f90
+xlarnv.o: xlarnv.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlarnv.F90
 
-xlaruv.o: xlaruv.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlaruv.f90
+xlaruv.o: xlaruv.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlaruv.F90
 
-xlaset.o: xlaset.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xlaset.f90
+xlaset.o: xlaset.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xlaset.F90
 
-xnrm2.o: xnrm2.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xnrm2.f90
+xnrm2.o: xnrm2.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xnrm2.F90
 
-xrot.o: xrot.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xrot.f90
+xrot.o: xrot.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xrot.F90
 
-xscal.o: xscal.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xscal.f90
+xscal.o: xscal.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xscal.F90
 
-xswap.o: xswap.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xswap.f90
+xswap.o: xswap.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xswap.F90
 
-xsybpc.o: xsybpc.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xsybpc.f90
+xsybpc.o: xsybpc.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xsybpc.F90
 
-xsyjf2.o: xsyjf2.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xsyjf2.f90
+xsyjf2.o: xsyjf2.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xsyjf2.F90
 
-xsymv.o: xsymv.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xsymv.f90
+xsymv.o: xsymv.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xsymv.F90
 
-xsyr.o: xsyr.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xsyr.f90
+xsyr.o: xsyr.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xsyr.F90
 
-xsyr2.o: xsyr2.f90 mkLNX
-	$(F90) $(F90FLAGS) -c xsyr2.f90
+xsyr2.o: xsyr2.F90 mkLNX
+	$(F90) $(F90FLAGS) -c xsyr2.F90
 
 clean:
 	-$(RM) $(DDATAGEN_O)

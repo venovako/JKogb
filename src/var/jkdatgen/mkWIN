@@ -8,7 +8,7 @@ HDF5INC=/I$(HDF5)\include
 HDF5LIB=/LIBPATH:$(HDF5)\lib libhdf5_hl_fortran.lib libhdf5_hl_f90cstub.lib libhdf5_hl.lib libhdf5_fortran.lib libhdf5_f90cstub.lib libhdf5.lib
 
 F90=ifort.exe
-F90FLAGS=$(HDF5INC) /nologo /O3 /fpp /nofpscomp /standard-semantics /QxHost /fp:source /Qfma /Qcomplex-limited-range- /Qfast-transcendentals- /Qftz- /Qprec-div /Qprec-sqrt /Qvec-report /traceback /libs:dll /threads
+F90FLAGS=$(HDF5INC) /DUSE_INTEL /nologo /O3 /fpp /nofpscomp /standard-semantics /QxHost /fp:source /Qfma /Qcomplex-limited-range- /Qfast-transcendentals- /Qftz- /Qprec-div /Qprec-sqrt /Qvec-report /traceback /libs:dll /threads
 LDFLAGS=/link /RELEASE $(HDF5LIB)
 
 XDATAGEN_OBJ=gendat.obj genlam.obj ixamax.obj jpart.obj seedix.obj seedok.obj txtlam.obj xa2g.obj xaxpy.obj xcopy.obj xdot.obj xgemv.obj xger.obj xgjgt.obj xlacpy.obj xlaev2.obj xlagsy.obj xlaran.obj xlarnd.obj xlarnv.obj xlaruv.obj xlaset.obj xnrm2.obj xrot.obj xscal.obj xswap.obj xsybpc.obj xsyjf2.obj xsymv.obj xsyr.obj xsyr2.obj
@@ -17,8 +17,8 @@ DDATAGEN_OBJ=dlaran.obj dlarnd.obj
 
 all: jkdatgen.exe xdatagen.lib support.lib ddatagen.lib
 
-jkdatgen.exe: jkdatgen.f90 xdatagen.lib support.lib ddatagen.lib mkWIN
-	$(F90) $(F90FLAGS) jkdatgen.f90 /Fe$@ $(LDFLAGS) xdatagen.lib support.lib ddatagen.lib
+jkdatgen.exe: jkdatgen.F90 xdatagen.lib support.lib ddatagen.lib mkWIN
+	$(F90) $(F90FLAGS) jkdatgen.F90 /Fe$@ $(LDFLAGS) xdatagen.lib support.lib ddatagen.lib
 
 xdatagen.lib: $(XDATAGEN_OBJ) mkWIN
 	$(AR) $(ARFLAGS) /OUT:$@ $(XDATAGEN_OBJ)
@@ -29,110 +29,110 @@ support.lib: $(SUPPORT_OBJ) mkWIN
 ddatagen.lib: $(DDATAGEN_OBJ) mkWIN
 	$(AR) $(ARFLAGS) /OUT:$@ $(DDATAGEN_OBJ)
 
-dlaran.obj: dlaran.f90 mkWIN
-	$(F90) $(F90FLAGS) /c dlaran.f90
+dlaran.obj: dlaran.F90 mkWIN
+	$(F90) $(F90FLAGS) /c dlaran.F90
 
-dlarnd.obj: dlarnd.f90 mkWIN
-	$(F90) $(F90FLAGS) /c dlarnd.f90
+dlarnd.obj: dlarnd.F90 mkWIN
+	$(F90) $(F90FLAGS) /c dlarnd.F90
 
-gendat.obj: gendat.f90 mkWIN
-	$(F90) $(F90FLAGS) /c gendat.f90
+gendat.obj: gendat.F90 mkWIN
+	$(F90) $(F90FLAGS) /c gendat.F90
 
-genlam.obj: genlam.f90 mkWIN
-	$(F90) $(F90FLAGS) /c genlam.f90
+genlam.obj: genlam.F90 mkWIN
+	$(F90) $(F90FLAGS) /c genlam.F90
 
-ixamax.obj: ixamax.f90 mkWIN
-	$(F90) $(F90FLAGS) /c ixamax.f90
+ixamax.obj: ixamax.F90 mkWIN
+	$(F90) $(F90FLAGS) /c ixamax.F90
 
-jpart.obj: jpart.f90 mkWIN
-	$(F90) $(F90FLAGS) /c jpart.f90
+jpart.obj: jpart.F90 mkWIN
+	$(F90) $(F90FLAGS) /c jpart.F90
 
-lsame.obj: lsame.f90 mkWIN
-	$(F90) $(F90FLAGS) /c lsame.f90
+lsame.obj: lsame.F90 mkWIN
+	$(F90) $(F90FLAGS) /c lsame.F90
 
-seedix.obj: seedix.f90 mkWIN
-	$(F90) $(F90FLAGS) /c seedix.f90
+seedix.obj: seedix.F90 mkWIN
+	$(F90) $(F90FLAGS) /c seedix.F90
 
-seedok.obj: seedok.f90 mkWIN
-	$(F90) $(F90FLAGS) /c seedok.f90
+seedok.obj: seedok.F90 mkWIN
+	$(F90) $(F90FLAGS) /c seedok.F90
 
-txtlam.obj: txtlam.f90 mkWIN
-	$(F90) $(F90FLAGS) /c txtlam.f90
+txtlam.obj: txtlam.F90 mkWIN
+	$(F90) $(F90FLAGS) /c txtlam.F90
 
-xa2g.obj: xa2g.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xa2g.f90
+xa2g.obj: xa2g.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xa2g.F90
 
-xaxpy.obj: xaxpy.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xaxpy.f90
+xaxpy.obj: xaxpy.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xaxpy.F90
 
-xcopy.obj: xcopy.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xcopy.f90
+xcopy.obj: xcopy.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xcopy.F90
 
-xdot.obj: xdot.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xdot.f90
+xdot.obj: xdot.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xdot.F90
 
-xerbla.obj: xerbla.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xerbla.f90
+xerbla.obj: xerbla.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xerbla.F90
 
-xgemv.obj: xgemv.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xgemv.f90
+xgemv.obj: xgemv.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xgemv.F90
 
-xger.obj: xger.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xger.f90
+xger.obj: xger.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xger.F90
 
-xgjgt.obj: xgjgt.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xgjgt.f90
+xgjgt.obj: xgjgt.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xgjgt.F90
 
-xlacpy.obj: xlacpy.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlacpy.f90
+xlacpy.obj: xlacpy.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlacpy.F90
 
-xlaev2.obj: xlaev2.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlaev2.f90
+xlaev2.obj: xlaev2.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlaev2.F90
 
-xlagsy.obj: xlagsy.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlagsy.f90
+xlagsy.obj: xlagsy.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlagsy.F90
 
-xlaran.obj: xlaran.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlaran.f90
+xlaran.obj: xlaran.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlaran.F90
 
-xlarnd.obj: xlarnd.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlarnd.f90
+xlarnd.obj: xlarnd.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlarnd.F90
 
-xlarnv.obj: xlarnv.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlarnv.f90
+xlarnv.obj: xlarnv.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlarnv.F90
 
-xlaruv.obj: xlaruv.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlaruv.f90
+xlaruv.obj: xlaruv.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlaruv.F90
 
-xlaset.obj: xlaset.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xlaset.f90
+xlaset.obj: xlaset.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xlaset.F90
 
-xnrm2.obj: xnrm2.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xnrm2.f90
+xnrm2.obj: xnrm2.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xnrm2.F90
 
-xrot.obj: xrot.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xrot.f90
+xrot.obj: xrot.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xrot.F90
 
-xscal.obj: xscal.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xscal.f90
+xscal.obj: xscal.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xscal.F90
 
-xswap.obj: xswap.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xswap.f90
+xswap.obj: xswap.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xswap.F90
 
-xsybpc.obj: xsybpc.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xsybpc.f90
+xsybpc.obj: xsybpc.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xsybpc.F90
 
-xsyjf2.obj: xsyjf2.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xsyjf2.f90
+xsyjf2.obj: xsyjf2.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xsyjf2.F90
 
-xsymv.obj: xsymv.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xsymv.f90
+xsymv.obj: xsymv.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xsymv.F90
 
-xsyr.obj: xsyr.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xsyr.f90
+xsyr.obj: xsyr.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xsyr.F90
 
-xsyr2.obj: xsyr2.f90 mkWIN
-	$(F90) $(F90FLAGS) /c xsyr2.f90
+xsyr2.obj: xsyr2.F90 mkWIN
+	$(F90) $(F90FLAGS) /c xsyr2.F90
 
 clean:
 	-$(RM) $(DDATAGEN_OBJ)

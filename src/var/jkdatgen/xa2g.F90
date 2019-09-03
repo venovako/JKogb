@@ -1,0 +1,68 @@
+SUBROUTINE XA2G(N, LAM, ISEED, NRANK, A, G, LDG, IPIV, JVEC, NPLUS, IPL, INVP, INFO)
+  IMPLICIT NONE
+#include "wp.F"
+
+  INTEGER, INTENT(IN) :: N, LDG
+  REAL(KIND=8), INTENT(IN) :: LAM(N)
+  INTEGER, INTENT(INOUT) :: ISEED(4)
+  REAL(KIND=8), INTENT(OUT) :: A(LDG,N), G(LDG,N)
+  INTEGER, INTENT(OUT) :: NRANK, IPIV(N), JVEC(N), NPLUS, IPL(N), INVP(N), INFO(2)
+
+  REAL(KIND=8), PARAMETER :: DZERO = +0.0E+0_8
+
+  REAL(KIND=WP), ALLOCATABLE :: XLAM(:), XA(:,:), WORK(:)
+  INTEGER :: LDA, I, J
+
+  EXTERNAL :: JPART, XLACPY, XLAGSY, XSYBPC
+
+  LDA = LDG
+  INFO(1) = 0
+  INFO(2) = 0
+
+  ALLOCATE(XA(LDA,N))
+  ALLOCATE(WORK(2*N))
+
+  ALLOCATE(XLAM(N))
+  DO I = 1, N
+     XLAM(I) = REAL(LAM(I), WP)
+  END DO
+1 CALL XLAGSY(N, N-1, XLAM, XA, LDA, ISEED, WORK, INFO(2))
+  DEALLOCATE(XLAM)
+  IF (INFO(2) .NE. 0) THEN
+     INFO(1) = 1
+     GOTO 3
+  END IF
+
+  DO J = 1, N
+     DO I = 1, N
+        A(I,J) = REAL(XA(I,J), 8)
+     END DO
+  END DO
+  DO J = 1, N
+     DO I = N + 1, LDG
+        A(I,J) = DZERO
+     END DO
+  END DO
+
+  IPIV = 0
+2 CALL XSYBPC('L', N, XA, LDA, NRANK, WORK, IPIV, JVEC, INFO(2))
+  IF (INFO(2) .EQ. 0) THEN
+     CALL JPART(N, NRANK, XA, LDA, JVEC, NPLUS, IPL, INVP)
+     DO J = 1, N
+        DO I = 1, N
+           G(I,J) = REAL(XA(I,J), 8)
+        END DO
+     END DO
+     DO J = 1, N
+        DO I = N + 1, LDG
+           G(I,J) = DZERO
+        END DO
+     END DO
+  ELSE
+     INFO(1) = 2
+  END IF
+
+3 DEALLOCATE(WORK)
+  DEALLOCATE(XA)
+
+END SUBROUTINE XA2G

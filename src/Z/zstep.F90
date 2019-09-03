@@ -257,16 +257,22 @@ CONTAINS
     INTEGER :: S
 
     INFO = 0
+
+    ! init animation
+
     WRITE (ULOG,'(A)') '"STEP","BUILDs","TRANSFs"'
     FLUSH(ULOG)
 
     S = 0
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
+       ! frame(A)
        CALL ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
        IF (INFO .LE. 0) EXIT
        S = S + 1
     END DO
     IF (INFO .GE. 0) INFO = S
+
+    ! finalize animation
   END SUBROUTINE ZSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
