@@ -29,30 +29,62 @@ endif # ?NDEBUG
 REAL8: SHARED $(MKFS)
 ifdef NDEBUG
 ifdef PROFILE
+ifdef ANIMATE
+	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
+endif # ?ANIMATE
 else # !PROFILE
+ifdef ANIMATE
+	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) && popd
+endif # ?ANIMATE
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
+ifdef ANIMATE
+	pushd D && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd D && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) && popd
+endif # ?ANIMATE
 else # !PROFILE
+ifdef ANIMATE
+	pushd D && $(MAKE) CPU=$(CPU) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd D && $(MAKE) CPU=$(CPU) && popd
+endif # ?ANIMATE
 endif # ?PROFILE
 endif # ?NDEBUG
 
 COMPLEX8: SHARED $(MKFS)
 ifdef NDEBUG
 ifdef PROFILE
+ifdef ANIMATE
+	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
+endif # ?ANIMATE
 else # !PROFILE
+ifdef ANIMATE
+	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) && popd
+endif # ?ANIMATE
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
+ifdef ANIMATE
+	pushd Z && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd Z && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) && popd
+endif # ?ANIMATE
 else # !PROFILE
+ifdef ANIMATE
+	pushd Z && $(MAKE) CPU=$(CPU) ANIMATE=$(ANIMATE) && popd
+else # !ANIMATE
 	pushd Z && $(MAKE) CPU=$(CPU) && popd
+endif # ?ANIMATE
 endif # ?PROFILE
 endif # ?NDEBUG
 

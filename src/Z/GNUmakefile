@@ -13,10 +13,13 @@ help:
 
 ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod ../shared/timer.mod ../shared/utils.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztypes.F90
-
+ifdef ANIMATE
+zstep.o zstep.mod: zstep.F90 ztypes.mod ../../../JACSD/vn/vn_cmplxvis_f.mod $(MKFS)
+	$(FC) -DANIMATE $(FFLAGS) -c zstep.F90
+else # !ANIMATE
 zstep.o zstep.mod: zstep.F90 ztypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zstep.F90
-
+endif # ?ANIMATE
 zjk.exe: zjk.o zstep.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) zjk.o zstep.o ztypes.o -o$@ $(LDFLAGS)
 

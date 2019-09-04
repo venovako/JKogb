@@ -247,6 +247,9 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE ZSTEP_LOOP(N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+#ifdef ANIMATE
+    USE VN_CMPLXVIS_F
+#endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
@@ -255,24 +258,43 @@ CONTAINS
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S
+#ifdef ANIMATE
+    CHARACTER(LEN=7), PARAMETER :: FNAME = 'zjkAstp'
+    INTEGER, PARAMETER :: ACT = IOR(VN_CMPLXVIS_OP_A, VN_CMPLXVIS_FN_Lg) !VN_CMPLXVIS_FN_Id
+    INTEGER, PARAMETER :: SX = 1, SY = 1
+    TYPE(c_ptr) :: CTX
 
+    INFO = VN_CMPLXVIS_START(CTX, FNAME, ACT, N, N, SX, SY, LEN_TRIM(FNAME))
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_START:', INFO
+       RETURN
+    END IF
+#else
     INFO = 0
-
-    ! init animation
+#endif
 
     WRITE (ULOG,'(A)') '"STEP","BUILDs","TRANSFs"'
     FLUSH(ULOG)
 
     S = 0
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
-       ! frame(A)
+#ifdef ANIMATE
+       INFO = VN_CMPLXVIS_FRAME(CTX, A, N)
+       IF (INFO .NE. 0) THEN
+          WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_FRAME:', INFO
+          RETURN
+       END IF
+#endif
        CALL ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
        IF (INFO .LE. 0) EXIT
        S = S + 1
     END DO
     IF (INFO .GE. 0) INFO = S
 
-    ! finalize animation
+#ifdef ANIMATE
+    S = VN_CMPLXVIS_STOP(CTX)
+    IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
+#endif
   END SUBROUTINE ZSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

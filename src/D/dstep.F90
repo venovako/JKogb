@@ -221,7 +221,7 @@ CONTAINS
        SL = INFO
        INFO = 0
     END IF
-    WRITE (ULOG,'(I10,A,F12.6,A)',ADVANCE='NO') SL, ',', (INFO * DNS2S), ','
+    WRITE (ULOG,'(I11,A,F12.6,A)',ADVANCE='NO') SL, ',', (INFO * DNS2S), ','
     FLUSH(ULOG)
 
     IF (SL .LT. 1) THEN
@@ -247,6 +247,9 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE DSTEP_LOOP(N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+#ifdef ANIMATE
+    USE VN_MTXVIS_F
+#endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
@@ -255,24 +258,43 @@ CONTAINS
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S
+#ifdef ANIMATE
+    CHARACTER(LEN=7), PARAMETER :: FNAME = 'djkAstp'
+    INTEGER, PARAMETER :: ACT = IOR(IOR(VN_MTXVIS_OP_A, VN_MTXVIS_FN_Lg), VN_MTXVIS_FF_Bin) !VN_MTXVIS_FN_Id
+    INTEGER, PARAMETER :: SX = 1, SY = 1
+    TYPE(c_ptr) :: CTX
 
+    INFO = VN_MTXVIS_START(CTX, FNAME, ACT, N, N, SX, SY, LEN_TRIM(FNAME))
+    IF (INFO .NE. 0) THEN
+       WRITE (ULOG,'(A,I11)') 'VN_MTXVIS_START:', INFO
+       RETURN
+    END IF
+#else
     INFO = 0
-
-    ! init animation
+#endif
 
     WRITE (ULOG,'(A)') '"STEP","BUILDs","TRANSFs"'
     FLUSH(ULOG)
 
     S = 0
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
-       ! frame(A)
+#ifdef ANIMATE
+       INFO = VN_MTXVIS_FRAME(CTX, A, N)
+       IF (INFO .NE. 0) THEN
+          WRITE (ULOG,'(A,I11)') 'VN_MTXVIS_FRAME:', INFO
+          RETURN
+       END IF
+#endif
        CALL DSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
        IF (INFO .LE. 0) EXIT
        S = S + 1
     END DO
     IF (INFO .GE. 0) INFO = S
 
-    ! finalize animation
+#ifdef ANIMATE
+    S = VN_MTXVIS_STOP(CTX)
+    IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_MTXVIS_STOP:', S
+#endif
   END SUBROUTINE DSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
