@@ -1,5 +1,6 @@
 MODULE DSTEP
   USE OMP_LIB
+  USE DTRANSF
   USE DTYPES
   USE JSTEP
   IMPLICIT NONE
@@ -219,11 +220,11 @@ CONTAINS
     FLUSH(ULOG)
     CALL DSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IF (INFO .LE. 0) THEN
-       IT = INFO
+       NL = INFO
     ELSE
-       IT = SL
+       NL = SL
     END IF
-    WRITE (ULOG,'(I11,A)',ADVANCE='NO') IT, ','
+    WRITE (ULOG,'(I11,A)',ADVANCE='NO') NL, ','
     IF (INFO .LE. 0) THEN
        WRITE (ULOG,'(F12.6,A,F12.6)') D_MZERO, ',', D_ZERO
     ELSE IF (SL .LE. 0) THEN
