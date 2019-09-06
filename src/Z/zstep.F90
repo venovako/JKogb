@@ -187,9 +187,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2, SL, STEP(N_2)
+    INTEGER, INTENT(IN) :: S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), SL
+    INTEGER, INTENT(INOUT) :: STEP(SL)
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(IN) :: DZ(NN)
@@ -201,44 +202,49 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
-    INTEGER, INTENT(OUT) :: STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
 
-    INTEGER :: SL, IT
+    INTEGER :: IT
 
+    SL = 0
     INFO = 0
     IF (CtrlC .NE. 0) RETURN
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
     CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
-    IF (INFO .LT. 0) THEN
-       SL = INFO
-       INFO = 0
+    IF (INFO .LE. 0) THEN
+       IT = INFO
+    ELSE
+       IT = SL
     END IF
-    WRITE (ULOG,'(I10,A,F12.6,A)',ADVANCE='NO') SL, ',', (INFO * DNS2S), ','
+    WRITE (ULOG,'(I11,A)',ADVANCE='NO') IT, ','
+    IF (INFO .LE. 0) THEN
+       WRITE (ULOG,'(F12.6,A,F12.6)') D_MZERO, ',', D_ZERO
+    ELSE IF (SL .LE. 0) THEN
+       WRITE (ULOG,'(F12.6,A,F12.6)') (INFO * DNS2S), ',', D_ZERO
+    ELSE
+       WRITE (ULOG,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
+    END IF
     FLUSH(ULOG)
 
-    IF (SL .LT. 1) THEN
-       INFO = SL
-       WRITE (ULOG,'(F12.6)') D_ZERO
-       FLUSH(ULOG)
-       RETURN
-    ELSE IF (CtrlC .NE. 0) THEN
-       INFO = 0
+    IF (SL .LE. 0) RETURN
+    IF (CtrlC .NE. 0) INFO = 0
+    IF (INFO .LE. 0) THEN
        WRITE (ULOG,'(F12.6)') D_MZERO
        FLUSH(ULOG)
        RETURN
     END IF
 
     IT = GET_THREAD_NS()
-    CALL ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
-    IT = GET_THREAD_NS() - IT
+    CALL ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, INFO)
+    IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6)') (IT * DNS2S)
     FLUSH(ULOG)
     INFO = INFO + IT
@@ -257,7 +263,7 @@ CONTAINS
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
-    INTEGER :: S
+    INTEGER :: S, SL
 #ifdef ANIMATE
     CHARACTER(LEN=7), PARAMETER :: FNAME = 'zjkAstp'
     INTEGER, PARAMETER :: ACT = IOR(VN_CMPLXVIS_OP_A, VN_CMPLXVIS_FN_Lg) !VN_CMPLXVIS_FN_Id
@@ -285,8 +291,9 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+       CALL ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
        IF (INFO .LE. 0) EXIT
+       IF (SL .LE. 0) EXIT
        S = S + 1
     END DO
     IF (INFO .GE. 0) INFO = S
