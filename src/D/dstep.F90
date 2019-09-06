@@ -196,8 +196,7 @@ CONTAINS
     TYPE(AW), INTENT(IN) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
-    ! perform the transformations
-    CONTINUE
+    INFO = 0
   END SUBROUTINE DSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -210,7 +209,7 @@ CONTAINS
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
 
-    INTEGER :: IT
+    INTEGER :: IT, NL
 
     SL = 0
     INFO = 0
@@ -243,10 +242,12 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    CALL DSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, INFO)
+    CALL DSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6)') (IT * DNS2S)
     FLUSH(ULOG)
+
+    SL = MIN(SL, NL)
     INFO = INFO + IT
   END SUBROUTINE DSTEP_EXEC
 
