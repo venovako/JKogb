@@ -197,7 +197,7 @@ CONTAINS
     TYPE(AW), INTENT(IN) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
-    INFO = 0
+    INFO = SL
   END SUBROUTINE ZSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
