@@ -6,7 +6,7 @@ MKFS=GNUmakefile ../$(CPU).mk
 
 .PHONY: all help clean
 
-all: zjk.exe
+all: zjk.exe ztest.exe
 
 help:
 	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
@@ -28,6 +28,12 @@ zjk.exe: zjk.o zstep.o ztransf.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ..
 
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod ../shared/blas_utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
+
+ztest.exe: ztest.o ztransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) ztest.o ztransf.o -o$@ $(LDFLAGS)
+
+ztest.o: ztest.F90 ztransf.mod $(MKFS)
+	$(FC) $(FFLAGS) -c ztest.F90
 
 clean:
 	-$(RM) *.exe
