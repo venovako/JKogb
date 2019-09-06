@@ -23,8 +23,8 @@ else # !ANIMATE
 dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dstep.F90
 endif # ?ANIMATE
-djk.exe: djk.o dstep.o dtypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) djk.o dstep.o dtypes.o -o$@ $(LDFLAGS)
+djk.exe: djk.o dstep.o dtransf.o dtypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) djk.o dstep.o dtransf.o dtypes.o -o$@ $(LDFLAGS)
 
 djk.o: djk.F90 bio.F90 ../shared/readcl.F90 dstep.mod ../shared/binio.mod ../shared/blas_utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c djk.F90
