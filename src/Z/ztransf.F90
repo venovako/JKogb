@@ -81,7 +81,7 @@ CONTAINS
     END IF
 
     ! ZHSVD2D called
-    INFO = 0
+    INFO = 1
   END SUBROUTINE ZHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -93,22 +93,15 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
+    ! TODO: transform
+
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
+    CALL ZHSVD2D(H, A, U, Z, INFO)
+
     ! ZHSVD2U called
-    INFO = 1
-  END SUBROUTINE ZHSVD2U
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
-    ! A lower triangular, not diagonal
-    IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    ! ZHSVD2L called
     INFO = 2
-  END SUBROUTINE ZHSVD2L
+  END SUBROUTINE ZHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -118,6 +111,42 @@ CONTAINS
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
+
+    REAL(KIND=DWP) :: C
+    COMPLEX(KIND=DWP) :: S, R
+
+    REAL(KIND=DWP), EXTERNAL :: DZNRM2
+    EXTERNAL :: ZLARTG, ZROT, ZSWAP
+
+    IF ((.NOT. H) .AND. (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1))) THEN
+       ! column swap of A
+       CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! column swap of Z
+       CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+    END IF
+
+    IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
+       ! row swap of U
+       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! row swap of A
+       CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+    END IF
+
+    ! QR factorization of A
+    CALL ZLARTG(A(1,1), A(2,1), C, S, R)
+    A(1,1) = R
+    A(2,1) = Z_ZERO
+    CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
+    ! premultiply U by Q^H
+    CALL ZROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    IF (A(1,2) .EQ. Z_ZERO) THEN
+       ! A diagonal
+       CALL ZHSVD2D(H, A, U, Z, INFO)
+    ELSE
+       ! A upper triangular, not diagonal
+       CALL ZHSVD2U(H, A, U, Z, INFO)
+    END IF
 
     ! ZHSVD2G called
     INFO = 3
@@ -131,29 +160,17 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V
+    EXTERNAL :: ZSWAP
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
     IF ((.NOT. H) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) THEN
        ! swap the rows of U
-       V = U(1,1)
-       U(1,1) = U(2,1)
-       U(2,1) = V
-       V = U(1,2)
-       U(1,2) = U(2,2)
-       U(2,2) = V
+       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        ! swap the diagonal elements of A
-       V = A(1,1)
-       A(1,1) = A(2,2)
-       A(2,2) = V
+       CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
        ! swap the columns of Z
-       V = Z(1,1)
-       Z(1,1) = Z(1,2)
-       Z(1,2) = V
-       V = Z(2,1)
-       Z(2,1) = Z(2,2)
-       Z(2,2) = V
+       CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
     IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 4
@@ -210,9 +227,6 @@ CONTAINS
           ! A upper triangular, not diagonal
           CALL ZHSVD2U(H, A, U, Z, INFO)
        END IF
-    ELSE IF (W(1,2) .EQ. D_ZERO) THEN
-       ! A lower triangular, not diagonal
-       CALL ZHSVD2L(H, A, U, Z, INFO)
     ELSE
        ! A general
        CALL ZHSVD2G(H, A, U, Z, INFO)

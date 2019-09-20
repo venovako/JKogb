@@ -28,7 +28,7 @@ CONTAINS
     END IF
 
     ! DHSVD2D called
-    INFO = 0
+    INFO = 1
   END SUBROUTINE DHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -40,22 +40,15 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
+    ! TODO: transform
+
+    A(2,1) = D_ZERO
+    A(1,2) = D_ZERO
+    CALL DHSVD2D(H, A, U, Z, INFO)
+
     ! DHSVD2U called
-    INFO = 1
-  END SUBROUTINE DHSVD2U
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
-    ! A lower triangular, not diagonal
-    IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    ! DHSVD2L called
     INFO = 2
-  END SUBROUTINE DHSVD2L
+  END SUBROUTINE DHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -65,6 +58,41 @@ CONTAINS
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
+
+    REAL(KIND=DWP) :: C, S, R
+
+    REAL(KIND=DWP), EXTERNAL :: DNRM2
+    EXTERNAL :: DLARTG, DROT, DSWAP
+
+    IF ((.NOT. H) .AND. (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1))) THEN
+       ! column swap of A
+       CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! column swap of Z
+       CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+    END IF
+
+    IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
+       ! row swap of U
+       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! row swap of A
+       CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+    END IF
+
+    ! QR factorization of A
+    CALL DLARTG(A(1,1), A(2,1), C, S, R)
+    A(1,1) = R
+    A(2,1) = D_ZERO
+    CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
+    ! premultiply U by Q^T
+    CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    IF (A(1,2) .EQ. D_ZERO) THEN
+       ! A diagonal
+       CALL DHSVD2D(H, A, U, Z, INFO)
+    ELSE
+       ! A upper triangular, not diagonal
+       CALL DHSVD2U(H, A, U, Z, INFO)
+    END IF
 
     ! DHSVD2G called
     INFO = 3
@@ -78,29 +106,17 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V
+    EXTERNAL :: DSWAP
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
     IF ((.NOT. H) .AND. (A(1,1) .LT. A(2,2))) THEN
        ! swap the rows of U
-       V = U(1,1)
-       U(1,1) = U(2,1)
-       U(2,1) = V
-       V = U(1,2)
-       U(1,2) = U(2,2)
-       U(2,2) = V
+       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        ! swap the diagonal elements of A
-       V = A(1,1)
-       A(1,1) = A(2,2)
-       A(2,2) = V
+       CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
        ! swap the columns of Z
-       V = Z(1,1)
-       Z(1,1) = Z(1,2)
-       Z(1,2) = V
-       V = Z(2,1)
-       Z(2,1) = Z(2,2)
-       Z(2,2) = V
+       CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
     IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 4
@@ -150,9 +166,6 @@ CONTAINS
           ! A upper triangular, not diagonal
           CALL DHSVD2U(H, A, U, Z, INFO)
        END IF
-    ELSE IF (A(1,2) .EQ. D_ZERO) THEN
-       ! A lower triangular, not diagonal
-       CALL DHSVD2L(H, A, U, Z, INFO)
     ELSE
        ! A general
        CALL DHSVD2G(H, A, U, Z, INFO)
