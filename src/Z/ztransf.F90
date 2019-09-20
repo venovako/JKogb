@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -86,7 +86,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -99,7 +99,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
     ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -112,7 +112,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -125,7 +125,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
@@ -162,7 +162,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)

@@ -6,14 +6,12 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
-
-    REAL(KIND=DWP) :: W
 
     IF (A(1,1) .LT. D_ZERO) THEN
        ! A(1,1) negative
@@ -35,7 +33,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -48,7 +46,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
     ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -61,7 +59,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -74,7 +72,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
@@ -111,7 +109,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
