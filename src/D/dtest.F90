@@ -2,8 +2,15 @@ PROGRAM DTEST
   USE DTRANSF
   IMPLICIT NONE
 
+  LOGICAL :: H
   REAL(KIND=DWP) :: A(2,2), U(2,2), Z(2,2)
-  INTEGER :: J(2)
+  INTEGER :: INFO
+
+  H = .FALSE.
+  A = D_ZERO
+  U = D_ZERO
+  Z = D_ZERO
+  INFO = 0
 
   WRITE (*,'(A)',ADVANCE='NO') 'A11='
   READ (*,*) A(1,1)
@@ -13,12 +20,11 @@ PROGRAM DTEST
   READ (*,*) A(1,2)
   WRITE (*,'(A)',ADVANCE='NO') 'A22='
   READ (*,*) A(2,2)
-  WRITE (*,'(A)',ADVANCE='NO') 'J1='
-  READ (*,*) J(1)
-  WRITE (*,'(A)',ADVANCE='NO') 'J2='
-  READ (*,*) J(2)
+  WRITE (*,'(A)',ADVANCE='NO') 'HYP='
+  READ (*,*) H
 
-  CALL DTRANSFA(A, J, U, Z)
+  CALL DHSVD2(H, A, U, Z, INFO)
+  WRITE (*,*) 'INFO=', INFO
 
   WRITE (*,*) 'A11=', A(1,1)
   WRITE (*,*) 'A21=', A(2,1)

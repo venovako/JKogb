@@ -2,8 +2,15 @@ PROGRAM ZTEST
   USE ZTRANSF
   IMPLICIT NONE
 
+  LOGICAL :: H
   COMPLEX(KIND=DWP) :: A(2,2), U(2,2), Z(2,2)
-  INTEGER :: J(2)
+  INTEGER :: INFO
+
+  H = .FALSE.
+  A = Z_ZERO
+  U = Z_ZERO
+  Z = Z_ZERO
+  INFO = 0
 
   WRITE (*,'(A)',ADVANCE='NO') 'A11='
   READ (*,*) A(1,1)
@@ -13,12 +20,11 @@ PROGRAM ZTEST
   READ (*,*) A(1,2)
   WRITE (*,'(A)',ADVANCE='NO') 'A22='
   READ (*,*) A(2,2)
-  WRITE (*,'(A)',ADVANCE='NO') 'J1='
-  READ (*,*) J(1)
-  WRITE (*,'(A)',ADVANCE='NO') 'J2='
-  READ (*,*) J(2)
+  WRITE (*,'(A)',ADVANCE='NO') 'HYP='
+  READ (*,*) H
 
-  CALL ZTRANSFA(A, J, U, Z)
+  CALL ZHSVD2(H, A, U, Z, INFO)
+  WRITE (*,*) 'INFO=', INFO
 
   WRITE (*,*) 'A11=', A(1,1)
   WRITE (*,*) 'A21=', A(2,1)
