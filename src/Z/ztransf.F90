@@ -103,6 +103,11 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     ! TODO: transform
+    IF (H) THEN
+       CONTINUE
+    ELSE
+       CONTINUE
+    END IF
 
     A(2,1) = Z_ZERO
     A(1,2) = Z_ZERO
@@ -143,6 +148,10 @@ CONTAINS
 
     ! QR factorization of A
     CALL ZLARTG(A(1,1), A(2,1), C, S, R)
+    IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
+       INFO = -5
+       RETURN
+    END IF
     A(1,1) = R
     A(2,1) = Z_ZERO
     CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
@@ -242,6 +251,7 @@ CONTAINS
        ! A general
        CALL ZHSVD2G(H, A, U, Z, INFO)
     END IF
+    IF (INFO .LT. 0) RETURN
 
     CALL ZHSVD2S(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
