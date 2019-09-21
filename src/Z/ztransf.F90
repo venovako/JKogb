@@ -238,15 +238,9 @@ CONTAINS
     Z(1,2) = Z_ZERO
     Z(2,2) = Z_ONE
 
-    IF (W(2,1) .EQ. D_ZERO) THEN
-       ! A upper triangular
-       IF (W(1,2) .EQ. D_ZERO) THEN
-          ! A diagonal
-          CALL ZHSVD2D(H, A, U, Z, INFO)
-       ELSE
-          ! A upper triangular, not diagonal
-          CALL ZHSVD2U(H, A, U, Z, INFO)
-       END IF
+    IF ((W(2,1) .EQ. D_ZERO) .AND. (W(1,2) .EQ. D_ZERO)) THEN
+       ! A diagonal
+       CALL ZHSVD2D(H, A, U, Z, INFO)
     ELSE
        ! A general
        CALL ZHSVD2G(H, A, U, Z, INFO)
