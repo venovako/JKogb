@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -95,7 +95,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -119,6 +119,31 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE ZHSVD2T(H, A, U, Z, INFO)
+    ! A antitriangular, not antidiagonal
+    IMPLICIT NONE
+    LOGICAL, INTENT(IN) :: H
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
+    INTEGER, INTENT(INOUT) :: INFO
+
+    IF (.NOT. H) THEN
+       INFO = -6
+       RETURN
+    END IF
+    INFO = 0
+
+    ! TODO: transform
+
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
+    CALL ZHSVD2D(H, A, U, Z, INFO)
+
+    ! ZHSVD2T called
+    INFO = 3
+  END SUBROUTINE ZHSVD2T
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
@@ -132,11 +157,15 @@ CONTAINS
     REAL(KIND=DWP), EXTERNAL :: DZNRM2
     EXTERNAL :: ZLARTG, ZROT, ZSWAP
 
-    IF ((.NOT. H) .AND. (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1))) THEN
+    IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
        ! column swap of A
        CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        ! column swap of Z
-       CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       ! record the swap
+       INFO = 1
+    ELSE
+       INFO = 0
     END IF
 
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
@@ -160,14 +189,26 @@ CONTAINS
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
        ! A diagonal
+       IF (H .AND. (INFO .EQ. 1)) THEN
+          ! swap the rows of U
+          CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+          ! swap the diagonal elements of A
+          CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+       END IF
        CALL ZHSVD2D(H, A, U, Z, INFO)
+    ELSE IF (H .AND. (INFO .EQ. 1)) THEN
+       ! column swap of A
+       CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! A antitriangular, not antidiagonal (X .NE. 0)
+       !     | X R | <- R .NE. 0 the largest
+       ! A = | x 0 |    element by magnitude
+       CALL ZHSVD2T(H, A, U, Z, INFO)
     ELSE
-       ! A upper triangular, not diagonal
+       ! A upper triangular, not diagonal (X .NE. 0)
+       !     | R X | <- R .NE. 0 the largest
+       ! A = | 0 x |    element by magnitude
        CALL ZHSVD2U(H, A, U, Z, INFO)
     END IF
-
-    ! ZHSVD2G called
-    INFO = 3
   END SUBROUTINE ZHSVD2G
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

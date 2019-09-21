@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -38,7 +38,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -62,6 +62,31 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE DHSVD2T(H, A, U, Z, INFO)
+    ! A antitriangular, not antidiagonal
+    IMPLICIT NONE
+    LOGICAL, INTENT(IN) :: H
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
+    INTEGER, INTENT(INOUT) :: INFO
+
+    IF (.NOT. H) THEN
+       INFO = -6
+       RETURN
+    END IF
+    INFO = 0
+
+    ! TODO: transform
+
+    A(2,1) = D_ZERO
+    A(1,2) = D_ZERO
+    CALL DHSVD2D(H, A, U, Z, INFO)
+
+    ! DHSVD2T called
+    INFO = 3
+  END SUBROUTINE DHSVD2T
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
@@ -74,11 +99,15 @@ CONTAINS
     REAL(KIND=DWP), EXTERNAL :: DNRM2
     EXTERNAL :: DLARTG, DROT, DSWAP
 
-    IF ((.NOT. H) .AND. (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1))) THEN
+    IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
        ! column swap of A
        CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
        ! column swap of Z
-       CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       ! record the swap
+       INFO = 1
+    ELSE
+       INFO = 0
     END IF
 
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
@@ -102,14 +131,26 @@ CONTAINS
 
     IF (A(1,2) .EQ. D_ZERO) THEN
        ! A diagonal
+       IF (H .AND. (INFO .EQ. 1)) THEN
+          ! swap the rows of U
+          CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+          ! swap the diagonal elements of A
+          CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+       END IF
        CALL DHSVD2D(H, A, U, Z, INFO)
+    ELSE IF (H .AND. (INFO .EQ. 1)) THEN
+       ! column swap of A
+       CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! A antitriangular, not antidiagonal (X .NE. 0)
+       !     | X R | <- R .NE. 0 the largest
+       ! A = | x 0 |    element by magnitude
+       CALL DHSVD2T(H, A, U, Z, INFO)
     ELSE
-       ! A upper triangular, not diagonal
+       ! A upper triangular, not diagonal (X .NE. 0)
+       !     | R X | <- R .NE. 0 the largest
+       ! A = | 0 x |    element by magnitude
        CALL DHSVD2U(H, A, U, Z, INFO)
     END IF
-
-    ! DHSVD2G called
-    INFO = 3
   END SUBROUTINE DHSVD2G
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
