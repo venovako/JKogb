@@ -13,22 +13,27 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    IF (A(1,1) .LT. D_ZERO) THEN
+    ! INFO will stay 0 iff no transformations have been applied
+    INFO = 0
+
+    IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
        ! A(1,1) negative
        U(1,1) = -U(1,1)
        U(1,2) = -U(1,2)
        A(1,1) = -A(1,1)
+       INFO = 1
     END IF
 
-    IF (A(2,2) .LT. D_ZERO) THEN
+    IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
        ! A(2,2) negative
        U(2,1) = -U(2,1)
        U(2,2) = -U(2,2)
        A(2,2) = -A(2,2)
+       INFO = INFO + 2
     END IF
 
     ! DHSVD2D called
-    INFO = 1
+    IF (INFO .NE. 0) INFO = 1
   END SUBROUTINE DHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -119,7 +124,9 @@ CONTAINS
        CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
+    ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 4
+    ! check if Z is identity and record in INFO if it is not
     IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 8
   END SUBROUTINE DHSVD2S
 

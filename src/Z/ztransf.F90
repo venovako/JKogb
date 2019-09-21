@@ -16,13 +16,17 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V
     REAL(KIND=DWP) :: W
 
+    ! INFO will stay 0 iff no transformations have been applied
+    INFO = 0
+
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) real
-       IF (REAL(A(1,1)) .LT. D_ZERO) THEN
+       IF (SIGN(D_ONE, REAL(A(1,1))) .EQ. D_MONE) THEN
           ! A(1,1) negative
           U(1,1) = -U(1,1)
           U(1,2) = -U(1,2)
           A(1,1) = -A(1,1)
+          INFO = 1
        END IF
     ELSE IF (REAL(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) imaginary .NE. 0
@@ -39,6 +43,7 @@ CONTAINS
           U(1,2) = CMPLX(AIMAG(U(1,2)), -REAL(U(1,2)), DWP)
           A(1,1) = CMPLX(AIMAG(A(1,1)), -REAL(A(1,1)), DWP)
        END IF
+       INFO = 1
     ELSE
        ! A(1,1) complex .NE. 0
        W = ABS(A(1,1))
@@ -46,15 +51,17 @@ CONTAINS
        U(1,1) = V * U(1,1)
        U(1,2) = V * U(1,2)
        A(1,1) = W
+       INFO = 1
     END IF
 
     IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
        ! A(2,2) real
-       IF (REAL(A(2,2)) .LT. D_ZERO) THEN
+       IF (SIGN(D_ONE, REAL(A(2,2))) .EQ. D_MONE) THEN
           ! A(2,2) negative
           U(2,1) = -U(2,1)
           U(2,2) = -U(2,2)
           A(2,2) = -A(2,2)
+          INFO = INFO + 2
        END IF
     ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
        ! A(2,2) imaginary .NE. 0
@@ -71,6 +78,7 @@ CONTAINS
           U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
           A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
        END IF
+       INFO = INFO + 2
     ELSE
        ! A(2,2) complex .NE. 0
        W = ABS(A(2,2))
@@ -78,10 +86,11 @@ CONTAINS
        U(2,1) = V * U(2,1)
        U(2,2) = V * U(2,2)
        A(2,2) = W
+       INFO = INFO + 2
     END IF
 
     ! ZHSVD2D called
-    INFO = 1
+    IF (INFO .NE. 0) INFO = 1
   END SUBROUTINE ZHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -173,7 +182,9 @@ CONTAINS
        CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
+    ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 4
+    ! check if Z is identity and record in INFO if it is not
     IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 8
   END SUBROUTINE ZHSVD2S
 
