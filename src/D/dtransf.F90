@@ -45,11 +45,25 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
+    INFO = 0
+
     ! TODO: transform
     IF (H) THEN
-       CONTINUE
+       IF (A(2,1) .NE. D_ZERO) THEN
+          CONTINUE
+       ELSE IF (ABS(A(2,2)) .LT. ABS(A(1,1))) THEN
+          CONTINUE
+       ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(2,2)))
+          ! |tanh|=1
+          INFO=-6
+          RETURN
+       END IF
     ELSE
-       CONTINUE
+       IF (A(2,1) .NE. D_ZERO) THEN
+          CONTINUE
+       ELSE ! A(2,1) .EQ. 0
+          CONTINUE
+       END IF
     END IF
 
     A(2,1) = D_ZERO
@@ -63,19 +77,28 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   PURE SUBROUTINE DHSVD2T(H, A, U, Z, INFO)
-    ! A antitriangular, not antidiagonal
+    ! A upper antitriangular, not antidiagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
     IF (.NOT. H) THEN
-       INFO = -6
+       INFO = -HUGE(0)-1
        RETURN
     END IF
     INFO = 0
 
     ! TODO: transform
+    IF (A(2,1) .NE. D_ZERO) THEN
+       CONTINUE
+    ELSE IF (ABS(A(1,1)) .LT. ABS(A(2,2))) THEN
+       CONTINUE
+    ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(2,2)))
+       ! |tanh|=1
+       INFO = -7
+       RETURN
+    END IF
 
     A(2,1) = D_ZERO
     A(1,2) = D_ZERO
@@ -141,7 +164,7 @@ CONTAINS
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
        ! column swap of A
        CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
-       ! A antitriangular, not antidiagonal (X .NE. 0)
+       ! A upper antitriangular, not antidiagonal (X .NE. 0)
        !     | X R | <- R .NE. 0 the largest
        ! A = | x 0 |    element by magnitude
        CALL DHSVD2T(H, A, U, Z, INFO)
