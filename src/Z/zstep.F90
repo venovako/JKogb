@@ -14,6 +14,22 @@ CONTAINS
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
+    IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
+         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
+         ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
+       ZMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
+    ELSE ! no transform
+       ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+    END IF
+  END FUNCTION ZMAG1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE REAL(KIND=DWP) FUNCTION ZMAG2(N, P, Q, A, LDA, J)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
+
     REAL(KIND=DWP) :: AAPP, AAQP, AAPQ, AAQQ, MAXPQ, MINPQ
 
     AAPP = ABS(A(P,P))
@@ -30,11 +46,11 @@ CONTAINS
     END IF
 
     IF (MAX(AAQP, AAPQ) .GT. ((MAXPQ * DZEPS) * MINPQ)) THEN
-       ZMAG1 = AAQP + AAPQ
+       ZMAG2 = AAQP + AAPQ
     ELSE ! no transform
-       ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+       ZMAG2 = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
-  END FUNCTION ZMAG1
+  END FUNCTION ZMAG2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -59,6 +75,8 @@ CONTAINS
     SELECT CASE (ID_MAG)
     CASE (1)
        R%MAG => ZMAG1
+    CASE (2)
+       R%MAG => ZMAG2
     CASE DEFAULT
        R%MAG => NULL()
        INFO = -1
