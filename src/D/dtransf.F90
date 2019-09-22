@@ -38,12 +38,16 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
+
+    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2), CS, SN, TN, CH, SH, TH
+
+    EXTERNAL :: DGEMM
 
     INFO = 0
 
@@ -51,10 +55,10 @@ CONTAINS
     IF (H) THEN
        IF (A(2,1) .NE. D_ZERO) THEN
           CONTINUE
-       ELSE IF (ABS(A(2,2)) .LT. ABS(A(1,1))) THEN
+       ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           CONTINUE
-       ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(2,2)))
-          ! |tanh|=1
+       ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
+          ! |tanh| .GE. 1
           INFO=-6
           RETURN
        END IF
@@ -66,6 +70,15 @@ CONTAINS
        END IF
     END IF
 
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
+    U = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
+    A = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
+    Z = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
+    A = B
+
     A(2,1) = D_ZERO
     A(1,2) = D_ZERO
     CALL DHSVD2D(H, A, U, Z, INFO)
@@ -76,15 +89,19 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2T(H, A, U, Z, INFO)
+  SUBROUTINE DHSVD2T(H, A, U, Z, INFO)
     ! A upper antitriangular, not antidiagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
+    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2), CS, SN, TN, CH, SH, TH
+
+    EXTERNAL :: DGEMM
+
     IF (.NOT. H) THEN
-       INFO = -HUGE(0)-1
+       INFO = -HUGE(0)
        RETURN
     END IF
     INFO = 0
@@ -92,13 +109,33 @@ CONTAINS
     ! TODO: transform
     IF (A(2,1) .NE. D_ZERO) THEN
        CONTINUE
-    ELSE IF (ABS(A(1,1)) .LT. ABS(A(2,2))) THEN
-       CONTINUE
-    ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(2,2)))
-       ! |tanh|=1
+    ELSE IF (ABS(A(1,1)) .LT. ABS(A(1,2))) THEN
+       V(1,1) = D_ZERO
+       V(2,1) = D_ONE
+       V(1,2) = D_MONE
+       V(2,2) = D_ZERO
+       TH = -A(1,1) / A(1,2)
+       !DIR$ FMA
+       CH = D_ONE / SQRT(D_ONE - TH * TH)
+       SH = TH * CH
+       W(1,1) = CH
+       W(2,1) = SH
+       W(1,2) = SH
+       W(2,2) = CH
+    ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
+       ! |tanh| .GE. 1
        INFO = -7
        RETURN
     END IF
+
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
+    U = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
+    A = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
+    Z = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
+    A = B
 
     A(2,1) = D_ZERO
     A(1,2) = D_ZERO

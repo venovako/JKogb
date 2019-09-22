@@ -95,12 +95,16 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
+
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+
+    EXTERNAL :: ZGEMM
 
     INFO = 0
 
@@ -110,6 +114,15 @@ CONTAINS
     ELSE
        CONTINUE
     END IF
+
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, U, 2, Z_ZERO, B, 2)
+    U = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, A, 2, Z_ZERO, B, 2)
+    A = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, Z, 2, W, 2, Z_ZERO, B, 2)
+    Z = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
+    A = B
 
     A(2,1) = Z_ZERO
     A(1,2) = Z_ZERO
@@ -121,20 +134,33 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2T(H, A, U, Z, INFO)
+  SUBROUTINE ZHSVD2T(H, A, U, Z, INFO)
     ! A upper antitriangular, not antidiagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+
+    EXTERNAL :: ZGEMM
+
     IF (.NOT. H) THEN
-       INFO = -HUGE(0)-1
+       INFO = -HUGE(0)
        RETURN
     END IF
     INFO = 0
 
     ! TODO: transform
+
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, U, 2, Z_ZERO, B, 2)
+    U = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, A, 2, Z_ZERO, B, 2)
+    A = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, Z, 2, W, 2, Z_ZERO, B, 2)
+    Z = B
+    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
+    A = B
 
     A(2,1) = Z_ZERO
     A(1,2) = Z_ZERO
