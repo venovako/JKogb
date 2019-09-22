@@ -129,7 +129,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     IF (.NOT. H) THEN
-       INFO = -6
+       INFO = -HUGE(0)-1
        RETURN
     END IF
     INFO = 0
