@@ -45,7 +45,9 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2), CS, SN, TN, CH, SH, TH
+    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+    REAL(KIND=DWP) :: CS, SN, TN ! always trigonometric
+    REAL(KIND=DWP) :: CH, SH, TH ! trigonometric or hyperbolic
 
     EXTERNAL :: DGEMM
 
@@ -56,17 +58,39 @@ CONTAINS
        IF (A(2,1) .NE. D_ZERO) THEN
           CONTINUE
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
-          CONTINUE
+          V(1,1) = D_ONE
+          V(2,1) = D_ZERO
+          V(1,2) = D_ZERO
+          V(2,2) = D_ONE
+          TH = -A(1,2) / A(1,1)
+          !DIR$ FMA
+          CH = D_ONE / SQRT(D_ONE - TH * TH)
+          SH = TH * CH
+          W(1,1) = CH
+          W(2,1) = SH
+          W(1,2) = SH
+          W(2,2) = CH
        ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
-          ! |tanh| .GE. 1
+          ! |TH| .GE. 1
           INFO=-6
           RETURN
        END IF
-    ELSE
+    ELSE ! trigonometric
        IF (A(2,1) .NE. D_ZERO) THEN
           CONTINUE
        ELSE ! A(2,1) .EQ. 0
-          CONTINUE
+          V(1,1) = D_ONE
+          V(2,1) = D_ZERO
+          V(1,2) = D_ZERO
+          V(2,2) = D_ONE
+          TH = -A(1,2) / A(1,1)
+          !DIR$ FMA
+          CH = D_ONE / SQRT(D_ONE + TH * TH)
+          SH = TH * CH
+          W(1,1) =  CH
+          W(2,1) = -SH
+          W(1,2) =  SH
+          W(2,2) =  CH
        END IF
     END IF
 
@@ -96,7 +120,9 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2), CS, SN, TN, CH, SH, TH
+    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+    REAL(KIND=DWP) :: CS, SN, TN ! always trigonometric
+    REAL(KIND=DWP) :: CH, SH, TH ! always hyperbolic
 
     EXTERNAL :: DGEMM
 
@@ -123,7 +149,7 @@ CONTAINS
        W(1,2) = SH
        W(2,2) = CH
     ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
-       ! |tanh| .GE. 1
+       ! |TH| .GE. 1
        INFO = -7
        RETURN
     END IF
