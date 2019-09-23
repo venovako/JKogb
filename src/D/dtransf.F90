@@ -132,9 +132,19 @@ CONTAINS
     END IF
     INFO = 0
 
-    ! TODO: transform
     IF (A(2,1) .NE. D_ZERO) THEN
-       CONTINUE
+       V(1,1) = D_ZERO
+       V(2,1) = D_ONE
+       V(1,2) = D_MONE
+       V(2,2) = D_ZERO
+       TH = -A(1,1) / (A(2,1) + A(1,2))
+       !DIR$ FMA
+       CH = D_ONE / SQRT(D_ONE - TH * TH)
+       SH = TH * CH
+       W(1,1) = CH
+       W(2,1) = SH
+       W(1,2) = SH
+       W(2,2) = CH
     ELSE IF (ABS(A(1,1)) .LT. ABS(A(1,2))) THEN
        V(1,1) = D_ZERO
        V(2,1) = D_ONE
@@ -185,6 +195,7 @@ CONTAINS
     REAL(KIND=DWP), EXTERNAL :: DNRM2
     EXTERNAL :: DLARTG, DROT, DSWAP
 
+    ! column pivoting
     IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
        ! column swap of A
        CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
@@ -196,6 +207,7 @@ CONTAINS
        INFO = 0
     END IF
 
+    ! row sorting
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
        ! row swap of U
        CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
@@ -209,11 +221,25 @@ CONTAINS
        INFO = -5
        RETURN
     END IF
-    A(1,1) = R
-    A(2,1) = D_ZERO
     CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
+
     ! premultiply U by Q^T
     CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    ! make diag(A) non-negative
+    IF (SIGN(D_ONE, R) .EQ. D_MONE) THEN
+       U(1,1) = -U(1,1)
+       U(1,2) = -U(1,2)
+       A(1,2) = -A(1,2)
+       R = -R
+    END IF
+    A(1,1) = R
+    IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
+       U(2,1) = -U(2,1)
+       U(2,2) = -U(2,2)
+       A(2,2) = -A(2,2)
+    END IF
+    A(2,1) = D_ZERO
 
     IF (A(1,2) .EQ. D_ZERO) THEN
        ! A diagonal
