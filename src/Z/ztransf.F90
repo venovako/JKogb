@@ -185,6 +185,7 @@ CONTAINS
     REAL(KIND=DWP), EXTERNAL :: DZNRM2
     EXTERNAL :: ZLARTG, ZROT, ZSWAP
 
+    ! column pivoting
     IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
        ! column swap of A
        CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
@@ -192,10 +193,11 @@ CONTAINS
        IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
        ! record the swap
        INFO = 1
-    ELSE
+    ELSE ! no pivoting
        INFO = 0
     END IF
 
+    ! row sorting
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
        ! row swap of U
        CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
@@ -212,8 +214,79 @@ CONTAINS
     A(1,1) = R
     A(2,1) = Z_ZERO
     CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
+
     ! premultiply U by Q^H
     CALL ZROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    ! make diag(A) real and non-negative
+    ! the first row of U and A
+    IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
+       ! A(1,1) real
+       IF (SIGN(D_ONE, REAL(A(1,1))) .EQ. D_MONE) THEN
+          ! A(1,1) negative
+          U(1,1) = -U(1,1)
+          U(1,2) = -U(1,2)
+          A(1,1) = -A(1,1)
+          A(1,2) = -A(1,2)
+       END IF
+    ELSE IF (REAL(A(1,1)) .EQ. D_ZERO) THEN
+       ! A(1,1) imaginary .NE. 0
+       IF (AIMAG(A(1,1)) .LT. D_ZERO) THEN
+          ! A(1,1) = i * negative
+          U(1,1) = CMPLX(-AIMAG(U(1,1)), REAL(U(1,1)), DWP)
+          U(1,2) = CMPLX(-AIMAG(U(1,2)), REAL(U(1,2)), DWP)
+          A(1,1) = CMPLX(-AIMAG(A(1,1)), REAL(A(1,1)), DWP)
+          A(1,2) = CMPLX(-AIMAG(A(1,2)), REAL(A(1,2)), DWP)
+       ELSE
+          ! A(1,1) = i * positive
+          U(1,1) = CMPLX(AIMAG(U(1,1)), -REAL(U(1,1)), DWP)
+          U(1,2) = CMPLX(AIMAG(U(1,2)), -REAL(U(1,2)), DWP)
+          A(1,1) = CMPLX(AIMAG(A(1,1)), -REAL(A(1,1)), DWP)
+          A(1,2) = CMPLX(AIMAG(A(1,2)), -REAL(A(1,2)), DWP)
+       END IF
+    ELSE
+       ! A(1,1) complex .NE. 0
+       R = A(1,1)
+       A(1,1) = ABS(A(1,1))
+       R = CONJG(R / REAL(A(1,1)))
+       U(1,1) = R * U(1,1)
+       U(1,2) = R * U(1,2)
+       A(1,2) = R * A(1,2)
+    END IF
+    ! the second row of U and A
+    IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
+       ! A(2,2) real
+       IF (SIGN(D_ONE, REAL(A(2,2))) .EQ. D_MONE) THEN
+          ! A(2,2) negative
+          U(2,1) = -U(2,1)
+          U(2,2) = -U(2,2)
+          A(2,1) = -A(2,1)
+          A(2,2) = -A(2,2)
+       END IF
+    ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
+       ! A(2,2) imaginary .NE. 0
+       IF (AIMAG(A(2,2)) .LT. D_ZERO) THEN
+          ! A(2,2) = i * negative
+          U(2,1) = CMPLX(-AIMAG(U(2,1)), REAL(U(2,1)), DWP)
+          U(2,2) = CMPLX(-AIMAG(U(2,2)), REAL(U(2,2)), DWP)
+          A(2,1) = CMPLX(-AIMAG(A(2,1)), REAL(A(2,1)), DWP)
+          A(2,2) = CMPLX(-AIMAG(A(2,2)), REAL(A(2,2)), DWP)
+       ELSE
+          ! A(2,2) = i * positive
+          U(2,1) = CMPLX(AIMAG(U(2,1)), -REAL(U(2,1)), DWP)
+          U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
+          A(2,1) = CMPLX(AIMAG(A(2,1)), -REAL(A(2,1)), DWP)
+          A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
+       END IF
+    ELSE
+       ! A(2,2) complex .NE. 0
+       R = A(2,2)
+       A(2,2) = ABS(A(2,2))
+       R = CONJG(R / REAL(A(2,2)))
+       U(2,1) = R * U(2,1)
+       U(2,2) = R * U(2,2)
+       A(2,1) = R * A(2,1)
+    END IF
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
        ! A diagonal
