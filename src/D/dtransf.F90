@@ -46,7 +46,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
-    REAL(KIND=DWP) :: CS, SN, TN ! always trigonometric
+    REAL(KIND=DWP) :: CS, SN, TG ! always trigonometric
     REAL(KIND=DWP) :: CH, SH, TH ! trigonometric or hyperbolic
 
     EXTERNAL :: DGEMM
@@ -127,10 +127,11 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), W(2,2)
+    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+    REAL(KIND=DWP) :: CS, SN, TG ! always trigonometric
     REAL(KIND=DWP) :: CH, SH, TH ! always hyperbolic
 
-    EXTERNAL :: DGEMM, DSWAP
+    EXTERNAL :: DGEMM
 
     IF (.NOT. H) THEN
        INFO = -HUGE(0)
@@ -139,15 +140,10 @@ CONTAINS
     INFO = 0
 
     IF (A(2,1) .NE. D_ZERO) THEN
-       ! CS = D_ZERO
-       ! SN = D_ONE
-       TH = -A(1,1) / (A(2,1) + A(1,2))
-       !DIR$ FMA
-       CH = D_ONE / SQRT(D_ONE - TH * TH)
-       SH = TH * CH
+       CONTINUE ! TODO
     ELSE IF (ABS(A(1,1)) .LT. ABS(A(1,2))) THEN
-       ! CS = D_ZERO
-       ! SN = D_ONE
+       CS = D_ZERO
+       SN = D_ONE
        TH = -A(1,1) / A(1,2)
        !DIR$ FMA
        CH = D_ONE / SQRT(D_ONE - TH * TH)
@@ -158,35 +154,24 @@ CONTAINS
        RETURN
     END IF
 
-    ! V(1,1) =  CS
-    ! V(2,1) =  SN
-    ! V(1,2) = -SN
-    ! V(2,2) =  CS
+    V(1,1) =  CS
+    V(2,1) =  SN
+    V(1,2) = -SN
+    V(2,2) =  CS
 
-    W(1,1) = CH
-    W(2,1) = SH
-    W(1,2) = SH
-    W(2,2) = CH
+    W(1,1) =  CH
+    W(2,1) =  SH
+    W(1,2) =  SH
+    W(2,2) =  CH
 
-    ! apply V directly to U from the left, without DGEMM or DROTM
-    U(1,1) = -U(1,1)
-    U(1,2) = -U(1,2)
-    ! row swap of U
-    CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
-
-    ! apply V directly to A from the left, without DGEMM or DROTM
-    A(1,1) = -A(1,1)
-    A(1,2) = -A(1,2)
-    ! row swap of A
-    CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
-
-    ! Z = Z * W
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, V, 2)
-    Z = V
-
-    ! A = A * W
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, V, 2)
-    A = V
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
+    U = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
+    A = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
+    Z = B
+    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
+    A = B
 
     A(2,1) = D_ZERO
     A(1,2) = D_ZERO
@@ -218,7 +203,7 @@ CONTAINS
        IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
        ! record the swap
        INFO = 1
-    ELSE
+    ELSE ! no pivoting
        INFO = 0
     END IF
 
