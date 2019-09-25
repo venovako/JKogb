@@ -40,8 +40,10 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
-    REAL(KIND=DWP) :: CS, SN, TG ! always trigonometric
-    REAL(KIND=DWP) :: CH, SH, TH ! trigonometric or hyperbolic
+    REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, SZ, TZ ! trigonometric or hyperbolic
+
+    REAL(KIND=DWP) :: T2U, X, Y
 
     EXTERNAL :: DGEMM
 
@@ -51,54 +53,71 @@ CONTAINS
        IF (A(2,1) .NE. D_ZERO) THEN
           CONTINUE ! TODO
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
-          CS = D_ONE
-          SN = D_ZERO
-          TH = -A(1,2) / A(1,1)
+          INFO = 1
+          CU = D_ONE
+          SU = D_ZERO
+          TZ = -A(1,2) / A(1,1)
           !DIR$ FMA
-          CH = D_ONE / SQRT(D_ONE - TH * TH)
-          SH = TH * CH
+          CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+          SZ = TZ * CZ
        ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
-          ! |TH| .GE. 1
+          ! |TZ| .GE. 1
           INFO=-6
           RETURN
        END IF
-
-       V(1,1) =  CS
-       V(2,1) =  SN
-       V(1,2) = -SN
-       V(2,2) =  CS
-
-       W(1,1) =  CH
-       W(2,1) =  SH
-       W(1,2) =  SH
-       W(2,2) =  CH
+       W(1,1) =  CZ
+       W(2,1) =  SZ
+       W(1,2) =  SZ
+       W(2,2) =  CZ
     ELSE ! trigonometric
        IF (A(2,1) .NE. D_ZERO) THEN
-          CONTINUE ! TODO
-       ELSE ! A(2,1) .EQ. 0
-          CS = D_ONE
-          SN = D_ZERO
-          TH = -A(1,2) / A(1,1)
+          X = A(1,2) / A(1,1)
+          Y = A(2,2) / A(1,1) ! > 0
+          IF (ABS(X) .LE. Y) THEN
+             T2U = -SCALE(X, 1) * Y
+          ELSE ! ABS(X) .GT. Y
+             T2U = -SCALE(Y, 1) * X
+          END IF
           !DIR$ FMA
-          CH = D_ONE / SQRT(D_ONE + TH * TH)
-          SH = TH * CH
+          T2U = T2U / (D_ONE + (X - Y) * (X + Y))
+          !DIR$ FMA
+          TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
+          !DIR$ FMA
+          CU = D_ONE / SQRT(D_ONE + TU * TU)
+          SU = TU * CU
+          !DIR$ FMA
+          TZ = Y * TU - X
+          !DIR$ FMA
+          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+          SZ = TZ * CZ
+       ELSE ! A(2,1) .EQ. 0
+          INFO = 1
+          CU = D_ONE
+          SU = D_ZERO
+          TZ = -A(1,2) / A(1,1)
+          !DIR$ FMA
+          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+          SZ = TZ * CZ
        END IF
-
-       V(1,1) =  CS
-       V(2,1) =  SN
-       V(1,2) = -SN
-       V(2,2) =  CS
-
-       W(1,1) =  CH
-       W(2,1) = -SH
-       W(1,2) =  SH
-       W(2,2) =  CH
+       W(1,1) =  CZ
+       W(2,1) = -SZ
+       W(1,2) =  SZ
+       W(2,2) =  CZ
     END IF
 
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
-    U = B
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
-    A = B
+    IF (INFO .EQ. 0) THEN
+       V(1,1) =  CU
+       V(2,1) =  SU
+       V(1,2) = -SU
+       V(2,2) =  CU
+
+       CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
+       U = B
+       CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
+       A = B
+    ELSE ! INFO .NE. 0
+       INFO = 0
+    END IF
     CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
     Z = B
     CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
@@ -117,8 +136,8 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
-    REAL(KIND=DWP) :: CS, SN, TG ! always trigonometric
-    REAL(KIND=DWP) :: CH, SH, TH ! always hyperbolic
+    REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, SZ, TZ ! always hyperbolic
 
     EXTERNAL :: DGEMM
 
@@ -131,27 +150,27 @@ CONTAINS
     IF (A(2,1) .NE. D_ZERO) THEN
        CONTINUE ! TODO
     ELSE IF (ABS(A(1,1)) .LT. ABS(A(1,2))) THEN
-       CS = D_ZERO
-       SN = D_ONE
-       TH = -A(1,1) / A(1,2)
+       CU = D_ZERO
+       SU = D_ONE
+       TZ = -A(1,1) / A(1,2)
        !DIR$ FMA
-       CH = D_ONE / SQRT(D_ONE - TH * TH)
-       SH = TH * CH
+       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+       SZ = TZ * CZ
     ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
-       ! |TH| .GE. 1
+       ! |TZ| .GE. 1
        INFO = -7
        RETURN
     END IF
 
-    V(1,1) =  CS
-    V(2,1) =  SN
-    V(1,2) = -SN
-    V(2,2) =  CS
+    V(1,1) =  CU
+    V(2,1) =  SU
+    V(1,2) = -SU
+    V(2,2) =  CU
 
-    W(1,1) =  CH
-    W(2,1) =  SH
-    W(1,2) =  SH
-    W(2,2) =  CH
+    W(1,1) =  CZ
+    W(2,1) =  SZ
+    W(1,2) =  SZ
+    W(2,2) =  CZ
 
     CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
     U = B
