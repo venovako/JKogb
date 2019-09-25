@@ -16,7 +16,6 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V
     REAL(KIND=DWP) :: W
 
-    ! INFO will stay 0 iff no transformations have been applied
     INFO = 0
 
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
@@ -26,7 +25,6 @@ CONTAINS
           U(1,1) = -U(1,1)
           U(1,2) = -U(1,2)
           A(1,1) = -A(1,1)
-          INFO = 1
        END IF
     ELSE IF (REAL(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) imaginary .NE. 0
@@ -43,7 +41,6 @@ CONTAINS
           U(1,2) = CMPLX(AIMAG(U(1,2)), -REAL(U(1,2)), DWP)
           A(1,1) = CMPLX(AIMAG(A(1,1)), -REAL(A(1,1)), DWP)
        END IF
-       INFO = 1
     ELSE
        ! A(1,1) complex .NE. 0
        W = ABS(A(1,1))
@@ -51,7 +48,6 @@ CONTAINS
        U(1,1) = V * U(1,1)
        U(1,2) = V * U(1,2)
        A(1,1) = W
-       INFO = 1
     END IF
 
     IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
@@ -61,7 +57,6 @@ CONTAINS
           U(2,1) = -U(2,1)
           U(2,2) = -U(2,2)
           A(2,2) = -A(2,2)
-          INFO = INFO + 2
        END IF
     ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
        ! A(2,2) imaginary .NE. 0
@@ -78,7 +73,6 @@ CONTAINS
           U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
           A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
        END IF
-       INFO = INFO + 2
     ELSE
        ! A(2,2) complex .NE. 0
        W = ABS(A(2,2))
@@ -86,11 +80,7 @@ CONTAINS
        U(2,1) = V * U(2,1)
        U(2,2) = V * U(2,2)
        A(2,2) = W
-       INFO = INFO + 2
     END IF
-
-    ! ZHSVD2D called
-    IF (INFO .NE. 0) INFO = 1
   END SUBROUTINE ZHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -124,12 +114,7 @@ CONTAINS
     CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
     A = B
 
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
     CALL ZHSVD2D(H, A, U, Z, INFO)
-
-    ! ZHSVD2U called
-    INFO = 2
   END SUBROUTINE ZHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -162,12 +147,7 @@ CONTAINS
     CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
     A = B
 
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
     CALL ZHSVD2D(H, A, U, Z, INFO)
-
-    ! ZHSVD2T called
-    INFO = 3
   END SUBROUTINE ZHSVD2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -260,7 +240,6 @@ CONTAINS
           ! A(2,2) negative
           U(2,1) = -U(2,1)
           U(2,2) = -U(2,2)
-          A(2,1) = -A(2,1)
           A(2,2) = -A(2,2)
        END IF
     ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
@@ -269,13 +248,11 @@ CONTAINS
           ! A(2,2) = i * negative
           U(2,1) = CMPLX(-AIMAG(U(2,1)), REAL(U(2,1)), DWP)
           U(2,2) = CMPLX(-AIMAG(U(2,2)), REAL(U(2,2)), DWP)
-          A(2,1) = CMPLX(-AIMAG(A(2,1)), REAL(A(2,1)), DWP)
           A(2,2) = CMPLX(-AIMAG(A(2,2)), REAL(A(2,2)), DWP)
        ELSE
           ! A(2,2) = i * positive
           U(2,1) = CMPLX(AIMAG(U(2,1)), -REAL(U(2,1)), DWP)
           U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
-          A(2,1) = CMPLX(AIMAG(A(2,1)), -REAL(A(2,1)), DWP)
           A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
        END IF
     ELSE
@@ -285,7 +262,6 @@ CONTAINS
        R = CONJG(R / REAL(A(2,2)))
        U(2,1) = R * U(2,1)
        U(2,2) = R * U(2,2)
-       A(2,1) = R * A(2,1)
     END IF
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
@@ -295,8 +271,9 @@ CONTAINS
           CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
           ! swap the diagonal elements of A
           CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+          ! early exit
+          INFO = 0
        END IF
-       CALL ZHSVD2D(H, A, U, Z, INFO)
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
        ! column swap of A
        CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
@@ -333,10 +310,36 @@ CONTAINS
        CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
+    ! record in INFO if old diag(A) and new diag(A) differ
+    IF ((A(1,1) .NE. A(2,1)) .OR. (A(2,2) .NE. A(1,2))) THEN
+       INFO = 1
+    ELSE ! old diag(A) .EQ. new diag(A)
+       INFO = 0
+    END IF
+
+    ! explicitly make A diagonal
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
+
     ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 4
+    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) THEN
+       INFO = INFO + 2
+       ! check if |U| is almost identity, permuted or not, and record in INFO if otherwise
+       IF (((ABS(REAL(U(1,1))) .NE. D_ONE) .OR. (ABS(REAL(U(2,2))) .NE. D_ONE)) .AND. &
+            ((ABS(REAL(U(2,1))) .NE. D_ONE) .OR. (ABS(REAL(U(1,2))) .NE. D_ONE))) INFO = INFO + 4
+    END IF
+
     ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 8
+    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) THEN
+       INFO = INFO + 8
+       ! check if |Z| is almost identity (maybe permuted if Z is unitary), and record in INFO if otherwise
+       IF (H) THEN
+          IF ((ABS(REAL(Z(1,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(2,2))) .NE. D_ONE)) INFO = INFO + 16
+       ELSE ! Z unitary
+          IF (((ABS(REAL(Z(1,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(2,2))) .NE. D_ONE)) .AND. &
+               ((ABS(REAL(Z(2,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(1,2))) .NE. D_ONE))) INFO = INFO + 16
+       END IF
+    END IF
   END SUBROUTINE ZHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -363,10 +366,16 @@ CONTAINS
        INFO = -3
     ELSE IF (.NOT. (W(2,2) .LE. HUGE(D_ZERO))) THEN
        INFO = -4
-    ELSE ! A has no NaNs or infinities
+    ELSE ! A has no NaNs or infinities or elements of a module too large
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+
+    ! store diag(A) to W
+    W(1,1) = REAL(A(1,1))
+    W(2,1) = AIMAG(A(1,1))
+    W(1,2) = REAL(A(2,2))
+    W(2,2) = AIMAG(A(2,2))
 
     ! U = I
     U(1,1) = Z_ONE
@@ -380,7 +389,7 @@ CONTAINS
     Z(1,2) = Z_ZERO
     Z(2,2) = Z_ONE
 
-    IF ((W(2,1) .EQ. D_ZERO) .AND. (W(1,2) .EQ. D_ZERO)) THEN
+    IF ((A(2,1) .EQ. Z_ZERO) .AND. (A(1,2) .EQ. Z_ZERO)) THEN
        ! A diagonal
        CALL ZHSVD2D(H, A, U, Z, INFO)
     ELSE
@@ -389,6 +398,8 @@ CONTAINS
     END IF
     IF (INFO .LT. 0) RETURN
 
+    A(2,1) = CMPLX(W(1,1), W(2,1), DWP)
+    A(1,2) = CMPLX(W(1,2), W(2,2), DWP)
     CALL ZHSVD2S(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 

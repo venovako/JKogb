@@ -13,7 +13,6 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    ! INFO will stay 0 iff no transformations have been applied
     INFO = 0
 
     IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
@@ -21,7 +20,6 @@ CONTAINS
        U(1,1) = -U(1,1)
        U(1,2) = -U(1,2)
        A(1,1) = -A(1,1)
-       INFO = 1
     END IF
 
     IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
@@ -29,11 +27,7 @@ CONTAINS
        U(2,1) = -U(2,1)
        U(2,2) = -U(2,2)
        A(2,2) = -A(2,2)
-       INFO = INFO + 2
     END IF
-
-    ! DHSVD2D called
-    IF (INFO .NE. 0) INFO = 1
   END SUBROUTINE DHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -110,12 +104,7 @@ CONTAINS
     CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
     A = B
 
-    A(2,1) = D_ZERO
-    A(1,2) = D_ZERO
     CALL DHSVD2D(H, A, U, Z, INFO)
-
-    ! DHSVD2U called
-    INFO = 2
   END SUBROUTINE DHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -173,12 +162,7 @@ CONTAINS
     CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
     A = B
 
-    A(2,1) = D_ZERO
-    A(1,2) = D_ZERO
     CALL DHSVD2D(H, A, U, Z, INFO)
-
-    ! DHSVD2T called
-    INFO = 3
   END SUBROUTINE DHSVD2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -248,8 +232,9 @@ CONTAINS
           CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
           ! swap the diagonal elements of A
           CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+          ! early exit
+          INFO = 0
        END IF
-       CALL DHSVD2D(H, A, U, Z, INFO)
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
        ! column swap of A
        CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
@@ -286,10 +271,36 @@ CONTAINS
        CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
     END IF
 
+    ! record in INFO if old diag(A) and new diag(A) differ
+    IF ((A(1,1) .NE. A(2,1)) .OR. (A(2,2) .NE. A(1,2))) THEN
+       INFO = 1
+    ELSE ! old diag(A) .EQ. new diag(A)
+       INFO = 0
+    END IF
+
+    ! explicitly make A diagonal
+    A(2,1) = D_ZERO
+    A(1,2) = D_ZERO
+
     ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 4
+    IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) THEN
+       INFO = INFO + 2
+       ! check if |U| is almost identity, permuted or not, and record in INFO if otherwise
+       IF (((ABS(U(1,1)) .NE. D_ONE) .OR. (ABS(U(2,2)) .NE. D_ONE)) .AND. &
+            ((ABS(U(2,1)) .NE. D_ONE) .OR. (ABS((1,2)) .NE. D_ONE))) INFO = INFO + 4
+    END IF
+
     ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 8
+    IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) THEN
+       INFO = INFO + 8
+       ! check if |Z| is almost identity (maybe permuted if Z is orthogonal), and record in INFO if otherwise
+       IF (H) THEN
+          IF ((ABS(Z(1,1)) .NE. D_ONE) .OR. (ABS(Z(2,2)) .NE. D_ONE)) INFO = INFO + 16
+       ELSE ! Z orthogonal
+          IF (((ABS(Z(1,1)) .NE. D_ONE) .OR. (ABS(Z(2,2)) .NE. D_ONE)) .AND. &
+               ((ABS(Z(2,1)) .NE. D_ONE) .OR. (ABS(Z(1,2)) .NE. D_ONE))) INFO = INFO + 16
+       END IF
+    END IF
   END SUBROUTINE DHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -301,18 +312,29 @@ CONTAINS
     REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (.NOT. (ABS(A(1,1)) .LE. HUGE(D_ZERO))) THEN
+    REAL(KIND=DWP) :: W(2,2)
+
+    W(1,1) = ABS(A(1,1))
+    W(2,1) = ABS(A(2,1))
+    W(1,2) = ABS(A(1,2))
+    W(2,2) = ABS(A(2,2))
+
+    IF (.NOT. (W(1,1) .LE. HUGE(D_ZERO))) THEN
        INFO = -1
-    ELSE IF (.NOT. (ABS(A(2,1)) .LE. HUGE(D_ZERO))) THEN
+    ELSE IF (.NOT. (W(2,1) .LE. HUGE(D_ZERO))) THEN
        INFO = -2
-    ELSE IF (.NOT. (ABS(A(1,2)) .LE. HUGE(D_ZERO))) THEN
+    ELSE IF (.NOT. (W(1,2) .LE. HUGE(D_ZERO))) THEN
        INFO = -3
-    ELSE IF (.NOT. (ABS(A(2,2)) .LE. HUGE(D_ZERO))) THEN
+    ELSE IF (.NOT. (W(2,2) .LE. HUGE(D_ZERO))) THEN
        INFO = -4
     ELSE ! A has no NaNs or infinities
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+
+    ! store diag(A) to W
+    W(2,1) = A(1,1)
+    W(1,2) = A(2,2)
 
     ! U = I
     U(1,1) = D_ONE
@@ -335,6 +357,8 @@ CONTAINS
     END IF
     IF (INFO .LT. 0) RETURN
 
+    A(2,1) = W(2,1)
+    A(1,2) = W(1,2)
     CALL DHSVD2S(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2
 
