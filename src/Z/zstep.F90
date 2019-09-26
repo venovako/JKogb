@@ -245,6 +245,31 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  SUBROUTINE JZHJ(N, Z, LDZ, J, NN, P, Q)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDZ, J(N), NN, P(NN), Q(NN)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(LDZ,N)
+
+    COMPLEX(KIND=DWP) :: T
+    INTEGER :: IP, IQ, I
+
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I,T) SHARED(NN,Z,J,P,Q)
+    DO I = 1, NN
+       IP = P(I)
+       IQ = Q(I)
+       T = Z(IP,IQ)
+       Z(IP,IQ) = CONJG(Z(IQ,IP))
+       Z(IQ,IP) = CONJG(T)
+       IF (J(IP) .NE. J(IQ)) THEN
+          Z(IP,IQ) = -Z(IP,IQ)
+          Z(IQ,IP) = -Z(IQ,IP)
+       END IF
+    END DO
+    !$OMP END PARALLEL DO
+  END SUBROUTINE JZHJ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE ZSTEP_LOOP(N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
 #ifdef ANIMATE
     USE VN_CMPLXVIS_F
