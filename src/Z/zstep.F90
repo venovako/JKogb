@@ -266,6 +266,12 @@ CONTAINS
        END IF
     END DO
     !$OMP END PARALLEL DO
+
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(N,Z)
+    DO I = 1, N
+       Z(I,I) = CONJG(Z(I,I))
+    END DO
+    !$OMP END PARALLEL DO
   END SUBROUTINE JZHJ
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
