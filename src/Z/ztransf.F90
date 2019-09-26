@@ -10,6 +10,61 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE UH(U)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
+
+    COMPLEX(KIND=DWP) :: U21
+
+    U(1,1) = CONJG(U(1,1))
+    U21 = U(2,1)
+    U(2,1) = CONJG(U(1,2))
+    U(1,2) = CONJG(U21)
+    U(2,2) = CONJG(U(2,2))
+  END SUBROUTINE UH
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE BA(B, N, X, Y, LDA)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: N, LDA
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
+
+    COMPLEX(KIND=DWP) :: XX, YY
+    INTEGER :: I, J
+
+    I = 1
+    DO J = 1, N
+       XX = B(1,1) * X(I) + B(1,2) * Y(I)
+       YY = B(2,1) * X(I) + B(2,2) * Y(I)
+       X(I) = XX
+       Y(I) = YY
+       I = I + LDA
+    END DO
+  END SUBROUTINE BA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AB(B, M, X, Y)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: M
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+
+    COMPLEX(KIND=DWP) :: XX, YY
+    INTEGER :: I
+
+    DO I = 1, M
+       XX = X(I) * B(1,1) + Y(I) * B(2,1)
+       YY = X(I) * B(1,2) + Y(I) * B(2,2)
+       X(I) = XX
+       Y(I) = YY
+    END DO
+  END SUBROUTINE AB
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
@@ -96,9 +151,7 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
-
-    EXTERNAL :: ZGEMM
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
 
     INFO = 0
 
@@ -109,14 +162,11 @@ CONTAINS
        CONTINUE
     END IF
 
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, U, 2, Z_ZERO, B, 2)
-    U = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, A, 2, Z_ZERO, B, 2)
-    A = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, Z, 2, W, 2, Z_ZERO, B, 2)
-    Z = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
-    A = B
+    CALL BA(V, 2, U(1,1), U(2,1), 2)
+    CALL BA(V, 2, A(1,1), A(2,1), 2)
+
+    CALL AB(W, 2, A(1,1), A(1,2))
+    CALL AB(W, 2, Z(1,1), Z(1,2))
 
     CALL ZHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2U
@@ -130,9 +180,7 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
-
-    EXTERNAL :: ZGEMM
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
 
     IF (.NOT. H) THEN
        INFO = -HUGE(0)
@@ -142,14 +190,11 @@ CONTAINS
 
     ! TODO: transform
 
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, U, 2, Z_ZERO, B, 2)
-    U = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, V, 2, A, 2, Z_ZERO, B, 2)
-    A = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, Z, 2, W, 2, Z_ZERO, B, 2)
-    Z = B
-    CALL ZGEMM('N', 'N', 2, 2, 2, Z_ONE, A, 2, W, 2, Z_ZERO, B, 2)
-    A = B
+    CALL BA(V, 2, U(1,1), U(2,1), 2)
+    CALL BA(V, 2, A(1,1), A(2,1), 2)
+
+    CALL AB(W, 2, A(1,1), A(1,2))
+    CALL AB(W, 2, Z(1,1), Z(1,2))
 
     CALL ZHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2T

@@ -60,3 +60,53 @@
   END FUNCTION DMAG2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE JZHJ(N, Z, LDZ, J)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDZ, J(N)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(LDZ,N)
+
+    COMPLEX(KIND=DWP) :: T
+    INTEGER :: I, K
+
+    DO I = 1, N-1
+       DO K = I+1, N
+          T = Z(K,I)
+          Z(K,I) = CONJG(Z(I,K))
+          Z(I,K) = CONJG(T)
+          IF (J(I) .NE. J(K)) THEN
+             Z(K,I) = -Z(K,I)
+             Z(I,K) = -Z(I,K)
+          END IF
+       END DO
+    END DO
+
+    DO I = 1, N
+       Z(I,I) = CONJG(Z(I,I))
+    END DO
+  END SUBROUTINE JZHJ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE JZTJ(N, Z, LDZ, J)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, LDZ, J(N)
+    REAL(KIND=DWP), INTENT(INOUT) :: Z(LDZ,N)
+
+    REAL(KIND=DWP) :: T
+    INTEGER :: I, K
+
+    DO I = 1, N-1
+       DO K = I+1, N
+          T = Z(K,I)
+          Z(K,I) = Z(I,K)
+          Z(I,K) = T
+          IF (J(I) .NE. J(K)) THEN
+             Z(K,I) = -Z(K,I)
+             Z(I,K) = -Z(I,K)
+          END IF
+       END DO
+    END DO
+  END SUBROUTINE JZTJ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

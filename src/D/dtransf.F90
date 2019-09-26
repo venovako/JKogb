@@ -10,6 +10,59 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE UT(U)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(INOUT) :: U(2,2)
+
+    REAL(KIND=DWP) :: U21
+
+    U21 = U(2,1)
+    U(2,1) = U(1,2)
+    U(1,2) = U21
+  END SUBROUTINE UT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE BA(B, N, X, Y, LDA)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: N, LDA
+    REAL(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
+
+    REAL(KIND=DWP) :: XX, YY
+    INTEGER :: I, J
+
+    I = 1
+    DO J = 1, N
+       XX = B(1,1) * X(I) + B(1,2) * Y(I)
+       YY = B(2,1) * X(I) + B(2,2) * Y(I)
+       X(I) = XX
+       Y(I) = YY
+       I = I + LDA
+    END DO
+  END SUBROUTINE BA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AB(B, M, X, Y)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: M
+    REAL(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+
+    REAL(KIND=DWP) :: XX, YY
+    INTEGER :: I
+
+    DO I = 1, M
+       XX = X(I) * B(1,1) + Y(I) * B(2,1)
+       YY = X(I) * B(1,2) + Y(I) * B(2,2)
+       X(I) = XX
+       Y(I) = YY
+    END DO
+  END SUBROUTINE AB
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
@@ -43,13 +96,11 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+    REAL(KIND=DWP) :: V(2,2), W(2,2)
     REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
     REAL(KIND=DWP) :: CZ, SZ, TZ ! trigonometric or hyperbolic
 
     REAL(KIND=DWP) :: T2U, X, Y
-
-    EXTERNAL :: DGEMM
 
     INFO = 0
 
@@ -115,17 +166,14 @@ CONTAINS
        V(1,2) = -SU
        V(2,2) =  CU
 
-       CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
-       U = B
-       CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
-       A = B
+       CALL BA(V, 2, U(1,1), U(2,1), 2)
+       CALL BA(V, 2, A(1,1), A(2,1), 2)
     ELSE ! INFO .NE. 0
        INFO = 0
     END IF
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
-    Z = B
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
-    A = B
+
+    CALL AB(W, 2, A(1,1), A(1,2))
+    CALL AB(W, 2, Z(1,1), Z(1,2))
 
     CALL DHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2U
@@ -139,11 +187,9 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), W(2,2), B(2,2)
+    REAL(KIND=DWP) :: V(2,2), W(2,2)
     REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
     REAL(KIND=DWP) :: CZ, SZ, TZ ! always hyperbolic
-
-    EXTERNAL :: DGEMM
 
     IF (.NOT. H) THEN
        INFO = -HUGE(0)
@@ -176,14 +222,11 @@ CONTAINS
     W(1,2) =  SZ
     W(2,2) =  CZ
 
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, U, 2, D_ZERO, B, 2)
-    U = B
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, V, 2, A, 2, D_ZERO, B, 2)
-    A = B
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, Z, 2, W, 2, D_ZERO, B, 2)
-    Z = B
-    CALL DGEMM('N', 'N', 2, 2, 2, D_ONE, A, 2, W, 2, D_ZERO, B, 2)
-    A = B
+    CALL BA(V, 2, U(1,1), U(2,1), 2)
+    CALL BA(V, 2, A(1,1), A(2,1), 2)
+
+    CALL AB(W, 2, A(1,1), A(1,2))
+    CALL AB(W, 2, Z(1,1), Z(1,2))
 
     CALL DHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2T
