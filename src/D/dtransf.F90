@@ -54,8 +54,8 @@ CONTAINS
           CONTINUE ! TODO
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
-          CU = D_ONE
-          SU = D_ZERO
+          ! CU = D_ONE
+          ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
@@ -92,8 +92,8 @@ CONTAINS
           SZ = TZ * CZ
        ELSE ! A(2,1) .EQ. 0
           INFO = 1
-          CU = D_ONE
-          SU = D_ZERO
+          ! CU = D_ONE
+          ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
