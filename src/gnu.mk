@@ -38,7 +38,7 @@ DBGCFLAGS=$(DBGFLAGS)
 FPUFLAGS=-ffp-contract=fast
 FPUFFLAGS=$(FPUFLAGS)
 FPUCFLAGS=$(FPUFLAGS)
-OPTFFLAGS += -DMKL_DIRECT_CALL
+OPTFFLAGS += -DMKL_DIRECT_CALL_SEQ_JIT
 else # DEBUG
 OPTFLAGS=-O$(DEBUG) -march=native
 ifeq ($(ARCH),Darwin)
@@ -65,7 +65,7 @@ LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
 LDFLAGS += -ltbb_debug -ltbbmalloc_debug
 endif # ?NDEBUG
-LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5
+LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-liomp5 -lmkl_intel_thread
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 LDFLAGS += -L${TBBROOT}/lib -Wl,-rpath=${TBBROOT}/lib
@@ -74,7 +74,7 @@ LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
 LDFLAGS += -ltbb_debug -ltbbmalloc_debug
 endif # ?NDEBUG
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core #-lgomp -lmkl_gnu_thread
 endif # ?Darwin
 LDFLAGS += -lstdc++ -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)

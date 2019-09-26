@@ -19,7 +19,7 @@ FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost
-OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
+OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL_SEQ_JIT
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
@@ -53,7 +53,7 @@ LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
 LDFLAGS += -ltbb_debug -ltbbmalloc_debug
 endif # ?NDEBUG
-LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 LDFLAGS += -L${TBBROOT}/lib -Wl,-rpath=${TBBROOT}/lib
@@ -62,7 +62,7 @@ LDFLAGS += -ltbb -ltbbmalloc
 else # DEBUG
 LDFLAGS += -ltbb_debug -ltbbmalloc_debug
 endif # ?NDEBUG
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)

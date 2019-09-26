@@ -19,7 +19,7 @@ FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost
-OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL
+OPTFFLAGS=$(OPTFLAGS) -DMKL_DIRECT_CALL_SEQ_JIT
 OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
@@ -46,7 +46,7 @@ else # DEBUG
 LIBFLAGS += -DTBB_USE_DEBUG=1
 LDFLAGS += -ltbb_debug -ltbbmalloc_debug
 endif # ?NDEBUG
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lm -ldl -lmemkind
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl -lmemkind #-lmkl_intel_thread
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
 CXXFLAGS=$(CFLAGS)

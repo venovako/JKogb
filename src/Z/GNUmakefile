@@ -26,7 +26,7 @@ endif # ?ANIMATE
 zjk.exe: zjk.o zstep.o ztransf.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) zjk.o zstep.o ztransf.o ztypes.o -o$@ $(LDFLAGS)
 
-zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod ../shared/blas_utils.mod $(MKFS)
+zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
 
 ztest.exe: ztest.o ztransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)

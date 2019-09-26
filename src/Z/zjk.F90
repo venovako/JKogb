@@ -1,6 +1,5 @@
 PROGRAM ZJK
   USE BINIO
-  USE BLAS_UTILS
   USE ZSTEP
   USE OMP_LIB
   IMPLICIT NONE
@@ -103,7 +102,6 @@ PROGRAM ZJK
   WRITE (ULOG,'(A,I11)') '    NN=', NN
 #endif
 
-  INFO = BLAS_PREPARE()
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
 #ifndef NDEBUG

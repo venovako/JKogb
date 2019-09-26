@@ -4,6 +4,10 @@ MODULE DTRANSF
 
 CONTAINS
 
+#ifdef MKL_DIRECT_CALL_SEQ_JIT
+#include "mkl_direct_call.fi"
+#endif
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)

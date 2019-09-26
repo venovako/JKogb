@@ -7,6 +7,10 @@ MODULE DSTEP
 
 CONTAINS
 
+#ifdef MKL_DIRECT_CALL_SEQ_JIT
+#include "mkl_direct_call.fi"
+#endif
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   PURE REAL(KIND=DWP) FUNCTION DMAG1(N, P, Q, A, LDA, J)
