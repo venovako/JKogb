@@ -105,7 +105,7 @@ CONTAINS
     INFO = 0
 
     IF (H) THEN
-       IF (A(2,1) .NE. D_ZERO) THEN
+       IF (A(2,2) .NE. D_ZERO) THEN
           CONTINUE ! TODO
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
@@ -115,7 +115,7 @@ CONTAINS
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           SZ = TZ * CZ
-       ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
+       ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
           INFO=-6
           RETURN
@@ -125,7 +125,7 @@ CONTAINS
        W(1,2) =  SZ
        W(2,2) =  CZ
     ELSE ! trigonometric
-       IF (A(2,1) .NE. D_ZERO) THEN
+       IF (A(2,2) .NE. D_ZERO) THEN
           X = A(1,2) / A(1,1)
           Y = A(2,2) / A(1,1) ! > 0
           IF (ABS(X) .LE. Y) THEN
@@ -145,7 +145,7 @@ CONTAINS
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
           SZ = TZ * CZ
-       ELSE ! A(2,1) .EQ. 0
+       ELSE ! A(2,2) .EQ. 0
           INFO = 1
           ! CU = D_ONE
           ! SU = D_ZERO
