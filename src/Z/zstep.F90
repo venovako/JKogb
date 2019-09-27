@@ -210,7 +210,7 @@ CONTAINS
        A2(2,2) = A(Q,Q)
        CALL ZHSVD2((J(P) .NE. J(Q)), A2, V, W(1,1,K), IT(K))
        INFO = IT(K)
-       IF (IT(K) .GT. 0) THEN
+       IF (IT(K) .GT. 1) THEN
           IF (IAND(IT(K), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UH(V)
@@ -221,7 +221,7 @@ CONTAINS
     END DO
 !$OMP END PARALLEL DO
 
-    IF (INFO .GT. 0) THEN
+    IF (INFO .GE. 0) THEN
        INFO = 0
        !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
