@@ -18,6 +18,6 @@ void par_sort(const int t, aw *const a, const size_t n, const qcmp c) throw()
     return;
   if (!c)
     return;
-  tbb::task_scheduler_init tsi(t);
+  // tbb::task_scheduler_init tsi(t);
   tbb::parallel_sort(a, a+n, Qcmp(c));
 }
