@@ -192,14 +192,13 @@ CONTAINS
     TYPE(AW), INTENT(IN) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: U2(2,2), A2(2,2), ZT(2,2,NT)
+    COMPLEX(KIND=DWP) :: V(2,2), A2(2,2), W(2,2,NT)
     INTEGER :: I, K, L, P, Q, IT(NT)
 
-    INFO = SL
-    L = 0
+    INFO = HUGE(0)
     IT = 0
 
-!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q,U2,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,ZT) REDUCTION(MIN:L)
+!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
        K = STEP(I)
        P = DZ(K)%P
@@ -209,34 +208,33 @@ CONTAINS
        A2(2,1) = A(Q,P)
        A2(1,2) = A(P,Q)
        A2(2,2) = A(Q,Q)
-       CALL ZHSVD2((J(P) .NE. J(Q)), A2, U2, ZT(1,1,K), IT(K))
-       L = IT(K)
-       IF (L .GT. 0) THEN
-          IF (IAND(L, 2) .NE. 0) THEN
-             CALL BA(U2, N, A(P,1), A(Q,1), LDA)
-             CALL UH(U2)
-             CALL AB(U2, N, U(1,P), U(1,Q))
+       CALL ZHSVD2((J(P) .NE. J(Q)), A2, V, W(1,1,K), IT(K))
+       INFO = IT(K)
+       IF (IT(K) .GT. 0) THEN
+          IF (IAND(IT(K), 2) .NE. 0) THEN
+             CALL BA(V, N, A(P,1), A(Q,1), LDA)
+             CALL UH(V)
+             CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(L, 8) .NE. 0) CALL AB(ZT(1,1,K), N, Z(1,P), Z(1,Q))
+          IF (IAND(IT(K), 8) .NE. 0) CALL AB(W(1,1,K), N, Z(1,P), Z(1,Q))
        END IF
     END DO
 !$OMP END PARALLEL DO
 
-    IF (L .GT. 0) THEN
-       L = 0
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,ZT) REDUCTION(+:L)
+    IF (INFO .GT. 0) THEN
+       INFO = 0
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
           K = STEP(I)
           P = DZ(K)%P
           Q = DZ(K)%Q
           K = INT(OMP_GET_THREAD_NUM()) + 1
 
-          IF (IAND(IT(K), 8) .NE. 0) CALL AB(ZT(1,1,K), N, A(1,P), A(1,Q))
-          IF ((IAND(IT(K), 4) .NE. 0) .OR. (IAND(IT(K), 16) .NE. 0)) L = L + 1
+          IF (IAND(IT(K), 8) .NE. 0) CALL AB(W(1,1,K), N, A(1,P), A(1,Q))
+          IF ((IAND(IT(K), 4) .NE. 0) .OR. (IAND(IT(K), 16) .NE. 0)) INFO = INFO + 1
        END DO
        !$OMP END PARALLEL DO
     END IF
-    INFO = L
   END SUBROUTINE ZSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
