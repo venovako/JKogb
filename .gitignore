@@ -37,6 +37,7 @@
 *.J
 
 # Output
+*.LY
 *.YU
 *.SY
 *.Z

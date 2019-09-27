@@ -7,10 +7,6 @@ MODULE ZSTEP
 
 CONTAINS
 
-#ifdef MKL_DIRECT_CALL_SEQ_JIT
-#include "mkl_direct_call.fi"
-#endif
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   PURE REAL(KIND=DWP) FUNCTION ZMAG1(N, P, Q, A, LDA, J)
@@ -196,6 +192,7 @@ CONTAINS
     INTEGER :: I, K, L, P, Q, IT(NT)
 
     INFO = HUGE(0)
+    !DIR$ VECTOR ALWAYS
     IT = 0
 
 !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
@@ -232,6 +229,9 @@ CONTAINS
 
           IF (IAND(IT(K), 8) .NE. 0) CALL AB(W(1,1,K), N, A(1,P), A(1,Q))
           IF ((IAND(IT(K), 4) .NE. 0) .OR. (IAND(IT(K), 16) .NE. 0)) INFO = INFO + 1
+
+          A(Q,P) = Z_ZERO
+          A(P,Q) = Z_ZERO
        END DO
        !$OMP END PARALLEL DO
     END IF
@@ -322,13 +322,14 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE ZSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, INFO)
 #ifdef ANIMATE
     USE VN_CMPLXVIS_F
 #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
+    REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
@@ -340,6 +341,34 @@ CONTAINS
     INTEGER, PARAMETER :: SX = 1, SY = 1
     TYPE(c_ptr) :: CTX
 
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
+    DO S = 1, N
+       !DIR$ VECTOR ALWAYS
+       DO INFO = 1, S-1
+          U(INFO,S) = Z_ZERO
+       END DO
+       U(S,S) = Z_ONE
+       !DIR$ VECTOR ALWAYS
+       DO INFO = S+1, N
+          U(INFO,S) = Z_ZERO
+       END DO
+    END DO
+    !$OMP END PARALLEL DO
+
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,Z)
+    DO S = 1, N
+       !DIR$ VECTOR ALWAYS
+       DO INFO = 1, S-1
+          Z(INFO,S) = Z_ZERO
+       END DO
+       Z(S,S) = Z_ONE
+       !DIR$ VECTOR ALWAYS
+       DO INFO = S+1, N
+          Z(INFO,S) = Z_ZERO
+       END DO
+    END DO
+    !$OMP END PARALLEL DO
+
     INFO = VN_CMPLXVIS_START(CTX, FNAME, ACT, N, N, SX, SY, LEN_TRIM(FNAME))
     IF (INFO .NE. 0) THEN
        WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_START:', INFO
@@ -349,7 +378,7 @@ CONTAINS
     INFO = 0
 #endif
 
-    WRITE (ULOG,'(A)') '"STEP","BUILDs","TRANSFs"'
+    WRITE (ULOG,'(A)') '"STEP","BIGROT","BUILDs","TRANSFs"'
     FLUSH(ULOG)
 
     S = 0
@@ -376,6 +405,12 @@ CONTAINS
     S = VN_CMPLXVIS_STOP(CTX)
     IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
 #endif
+
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
+    DO S = 1, N
+       SIGMA(S) = REAL(A(S,S))
+    END DO
+    !$OMP END PARALLEL DO
     CALL JZHJ(NT, N, Z, LDZ, J, NN, P, Q)
   END SUBROUTINE ZSTEP_LOOP
 
