@@ -319,6 +319,7 @@ CONTAINS
     S = VN_MTXVIS_STOP(CTX)
     IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_MTXVIS_STOP:', S
 #endif
+    CALL JZTJ(N, Z, LDZ, J, NN, P, Q)
   END SUBROUTINE DSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

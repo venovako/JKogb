@@ -326,6 +326,7 @@ CONTAINS
     S = VN_CMPLXVIS_STOP(CTX)
     IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
 #endif
+    CALL JZHJ(N, Z, LDZ, J, NN, P, Q)
   END SUBROUTINE ZSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
