@@ -127,15 +127,17 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT1(NN, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT1(NT, NN, DZ, CMP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NN
+    INTEGER, INTENT(IN) :: NT, NN
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NN)
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (NN .LT. 0) THEN
+    IF (NT .LE. 1) THEN
        INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -2
     ELSE ! all OK
        INFO = 0
     END IF
@@ -143,21 +145,23 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    CALL PAR_SORT(C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP))
+    CALL PAR_SORT(INT(NT,c_int), C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP))
     INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_SRT1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT2(NN, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT2(NT, NN, DZ, CMP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NN
+    INTEGER, INTENT(IN) :: NT, NN
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NN)
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (NN .LT. 0) THEN
+    IF (NT .NE. 1) THEN
        INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -2
     ELSE ! all OK
        INFO = 0
     END IF
@@ -171,20 +175,22 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP1(NN, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP1(NT, NN, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NN, N_2
+    INTEGER, INTENT(IN) :: NT, NN, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NN)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
 
-    IF (NN .LT. 0) THEN
+    IF (NT .LE. 1) THEN
        INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -2
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -3
+       INFO = -4
     ELSE IF (N_2 .GT. NN) THEN
-       INFO = -3
+       INFO = -4
     ELSE ! all OK
        INFO = 0
     END IF
@@ -205,7 +211,7 @@ CONTAINS
        AQ = DZ(I)%Q
        K = NN + 1
 
-       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,BP,BQ) SHARED(I,NN,DZ,AP,AQ) REDUCTION(MIN:K)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(J,BP,BQ) SHARED(I,NN,DZ,AP,AQ) REDUCTION(MIN:K)
        DO J = I+1, NN
           IF (DZ(J)%W .EQ. DZ(J)%W) THEN
              BP = DZ(J)%P
@@ -233,21 +239,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP2(NN, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP2(NT, NN, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NN, N_2
+    INTEGER, INTENT(IN) :: NT, NN, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NN)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
     LOGICAL :: C
 
-    IF (NN .LT. 0) THEN
+    IF (NT .NE. 1) THEN
        INFO = -1
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -2
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -3
+       INFO = -4
     ELSE IF (N_2 .GT. NN) THEN
-       INFO = -3
+       INFO = -4
     ELSE ! all OK
        INFO = 0
     END IF

@@ -15,18 +15,6 @@ MODULE PARAMS
   ! Max file name length.
   INTEGER, PARAMETER :: FNL = 252
 
-#ifdef MAX_CORES_PER_RUN
-  INTEGER, PARAMETER :: MAXCPR = MAX_CORES_PER_RUN
-#else
-  INTEGER, PARAMETER :: MAXCPR = 96 ! max. number of 2nd-level threads
-#endif
-
-#ifdef MAX_THREADS_PER_CORE
-  INTEGER, PARAMETER :: MAXTPC = MAX_THREADS_PER_CORE
-#else
-  INTEGER, PARAMETER :: MAXTPC = 64 ! max. number of 1st-level threads
-#endif
-
 #include "vn_params.F90"
 
 CONTAINS

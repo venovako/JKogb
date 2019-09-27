@@ -10,6 +10,6 @@ struct aw {
 };
 
 typedef int (*qcmp)(const aw *const, const aw *const);
-extern "C" void par_sort(aw *const a, const size_t n, const qcmp c) throw();
+extern "C" void par_sort(const int t, aw *const a, const size_t n, const qcmp c) throw();
 
 #endif // !UTILS_HPP

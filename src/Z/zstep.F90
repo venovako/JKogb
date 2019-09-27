@@ -29,18 +29,21 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZPROC_INIT(ID_MAG, ID_CMP, ID_TRU, R, INFO)
+  SUBROUTINE ZPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
     IMPLICIT NONE
+    INTEGER, INTENT(IN) :: NT
     INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_TRU
     TYPE(ZPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (ID_MAG .LT. 0) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
-    ELSE IF (ID_CMP .LT. 0) THEN
+    ELSE IF (ID_MAG .LT. 0) THEN
        INFO = -2
-    ELSE IF (ID_TRU .LT. 0) THEN
+    ELSE IF (ID_CMP .LT. 0) THEN
        INFO = -3
+    ELSE IF (ID_TRU .LT. 0) THEN
+       INFO = -4
     ELSE
        INFO = 0
     END IF
@@ -52,7 +55,7 @@ CONTAINS
        R%MAG => ZMAG1
     CASE DEFAULT
        R%MAG => NULL()
-       INFO = -1
+       INFO = -2
     END SELECT
 
     IF (ID_CMP .EQ. 0) ID_CMP = 1
@@ -61,7 +64,7 @@ CONTAINS
        R%CMP => AW_CMP1
     CASE DEFAULT
        R%CMP => NULL()
-       INFO = -2
+       INFO = -3
     END SELECT
 
     IF (ID_TRU .EQ. 0) ID_TRU = 1
@@ -74,10 +77,10 @@ CONTAINS
        R%TRU => TRU2
     CASE DEFAULT
        R%TRU => NULL()
-       INFO = -3
+       INFO = -4
     END SELECT
 
-    IF (INT(OMP_GET_MAX_THREADS()) .GT. 1) THEN
+    IF (NT .GT. 1) THEN
        R%SRT => AW_SRT1
        R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
@@ -88,9 +91,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE ZSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
@@ -101,16 +104,18 @@ CONTAINS
     REAL(KIND=DWP) :: T
 #endif
 
-    IF (S .LT. 0) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
-    ELSE IF (N .LT. 0) THEN
+    ELSE IF (S .LT. 0) THEN
        INFO = -2
+    ELSE IF (N .LT. 0) THEN
+       INFO = -3
     ELSE IF (LDA .LT. N) THEN
-       INFO = -4
+       INFO = -5
     ELSE IF (NN .LT. 0) THEN
-       INFO = -6
+       INFO = -7
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -11
+       INFO = -12
     ELSE ! all OK
        !DIR$ VECTOR ALWAYS
        INFO = 0
@@ -124,7 +129,7 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NT,NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
@@ -140,9 +145,9 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('ZSTEP_BUILD', S)
 #endif
-    CALL R%SRT(NN, DZ, R%CMP, II)
+    CALL R%SRT(NT, NN, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
-       INFO = -10
+       INFO = -11
        RETURN
     END IF
 #ifndef NDEBUG
@@ -154,9 +159,9 @@ CONTAINS
 #endif
 
     IT = MIN(IT, N_2)
-    CALL R%NCP(NN, DZ, IT, SL, STEP, II)
+    CALL R%NCP(NT, NN, DZ, IT, SL, STEP, II)
     IF (II .LT. 0) THEN
-       INFO = -12
+       INFO = -13
        RETURN
     END IF
 #ifndef NDEBUG
@@ -179,23 +184,66 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, INFO)
+  SUBROUTINE ZSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, DZ, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), SL
+    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, SL
     INTEGER, INTENT(INOUT) :: STEP(SL)
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
-    TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(IN) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
+    COMPLEX(KIND=DWP) :: U2(2,2), A2(2,2), ZT(2,2,NT)
+    INTEGER :: I, K, L, P, Q, IT(NT)
+
     INFO = SL
+    L = 0
+    IT = 0
+
+!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q,U2,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,ZT) REDUCTION(MIN:L)
+    DO I = 1, SL
+       K = STEP(I)
+       P = DZ(K)%P
+       Q = DZ(K)%Q
+       K = INT(OMP_GET_THREAD_NUM()) + 1
+       A2(1,1) = A(P,P)
+       A2(2,1) = A(Q,P)
+       A2(1,2) = A(P,Q)
+       A2(2,2) = A(Q,Q)
+       CALL ZHSVD2((J(P) .NE. J(Q)), A2, U2, ZT(1,1,K), IT(K))
+       L = IT(K)
+       IF (L .GT. 0) THEN
+          IF (IAND(L, 2) .NE. 0) THEN
+             CALL BA(U2, N, A(P,1), A(Q,1), LDA)
+             CALL UH(U2)
+             CALL AB(U2, N, U(1,P), U(1,Q))
+          END IF
+          IF (IAND(L, 8) .NE. 0) CALL AB(ZT(1,1,K), N, Z(1,P), Z(1,Q))
+       END IF
+    END DO
+!$OMP END PARALLEL DO
+
+    IF (L .GT. 0) THEN
+       L = 0
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,ZT) REDUCTION(+:L)
+       DO I = 1, SL
+          K = STEP(I)
+          P = DZ(K)%P
+          Q = DZ(K)%Q
+          K = INT(OMP_GET_THREAD_NUM()) + 1
+
+          IF (IAND(IT(K), 8) .NE. 0) CALL AB(ZT(1,1,K), N, A(1,P), A(1,Q))
+          IF ((IAND(IT(K), 4) .NE. 0) .OR. (IAND(IT(K), 16) .NE. 0)) L = L + 1
+       END DO
+       !$OMP END PARALLEL DO
+    END IF
+    INFO = L
   END SUBROUTINE ZSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+  SUBROUTINE ZSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
@@ -209,7 +257,7 @@ CONTAINS
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
-    CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+    CALL ZSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
     IF (INFO .LE. 0) THEN
        IT = INFO
     ELSE
@@ -234,7 +282,7 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    CALL ZSTEP_TRANSF(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, SL, STEP, NL)
+    CALL ZSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6)') (IT * DNS2S)
     FLUSH(ULOG)
@@ -245,15 +293,15 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE JZHJ(N, Z, LDZ, J, NN, P, Q)
+  SUBROUTINE JZHJ(NT, N, Z, LDZ, J, NN, P, Q)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, LDZ, J(N), NN, P(NN), Q(NN)
+    INTEGER, INTENT(IN) :: NT, N, LDZ, J(N), NN, P(NN), Q(NN)
     COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(LDZ,N)
 
     COMPLEX(KIND=DWP) :: T
     INTEGER :: IP, IQ, I
 
-    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(IP,IQ,I,T) SHARED(NN,Z,J,P,Q)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I,T) SHARED(NN,Z,J,P,Q)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
@@ -276,12 +324,12 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZSTEP_LOOP(N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE ZSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
 #ifdef ANIMATE
     USE VN_CMPLXVIS_F
 #endif
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
@@ -315,18 +363,22 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL ZSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+       CALL ZSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
        IF (INFO .LE. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1
     END DO
-    IF (INFO .GE. 0) INFO = S
+    IF (SL .LT. 0) THEN
+       INFO = SL
+    ELSE IF (INFO .GE. 0) THEN
+       INFO = S
+    END IF
 
 #ifdef ANIMATE
     S = VN_CMPLXVIS_STOP(CTX)
     IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
 #endif
-    CALL JZHJ(N, Z, LDZ, J, NN, P, Q)
+    CALL JZHJ(NT, N, Z, LDZ, J, NN, P, Q)
   END SUBROUTINE ZSTEP_LOOP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

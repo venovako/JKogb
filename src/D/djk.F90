@@ -32,7 +32,13 @@ PROGRAM DJK
 #endif
   IF (INFO .LE. 0) STOP 'JSTEP_LEN'
 
-  CALL DPROC_INIT(ID_MAG, ID_CMP, ID_TRU, R, INFO)
+  ! number of threads
+  NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
+#ifndef NDEBUG
+  WRITE (ULOG,'(A,I11)') '    NT=', NT
+#endif
+
+  CALL DPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') 'ID_MAG=', ID_MAG
   WRITE (ULOG,'(A,I11)') 'ID_CMP=', ID_CMP
@@ -94,14 +100,8 @@ PROGRAM DJK
   WRITE (ULOG,'(A,I11)') '    NN=', NN
 #endif
 
-  ! number of threads
-  NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
-#ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '    NT=', NT
-#endif
-
   FD(1) = GET_THREAD_NS()
-  CALL DSTEP_LOOP(N, U, N, A, N, Z, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, NN, P, Q, R, DZ, N_2, STEP, INFO)
   FD(1) = GET_THREAD_NS() - FD(1)
   IF (INFO .GE. 0) THEN
      WRITE (UOUT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'

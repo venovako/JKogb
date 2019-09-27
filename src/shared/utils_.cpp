@@ -1,5 +1,6 @@
 #include "utils_.hpp"
 
+#include "tbb/task_scheduler_init.h"
 #include "tbb/parallel_sort.h"
 
 struct Qcmp {
@@ -9,7 +10,7 @@ struct Qcmp {
   bool operator()(const aw &a, const aw &b) const throw() { return (_c(&a, &b) < 0); }
 };
 
-void par_sort(aw *const a, const size_t n, const qcmp c) throw()
+void par_sort(const int t, aw *const a, const size_t n, const qcmp c) throw()
 {
   if (!a)
     return;
@@ -17,5 +18,6 @@ void par_sort(aw *const a, const size_t n, const qcmp c) throw()
     return;
   if (!c)
     return;
+  tbb::task_scheduler_init tsi(t);
   tbb::parallel_sort(a, a+n, Qcmp(c));
 }

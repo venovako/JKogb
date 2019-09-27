@@ -3,8 +3,9 @@ MODULE UTILS
   IMPLICIT NONE
 
   INTERFACE
-     SUBROUTINE PAR_SORT(A, N, C) BIND(C,NAME='par_sort')
+     SUBROUTINE PAR_SORT(T, A, N, C) BIND(C,NAME='par_sort')
        USE, INTRINSIC :: ISO_C_BINDING
+       INTEGER(c_int), INTENT(IN), VALUE :: T
        TYPE(c_ptr), INTENT(IN), VALUE :: A
        INTEGER(c_size_t), INTENT(IN), VALUE :: N
        TYPE(c_funptr), INTENT(IN), VALUE :: C
