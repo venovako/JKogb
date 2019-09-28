@@ -261,9 +261,9 @@ CONTAINS
     END IF
     WRITE (ULOG,'(I11,A)',ADVANCE='NO') IT, ','
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6)') D_MZERO, ',', D_ZERO
+       WRITE (ULOG,'(F12.6,A,F12.6,A,I11)') D_MZERO, ',', D_ZERO, ',', -1
     ELSE IF (SL .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6)') (INFO * DNS2S), ',', D_ZERO
+       WRITE (ULOG,'(F12.6,A,F12.6,A,I11)') (INFO * DNS2S), ',', D_ZERO, ',', -1
     ELSE
        WRITE (ULOG,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
     END IF
@@ -272,7 +272,7 @@ CONTAINS
     IF (SL .LE. 0) RETURN
     IF (CtrlC .NE. 0) INFO = 0
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6)') D_MZERO
+       WRITE (ULOG,'(F12.6,A,I11)') D_MZERO, ',', -1
        FLUSH(ULOG)
        RETURN
     END IF
@@ -280,7 +280,7 @@ CONTAINS
     IT = GET_THREAD_NS()
     CALL ZSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
-    WRITE (ULOG,'(F12.6)') (IT * DNS2S)
+    WRITE (ULOG,'(F12.6,A,I11)') (IT * DNS2S), ',', NL
     FLUSH(ULOG)
 
     SL = MIN(SL, NL)
@@ -376,7 +376,7 @@ CONTAINS
     INFO = 0
 #endif
 
-    WRITE (ULOG,'(A)') '"STEP","BIGROT","BUILDs","TRANSFs"'
+    WRITE (ULOG,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN"'
     FLUSH(ULOG)
 
     S = 0
