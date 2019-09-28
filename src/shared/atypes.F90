@@ -79,17 +79,23 @@ CONTAINS
   !   same magnitude ==> sorting by subdiagonals (bands)
   !     outer bands first
   !       within a band, the lower elements first
-  INTEGER(KIND=c_int) FUNCTION AW_CMP1(PA, PB)
+#ifdef _GNU_SOURCE
+  RECURSIVE FUNCTION AW_CMP1(PA, PB, CTX) BIND(C)
+#else
+  RECURSIVE FUNCTION AW_CMP1(CTX, PA, PB) BIND(C)
+#endif
     IMPLICIT NONE
-    INTEGER(KIND=c_intptr_t), INTENT(IN), VALUE :: PA, PB
+    TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB, CTX
+    INTEGER(KIND=c_int) :: AW_CMP1
 
     TYPE(AW), POINTER :: A, B
 
     AW_CMP1 = 0_c_int
-    IF (PA .EQ. PB) RETURN
-
-    CALL C_F_POINTER(TRANSFER(PA, C_NULL_PTR), A)
-    CALL C_F_POINTER(TRANSFER(PB, C_NULL_PTR), B)
+    CALL C_F_POINTER(PA, A)
+    IF (.NOT. ASSOCIATED(A)) RETURN
+    CALL C_F_POINTER(PB, B)
+    IF (.NOT. ASSOCIATED(B)) RETURN
+    IF (ASSOCIATED(A, B)) RETURN
 
     IF (A%W .LT. B%W) THEN
        AW_CMP1 = 1_c_int
@@ -145,7 +151,11 @@ CONTAINS
 
     INFO = GET_THREAD_NS()
     ! TODO: add a parallel sort
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+#ifdef _GNU_SOURCE
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
+#else
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_NULL_PTR, C_FUNLOC(CMP))
+#endif
     INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_SRT1
 
@@ -169,7 +179,11 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
+#ifdef _GNU_SOURCE
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
+#else
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_NULL_PTR, C_FUNLOC(CMP))
+#endif
     INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_SRT2
 
