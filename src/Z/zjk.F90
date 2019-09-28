@@ -81,10 +81,10 @@ PROGRAM ZJK
   Q => IARR(NN+N+1:2*NN+N)
   STEP => IARR(2*NN+N+1:2*NN+N+N_2)
 
-  ALLOCATE(DZ(NN))
+  ALLOCATE(DZ(2*NN))
 #ifndef NDEBUG
   !DIR$ VECTOR ALWAYS
-  DO INFO = 1, NN
+  DO INFO = 1, 2*NN
      DZ(INFO)%W = D_ZERO
      DZ(INFO)%P = 0
      DZ(INFO)%Q = 0

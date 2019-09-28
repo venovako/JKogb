@@ -1,4 +1,5 @@
 MODULE DSTEP
+  USE, INTRINSIC :: ISO_C_BINDING
   USE OMP_LIB
   USE DTRANSF
   USE DTYPES
@@ -180,17 +181,22 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, DZ, SL, STEP, INFO)
+  SUBROUTINE DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, SL
     INTEGER, INTENT(INOUT) :: STEP(SL)
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
-    TYPE(AW), INTENT(IN) :: DZ(NN)
+    REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
+    TYPE(AW), INTENT(INOUT), TARGET :: DZ(2*NN)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), A2(2,2), W(2,2,SL)
-    INTEGER :: I, P, Q, IT(SL)
+    REAL(KIND=DWP) :: V(2,2), A2(2,2)
+    REAL(KIND=DWP), POINTER, CONTIGUOUS :: W(:,:,:)
+    INTEGER :: I, P, Q
+    INTEGER, POINTER, CONTIGUOUS :: IT(:)
 
+    CALL C_F_POINTER(C_LOC(DZ(NN+1)), W, [2,2,SL])
+    CALL C_F_POINTER(C_LOC(SIGMA), IT, [SL])
     INFO = HUGE(0)
 
 !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
@@ -203,7 +209,7 @@ CONTAINS
        A2(1,2) = A(P,Q)
        A2(2,2) = A(Q,Q)
 
-       CALL DHSVD2((J(P) .NE. J(Q)), A2, V, W(1,1,I), IT(I))
+       CALL DHSVD2((J(P) .NE. J(Q)), A2, V, W(:,:,I), IT(I))
        INFO = IT(I)
        IF (IT(I) .GT. 1) THEN
           IF (IAND(IT(I), 2) .NE. 0) THEN
@@ -211,7 +217,7 @@ CONTAINS
              CALL UT(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(1,1,I), N, Z(1,P), Z(1,Q))
+          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
        END IF
     END DO
 !$OMP END PARALLEL DO
@@ -223,7 +229,7 @@ CONTAINS
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
 
-          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(1,1,I), N, A(1,P), A(1,Q))
+          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
           IF ((IAND(IT(I), 4) .NE. 0) .OR. (IAND(IT(I), 16) .NE. 0)) INFO = INFO + 1
 
           A(Q,P) = D_ZERO
@@ -235,12 +241,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
+    REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
 
     INTEGER :: IT, NL
@@ -276,7 +283,7 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, DZ, SL, STEP, NL)
+    CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6,A,I11)') (IT * DNS2S), ',', NL
     FLUSH(ULOG)
@@ -319,9 +326,9 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
-    REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N)
+    REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S, SL
@@ -399,7 +406,7 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
        IF (INFO .LE. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1
