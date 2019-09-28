@@ -187,47 +187,45 @@ CONTAINS
     TYPE(AW), INTENT(IN) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), A2(2,2), W(2,2,NT)
-    INTEGER :: I, K, P, Q, IT(NT)
+    REAL(KIND=DWP) :: V(2,2), A2(2,2), W(2,2,SL)
+    INTEGER :: I, P, Q, IT(SL)
 
     INFO = HUGE(0)
     !DIR$ VECTOR ALWAYS
     IT = 0
 
-!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
+!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
-       K = STEP(I)
-       P = DZ(K)%P
-       Q = DZ(K)%Q
-       K = INT(OMP_GET_THREAD_NUM()) + 1
+       P = DZ(STEP(I))%P
+       Q = DZ(STEP(I))%Q
+
        A2(1,1) = A(P,P)
        A2(2,1) = A(Q,P)
        A2(1,2) = A(P,Q)
        A2(2,2) = A(Q,Q)
-       CALL DHSVD2((J(P) .NE. J(Q)), A2, V, W(1,1,K), IT(K))
-       INFO = IT(K)
-       IF (IT(K) .GT. 1) THEN
-          IF (IAND(IT(K), 2) .NE. 0) THEN
+
+       CALL DHSVD2((J(P) .NE. J(Q)), A2, V, W(1,1,I), IT(I))
+       INFO = IT(I)
+       IF (IT(I) .GT. 1) THEN
+          IF (IAND(IT(I), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UT(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(IT(K), 8) .NE. 0) CALL AB(W(1,1,K), N, Z(1,P), Z(1,Q))
+          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(1,1,I), N, Z(1,P), Z(1,Q))
        END IF
     END DO
 !$OMP END PARALLEL DO
 
     IF (INFO .GE. 0) THEN
        INFO = 0
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
-          K = STEP(I)
-          P = DZ(K)%P
-          Q = DZ(K)%Q
-          K = INT(OMP_GET_THREAD_NUM()) + 1
+          P = DZ(STEP(I))%P
+          Q = DZ(STEP(I))%Q
 
-          IF (IAND(IT(K), 8) .NE. 0) CALL AB(W(1,1,K), N, A(1,P), A(1,Q))
-          IF ((IAND(IT(K), 4) .NE. 0) .OR. (IAND(IT(K), 16) .NE. 0)) INFO = INFO + 1
+          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(1,1,I), N, A(1,P), A(1,Q))
+          IF ((IAND(IT(I), 4) .NE. 0) .OR. (IAND(IT(I), 16) .NE. 0)) INFO = INFO + 1
 
           A(Q,P) = D_ZERO
           A(P,Q) = D_ZERO
