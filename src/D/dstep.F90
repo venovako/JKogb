@@ -88,12 +88,12 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), NM, N_2
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: IP, IQ, I, II, IT
@@ -111,8 +111,10 @@ CONTAINS
        INFO = -5
     ELSE IF (NN .LT. 0) THEN
        INFO = -7
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -11
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -12
+       INFO = -13
     ELSE ! all OK
        !DIR$ VECTOR ALWAYS
        INFO = 0
@@ -142,7 +144,7 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('DSTEP_BUILD', S)
 #endif
-    CALL R%SRT(NT, NN, DZ, R%CMP, II)
+    CALL R%SRT(NT, NN, NM, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
        INFO = -11
        RETURN
@@ -156,7 +158,7 @@ CONTAINS
 #endif
 
     IT = MIN(IT, N_2)
-    CALL R%NCP(NT, NN, DZ, IT, SL, STEP, II)
+    CALL R%NCP(NT, NN, NM, DZ, IT, SL, STEP, II)
     IF (II .LT. 0) THEN
        INFO = -13
        RETURN
@@ -181,13 +183,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, INFO)
+  SUBROUTINE DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, SL
+    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, NM, SL
     INTEGER, INTENT(INOUT) :: STEP(SL)
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(2*NN)
+    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), A2(2,2)
@@ -241,13 +243,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, SL, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
 
     INTEGER :: IT, NL
@@ -258,7 +260,7 @@ CONTAINS
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
-    CALL DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, DZ, N_2, SL, STEP, INFO)
+    CALL DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, N_2, SL, STEP, INFO)
     IF (INFO .LE. 0) THEN
        IT = INFO
     ELSE
@@ -283,7 +285,7 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, NL)
+    CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6,A,I11)') (IT * DNS2S), ',', NL
     FLUSH(ULOG)
@@ -319,16 +321,16 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
 #ifdef ANIMATE
     USE VN_MTXVIS_F
 #endif
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), N_2
+    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S, SL
@@ -350,8 +352,10 @@ CONTAINS
        INFO = -8
     ELSE IF (NN .LT. 0) THEN
        INFO = -11
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -15
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -16
+       INFO = -17
     ELSE ! all OK
        INFO = 0
     END IF
@@ -406,7 +410,7 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, DZ, N_2, STEP, SL, INFO)
+       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, SL, INFO)
        IF (INFO .LE. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1

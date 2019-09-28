@@ -1,5 +1,5 @@
 MODULE ATYPES
-  USE UTILS
+  ! USE UTILS
   USE TIMER
   USE VN_SORT_F
   IMPLICIT NONE
@@ -133,10 +133,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT1(NT, NN, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT1(NT, NN, NM, DZ, CMP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(2*NN)
+    INTEGER, INTENT(IN) :: NT, NN, NM
+    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
@@ -144,6 +144,8 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -2
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -3
     ELSE ! all OK
        INFO = 0
     END IF
@@ -177,10 +179,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT2(NT, NN, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT2(NT, NN, NM, DZ, CMP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NN)
+    INTEGER, INTENT(IN) :: NT, NN, NM
+    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
@@ -188,6 +190,8 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -2
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -3
     ELSE ! all OK
        INFO = 0
     END IF
@@ -205,10 +209,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP1(NT, NN, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP1(NT, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN, N_2
-    TYPE(AW), INTENT(INOUT) :: DZ(NN)
+    INTEGER, INTENT(IN) :: NT, NN, NM, N_2
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
@@ -217,10 +221,12 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -2
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -3
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -4
+       INFO = -5
     ELSE IF (N_2 .GT. NN) THEN
-       INFO = -4
+       INFO = -5
     ELSE ! all OK
        INFO = 0
     END IF
@@ -269,10 +275,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP2(NT, NN, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP2(NT, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN, N_2
-    TYPE(AW), INTENT(INOUT) :: DZ(NN)
+    INTEGER, INTENT(IN) :: NT, NN, NM, N_2
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
@@ -282,10 +288,12 @@ CONTAINS
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -2
+    ELSE IF (NM .LT. NN) THEN
+       INFO = -3
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -4
+       INFO = -5
     ELSE IF (N_2 .GT. NN) THEN
-       INFO = -4
+       INFO = -5
     ELSE ! all OK
        INFO = 0
     END IF
@@ -293,8 +301,8 @@ CONTAINS
 
     INFO = GET_THREAD_NS()
     SL = 0
-    IF (NN .EQ. 0) GOTO 1
-    IF (N_2 .EQ. 0) GOTO 1
+    IF (NN .EQ. 0) GOTO 2
+    IF (N_2 .EQ. 0) GOTO 2
 
     J = 1
     DO I = 1, N_2
@@ -331,7 +339,7 @@ CONTAINS
        STEP(I) = 0
     END DO
 
-1   INFO = GET_THREAD_NS() - INFO
+2   INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_NCP2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

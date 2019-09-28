@@ -5,7 +5,7 @@ PROGRAM ZJK
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO, NN, NT, SZ(3), FD(3)
+  INTEGER :: N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO, NN, NM, NT, SZ(3), FD(3)
   TYPE(ZPROC) :: R
 
   COMPLEX(KIND=DWP), ALLOCATABLE, TARGET :: ZARR(:,:)
@@ -55,41 +55,26 @@ PROGRAM ZJK
   END IF
 
   ALLOCATE(ZARR(N, 3 * N))
-#ifndef NDEBUG
-  !DIR$ VECTOR ALWAYS
-  ZARR = Z_ZERO
-#endif
   A => ZARR(:,1:N)
   U => ZARR(:,N+1:2*N)
   Z => ZARR(:,2*N+1:3*N)
 
   ALLOCATE(DARR(N))
-#ifndef NDEBUG
-  !DIR$ VECTOR ALWAYS
-  DARR = D_ZERO
-#endif
   S => DARR(1:N)
 
   ALLOCATE(IARR(N * N + N_2))
-#ifndef NDEBUG
-  !DIR$ VECTOR ALWAYS
-  IARR = 0
-#endif
   NN = (N * (N - 1)) / 2
   J => IARR(1:N)
   P => IARR(N+1:NN+N)
   Q => IARR(NN+N+1:2*NN+N)
   STEP => IARR(2*NN+N+1:2*NN+N+N_2)
 
-  ALLOCATE(DZ(2*NN))
+  INFO = MOD(NN, NT)
+  IF (INFO .GT. 0) INFO = NT - INFO
+  NM = 2 * (NN + INFO)
+  ALLOCATE(DZ(NM))
 #ifndef NDEBUG
-  !DIR$ VECTOR ALWAYS
-  DO INFO = 1, 2*NN
-     DZ(INFO)%W = D_ZERO
-     DZ(INFO)%P = 0
-     DZ(INFO)%Q = 0
-     DZ(INFO)%B = 0
-  END DO
+  WRITE (ULOG,'(A,I11)') '    NM=', NM
 #endif
 
   CALL ZREAD_YJ(FD, A, J, N, N, SZ, INFO)
@@ -109,7 +94,7 @@ PROGRAM ZJK
 #endif
 
   FD(1) = GET_THREAD_NS()
-  CALL ZSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, DZ, N_2, STEP, INFO)
+  CALL ZSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
   FD(1) = GET_THREAD_NS() - FD(1)
   IF (INFO .GE. 0) THEN
      WRITE (UOUT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
