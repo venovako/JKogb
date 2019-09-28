@@ -15,9 +15,9 @@ endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
 C11FLAGS=$(CPUFLAGS) -fopenmp
 ifeq ($(ARCH),Darwin)
-CC=gcc-8
-FC=gfortran-8
-CXX=g++-8
+CC=gcc-9
+FC=gfortran-9
+CXX=g++-9
 else # Linux
 CC=gcc
 FC=gfortran

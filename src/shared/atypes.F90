@@ -1,4 +1,5 @@
 MODULE ATYPES
+  USE UTILS
   USE TIMER
   USE VN_SORT_F
   IMPLICIT NONE
@@ -150,7 +151,22 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    ! TODO: add a parallel sort
+    ! SELECT CASE (INT(PAR_SORT(INT(NT,c_int), C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP), C_NULL_PTR)))
+    ! CASE (-1)
+    !    INFO = -1
+    !    RETURN
+    ! CASE (-2)
+    !    INFO = -3
+    !    RETURN
+    ! CASE (-3)
+    !    INFO = -2
+    !    RETURN
+    ! CASE (-4)
+    !    INFO = -4
+    !    RETURN
+    ! CASE DEFAULT
+    !    CONTINUE
+    ! END SELECT
 #ifdef _GNU_SOURCE
     CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
 #else
