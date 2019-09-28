@@ -33,6 +33,7 @@ CONTAINS
     INTEGER :: I, J
 
     I = 1
+    !DIR$ VECTOR ALWAYS
     DO J = 1, N
        XX = B(1,1) * X(I) + B(1,2) * Y(I)
        YY = B(2,1) * X(I) + B(2,2) * Y(I)
@@ -41,6 +42,30 @@ CONTAINS
        I = I + LDA
     END DO
   END SUBROUTINE BA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE CA(B, N, X, Y, LDA)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: N, LDA
+    REAL(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
+
+    REAL(KIND=DWP) :: XX, YY
+    INTEGER :: I, J
+
+    I = 1
+    !DIR$ VECTOR ALWAYS
+    DO J = 1, N
+       !DIR$ FMA
+       XX = X(I) + B(1,2) * Y(I)
+       !DIR$ FMA
+       YY = B(2,1) * X(I) + Y(I)
+       X(I) = B(1,1) * XX
+       Y(I) = B(2,2) * YY
+       I = I + LDA
+    END DO
+  END SUBROUTINE CA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -53,6 +78,7 @@ CONTAINS
     REAL(KIND=DWP) :: XX, YY
     INTEGER :: I
 
+    !DIR$ VECTOR ALWAYS
     DO I = 1, M
        XX = X(I) * B(1,1) + Y(I) * B(2,1)
        YY = X(I) * B(1,2) + Y(I) * B(2,2)
@@ -60,6 +86,28 @@ CONTAINS
        Y(I) = YY
     END DO
   END SUBROUTINE AB
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AC(B, M, X, Y)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: M
+    REAL(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+
+    REAL(KIND=DWP) :: XX, YY
+    INTEGER :: I
+
+    !DIR$ VECTOR ALWAYS
+    DO I = 1, M
+       !DIR$ FMA
+       XX = X(I) + Y(I) * B(2,1)
+       !DIR$ FMA
+       YY = X(I) * B(1,2) + Y(I)
+       X(I) = XX * B(1,1)
+       Y(I) = YY * B(2,2)
+    END DO
+  END SUBROUTINE AC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -109,20 +157,21 @@ CONTAINS
           CONTINUE ! TODO
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
+          ! TU = D_ZERO
           ! CU = D_ONE
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-          SZ = TZ * CZ
+          ! SZ = TZ * CZ
        ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
           INFO=-6
           RETURN
        END IF
        W(1,1) =  CZ
-       W(2,1) =  SZ
-       W(1,2) =  SZ
+       W(2,1) =  TZ ! SZ
+       W(1,2) =  TZ ! SZ
        W(2,2) =  CZ
     ELSE ! trigonometric
        IF (A(2,2) .NE. D_ZERO) THEN
@@ -139,41 +188,42 @@ CONTAINS
           TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           !DIR$ FMA
           CU = D_ONE / SQRT(D_ONE + TU * TU)
-          SU = TU * CU
+          ! SU = TU * CU
           !DIR$ FMA
           TZ = Y * TU - X
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
-          SZ = TZ * CZ
+          ! SZ = TZ * CZ
        ELSE ! A(2,2) .EQ. 0
           INFO = 1
+          ! TU = D_ZERO
           ! CU = D_ONE
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
-          SZ = TZ * CZ
+          ! SZ = TZ * CZ
        END IF
        W(1,1) =  CZ
-       W(2,1) = -SZ
-       W(1,2) =  SZ
+       W(2,1) = -TZ !-SZ
+       W(1,2) =  TZ ! SZ
        W(2,2) =  CZ
     END IF
 
     IF (INFO .EQ. 0) THEN
        V(1,1) =  CU
-       V(2,1) =  SU
-       V(1,2) = -SU
+       V(2,1) =  TU ! SU
+       V(1,2) = -TU !-SU
        V(2,2) =  CU
 
-       CALL BA(V, 2, U(1,1), U(2,1), 2)
-       CALL BA(V, 2, A(1,1), A(2,1), 2)
+       CALL CA(V, 2, U(1,1), U(2,1), 2)
+       CALL CA(V, 2, A(1,1), A(2,1), 2)
     ELSE ! INFO .NE. 0
        INFO = 0
     END IF
 
-    CALL AB(W, 2, A(1,1), A(1,2))
-    CALL AB(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, 2, A(1,1), A(1,2))
+    CALL AC(W, 2, Z(1,1), Z(1,2))
 
     CALL DHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2U
@@ -205,7 +255,7 @@ CONTAINS
        TZ = -A(1,1) / A(1,2)
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-       SZ = TZ * CZ
+       ! SZ = TZ * CZ
     ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
        ! |TZ| .GE. 1
        INFO = -7
@@ -218,15 +268,15 @@ CONTAINS
     V(2,2) =  CU
 
     W(1,1) =  CZ
-    W(2,1) =  SZ
-    W(1,2) =  SZ
+    W(2,1) =  TZ ! SZ
+    W(1,2) =  TZ ! SZ
     W(2,2) =  CZ
 
     CALL BA(V, 2, U(1,1), U(2,1), 2)
     CALL BA(V, 2, A(1,1), A(2,1), 2)
 
-    CALL AB(W, 2, A(1,1), A(1,2))
-    CALL AB(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, 2, A(1,1), A(1,2))
+    CALL AC(W, 2, Z(1,1), Z(1,2))
 
     CALL DHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2T

@@ -35,6 +35,7 @@ CONTAINS
     INTEGER :: I, J
 
     I = 1
+    !DIR$ VECTOR ALWAYS
     DO J = 1, N
        XX = B(1,1) * X(I) + B(1,2) * Y(I)
        YY = B(2,1) * X(I) + B(2,2) * Y(I)
@@ -43,6 +44,28 @@ CONTAINS
        I = I + LDA
     END DO
   END SUBROUTINE BA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE CA(B, N, X, Y, LDA)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: N, LDA
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
+
+    COMPLEX(KIND=DWP) :: XX, YY
+    INTEGER :: I, J
+
+    I = 1
+    !DIR$ VECTOR ALWAYS
+    DO J = 1, N
+       XX = X(I) + B(1,2) * Y(I)
+       YY = B(2,1) * X(I) + Y(I)
+       X(I) = REAL(B(1,1)) * XX
+       Y(I) = REAL(B(2,2)) * YY
+       I = I + LDA
+    END DO
+  END SUBROUTINE CA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -55,6 +78,7 @@ CONTAINS
     COMPLEX(KIND=DWP) :: XX, YY
     INTEGER :: I
 
+    !DIR$ VECTOR ALWAYS
     DO I = 1, M
        XX = X(I) * B(1,1) + Y(I) * B(2,1)
        YY = X(I) * B(1,2) + Y(I) * B(2,2)
@@ -62,6 +86,26 @@ CONTAINS
        Y(I) = YY
     END DO
   END SUBROUTINE AB
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AC(B, M, X, Y)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: M
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+
+    COMPLEX(KIND=DWP) :: XX, YY
+    INTEGER :: I
+
+    !DIR$ VECTOR ALWAYS
+    DO I = 1, M
+       XX = X(I) + Y(I) * B(2,1)
+       YY = X(I) * B(1,2) + Y(I)
+       X(I) = XX * REAL(B(1,1))
+       Y(I) = YY * REAL(B(2,2))
+    END DO
+  END SUBROUTINE AC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
