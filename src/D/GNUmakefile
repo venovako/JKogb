@@ -14,13 +14,13 @@ help:
 dtransf.o dtransf.mod: dtransf.F90 ../shared/params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtransf.F90
 
-dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod ../shared/timer.mod ../shared/utils.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 ifdef ANIMATE
-dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
+dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
 	$(FC) -DANIMATE $(FFLAGS) -c dstep.F90
 else # !ANIMATE
-dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod $(MKFS)
+dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dstep.F90
 endif # ?ANIMATE
 djk.exe: djk.o dstep.o dtransf.o dtypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)

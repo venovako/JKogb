@@ -2,16 +2,6 @@ MODULE UTILS
   USE, INTRINSIC :: ISO_C_BINDING
   IMPLICIT NONE
 
-  INTERFACE
-     SUBROUTINE PAR_SORT(T, A, N, C) BIND(C,NAME='par_sort')
-       USE, INTRINSIC :: ISO_C_BINDING
-       INTEGER(c_int), INTENT(IN), VALUE :: T
-       TYPE(c_ptr), INTENT(IN), VALUE :: A
-       INTEGER(c_size_t), INTENT(IN), VALUE :: N
-       TYPE(c_funptr), INTENT(IN), VALUE :: C
-     END SUBROUTINE PAR_SORT
-  END INTERFACE
-
   TYPE(c_funptr) :: OldCtrlC = C_NULL_FUNPTR
   INTEGER(c_int), PARAMETER :: SigCtrlC = 2_c_int ! SIGINT
   INTEGER(c_int), VOLATILE :: CtrlC = 0_c_int

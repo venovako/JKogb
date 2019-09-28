@@ -15,7 +15,7 @@ CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fexceptions -qopenmp
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fPIC -fno-inline -fno-omit-frame-pointer -finstrument-functions -rdynamic
 endif # PROFILE
-FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-cxxlib
+FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -cxxlib -threads
 C11FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost
@@ -40,6 +40,12 @@ FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../shared -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG) -L../../../JACSD -lvn$(PROFILE)$(DEBUG)
+ifdef NDEBUG
+LDFLAGS += -ltbb -ltbbmalloc
+else # DEBUG
+LIBFLAGS += -DTBB_USE_DEBUG=1
+LDFLAGS += -ltbb_debug -ltbbmalloc_debug
+endif # ?NDEBUG
 LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl -lmemkind #-lmkl_intel_thread
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)

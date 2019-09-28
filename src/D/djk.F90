@@ -14,7 +14,7 @@ PROGRAM DJK
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
-  IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
   CALL SetCtrlC
 
   CALL READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
