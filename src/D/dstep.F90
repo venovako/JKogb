@@ -78,7 +78,7 @@ CONTAINS
     END SELECT
 
     IF (NT .GT. 1) THEN
-       R%SRT => AW_SRT2 ! TODO: AW_SRT1
+       R%SRT => AW_SRT1
        R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
        R%SRT => AW_SRT2
@@ -93,7 +93,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), N_2
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NN)
+    TYPE(AW), INTENT(OUT), TARGET :: DZ(2*NN)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     INTEGER :: IP, IQ, I, II, IT
