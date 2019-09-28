@@ -331,6 +331,25 @@ CONTAINS
     INTEGER, PARAMETER :: SX = 1, SY = 1
     TYPE(c_ptr) :: CTX
 
+    IF (NT .LE. 0) THEN
+       INFO = -1
+    ELSE IF (N .LT. 3) THEN
+       INFO = -2
+    ELSE IF (LDU .LT. N) THEN
+       INFO = -4
+    ELSE IF (LDA .LT. N) THEN
+       INFO = -6
+    ELSE IF (LDZ .LT. N) THEN
+       INFO = -8
+    ELSE IF (NN .LT. 0) THEN
+       INFO = -11
+    ELSE IF (N_2 .LT. 0) THEN
+       INFO = -16
+    ELSE ! all OK
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
     DO S = 1, N
        !DIR$ VECTOR ALWAYS
@@ -399,6 +418,8 @@ CONTAINS
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
     DO S = 1, N
        SIGMA(S) = A(S,S)
+       ! for a simple calculation of ||off(A)||_F
+       A(S,S) = D_ZERO
     END DO
     !$OMP END PARALLEL DO
     CALL JZTJ(NT, N, Z, LDZ, J, NN, P, Q)

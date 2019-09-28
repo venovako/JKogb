@@ -407,6 +407,8 @@ CONTAINS
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
     DO S = 1, N
        SIGMA(S) = REAL(A(S,S))
+       ! for a simple calculation of ||off(A)||_F
+       A(S,S) = Z_ZERO
     END DO
     !$OMP END PARALLEL DO
     CALL JZHJ(NT, N, Z, LDZ, J, NN, P, Q)
