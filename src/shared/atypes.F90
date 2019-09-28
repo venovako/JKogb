@@ -158,7 +158,7 @@ CONTAINS
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
-    IF (NT .NE. 1) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
        INFO = -2

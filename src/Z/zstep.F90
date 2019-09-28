@@ -77,7 +77,7 @@ CONTAINS
     END SELECT
 
     IF (NT .GT. 1) THEN
-       R%SRT => AW_SRT1
+       R%SRT => AW_SRT2 ! TODO: AW_SRT1
        R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
        R%SRT => AW_SRT2

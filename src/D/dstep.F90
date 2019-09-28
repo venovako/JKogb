@@ -76,7 +76,7 @@ CONTAINS
     END SELECT
 
     IF (NT .GT. 1) THEN
-       R%SRT => AW_SRT1
+       R%SRT => AW_SRT2 ! TODO: AW_SRT1
        R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
        R%SRT => AW_SRT2
@@ -191,8 +191,6 @@ CONTAINS
     INTEGER :: I, P, Q, IT(SL)
 
     INFO = HUGE(0)
-    !DIR$ VECTOR ALWAYS
-    IT = 0
 
 !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
