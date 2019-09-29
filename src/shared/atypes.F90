@@ -169,7 +169,7 @@ CONTAINS
        A(I)%W = QUIET_NAN(I)
     END DO
 
-    ! TODO: Baudet-Stevenson odd-even sort with merge-splitting of the subarrays
+    ! Baudet-Stevenson odd-even sort with merge-splitting of the subarrays; see:
     ! Baudet and Stevenson, Optimal Sorting Algorithms for Parallel Computers,
     ! IEEE Transactions on Computers, C-27(1):84--87, Jan 1978.
     ! doi:10.1109/TC.1978.1674957
