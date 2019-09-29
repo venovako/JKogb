@@ -21,28 +21,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE BA(B, N, X, Y, LDA)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
-    INTEGER, INTENT(IN) :: N, LDA
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
-
-    COMPLEX(KIND=DWP) :: XX, YY
-    INTEGER :: I, J
-
-    I = 1
-    !DIR$ VECTOR ALWAYS
-    DO J = 1, N
-       XX = B(1,1) * X(I) + B(1,2) * Y(I)
-       YY = B(2,1) * X(I) + B(2,2) * Y(I)
-       X(I) = XX
-       Y(I) = YY
-       I = I + LDA
-    END DO
-  END SUBROUTINE BA
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE SUBROUTINE CA(B, N, X, Y, LDA)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
@@ -65,23 +43,73 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AB(B, M, X, Y)
+  PURE SUBROUTINE BA(B, N, X, Y, LDA)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
-    INTEGER, INTENT(IN) :: M
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+    INTEGER, INTENT(IN) :: N, LDA
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
 
-    COMPLEX(KIND=DWP) :: XX, YY
-    INTEGER :: I
+    COMPLEX(KIND=DWP) :: R1, R2, XX, YY
+    INTEGER :: I, J
 
-    !DIR$ VECTOR ALWAYS
-    DO I = 1, M
-       XX = X(I) * B(1,1) + Y(I) * B(2,1)
-       YY = X(I) * B(1,2) + Y(I) * B(2,2)
-       X(I) = XX
-       Y(I) = YY
-    END DO
-  END SUBROUTINE AB
+    I = 1
+
+    ! DO J = 1, N
+    !    XX = B(1,1) * X(I) + B(1,2) * Y(I)
+    !    YY = B(2,1) * X(I) + B(2,2) * Y(I)
+    !    X(I) = XX
+    !    Y(I) = YY
+    !    I = I + LDA
+    ! END DO
+
+    IF (ABS(B(1,1)) .GE. ABS(B(1,2))) THEN
+       R1 = B(1,2) / B(1,1)
+       IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
+          R2 = B(2,1) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO J = 1, N
+             XX = X(I) + R1 * Y(I)
+             YY = R2 * X(I) + Y(I)
+             X(I) = XX * B(1,1)
+             Y(I) = YY * B(2,2)
+             I = I + LDA
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
+          R2 = B(2,2) / B(2,1)
+          !DIR$ VECTOR ALWAYS
+          DO J = 1, N
+             XX = X(I) + R1 * Y(I)
+             YY = X(I) + R2 * Y(I)
+             X(I) = XX * B(1,1)
+             Y(I) = YY * B(2,1)
+             I = I + LDA
+          END DO
+       END IF
+    ELSE ! ABS(B(1,1)) .LT. ABS(B(1,2))
+       R1 = B(1,1) / B(1,2)
+       IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
+          R2 = B(2,1) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO J = 1, N
+             XX = R1 * X(I) + Y(I)
+             YY = R2 * X(I) + Y(I)
+             X(I) = XX * B(1,2)
+             Y(I) = YY * B(2,2)
+             I = I + LDA
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
+          R2 = B(2,2) / B(2,1)
+          !DIR$ VECTOR ALWAYS
+          DO J = 1, N
+             XX = R1 * X(I) + Y(I)
+             YY = X(I) + R2 * Y(I)
+             X(I) = XX * B(1,2)
+             Y(I) = YY * B(2,1)
+             I = I + LDA
+          END DO
+       END IF
+    END IF
+  END SUBROUTINE BA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -102,6 +130,69 @@ CONTAINS
        Y(I) = YY * REAL(B(2,2))
     END DO
   END SUBROUTINE AC
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AB(B, M, X, Y)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
+    INTEGER, INTENT(IN) :: M
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+
+    COMPLEX(KIND=DWP) :: R1, R2, XX, YY
+    INTEGER :: I
+
+    ! DO I = 1, M
+    !    XX = X(I) * B(1,1) + Y(I) * B(2,1)
+    !    YY = X(I) * B(1,2) + Y(I) * B(2,2)
+    !    X(I) = XX
+    !    Y(I) = YY
+    ! END DO
+
+    IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
+       R1 = B(2,1) / B(1,1)
+       IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
+          R2 = B(1,2) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             XX = X(I) + Y(I) * R1
+             YY = X(I) * R2 + Y(I)
+             X(I) = XX * B(1,1)
+             Y(I) = YY * B(2,2)
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
+          R2 = B(2,2) / B(1,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             XX = X(I) + Y(I) * R1
+             YY = X(I) + Y(I) * R2
+             X(I) = XX * B(1,1)
+             Y(I) = YY * B(1,2)
+          END DO
+       END IF
+    ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
+       R1 = B(1,1) / B(2,1)
+       IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
+          R2 = B(1,2) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             XX = X(I) * R1 + Y(I)
+             YY = X(I) * R2 + Y(I)
+             X(I) = XX * B(2,1)
+             Y(I) = YY * B(2,2)
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
+          R2 = B(2,2) / B(1,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, M
+             XX = X(I) * R1 + Y(I)
+             YY = X(I) + Y(I) * R2
+             X(I) = XX * B(2,1)
+             Y(I) = YY * B(1,2)
+          END DO
+       END IF
+    END IF
+  END SUBROUTINE AB
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
