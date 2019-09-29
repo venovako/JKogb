@@ -1,4 +1,5 @@
 MODULE ATYPES
+  USE OMP_LIB
   ! USE UTILS
   USE TIMER
   USE VN_SORT_F
@@ -140,6 +141,10 @@ CONTAINS
     PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
+    INTEGER :: T, TE, I, IE, J, JE, K, L, C, OE
+    INTEGER :: EPA, EPT ! elements per array, thread
+    TYPE(AW), POINTER, CONTIGUOUS :: A(:), B(:)
+
     IF (NT .LE. 1) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -153,27 +158,87 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    ! SELECT CASE (INT(PAR_SORT(INT(NT,c_int), C_LOC(DZ), INT(NN,c_size_t), C_FUNLOC(CMP), C_NULL_PTR)))
-    ! CASE (-1)
-    !    INFO = -1
-    !    RETURN
-    ! CASE (-2)
-    !    INFO = -3
-    !    RETURN
-    ! CASE (-3)
-    !    INFO = -2
-    !    RETURN
-    ! CASE (-4)
-    !    INFO = -4
-    !    RETURN
-    ! CASE DEFAULT
-    !    CONTINUE
-    ! END SELECT
+
+    EPA = NM / 2
+    A => DZ(1:EPA)
+    B => DZ(EPA+1:NM)
+    EPT = EPA / NT
+
+    ! virtual elements
+    DO I = NN+1, EPA
+       A(I)%W = QUIET_NAN(I)
+    END DO
+
+    ! TODO: Baudet-Stevenson odd-even sort with merge-splitting of the subarrays
+    ! Baudet and Stevenson, Optimal Sorting Algorithms for Parallel Computers,
+    ! IEEE Transactions on Computers, C-27(1):84--87, Jan 1978.
+    ! doi:10.1109/TC.1978.1674957
+
+    !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPT,A)
+    I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
 #ifdef _GNU_SOURCE
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
+    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(CMP), C_NULL_PTR)
 #else
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_NULL_PTR, C_FUNLOC(CMP))
+    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_NULL_PTR, C_FUNLOC(CMP))
 #endif
+    !$OMP END PARALLEL
+
+    DO WHILE (.TRUE.)
+       TE = 0
+       DO OE = 0, 1
+          L = 0
+          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,IE,J,JE,K,C) SHARED(NT,EPT,OE,A,B) REDUCTION(+:L)
+          T = INT(OMP_GET_THREAD_NUM())
+          IF ((MOD(T, 2) .EQ. OE) .AND. ((T + 1) .LT. NT)) THEN
+             ! merge with T + 1
+             I = T * EPT + 1
+             IE = I + (EPT - 1)
+             J = IE + 1
+             JE = J + (EPT - 1)
+             K = I
+             L = 0
+             DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
+#ifdef _GNU_SOURCE
+                C = INT(CMP(C_LOC(A(I)), C_LOC(A(J)), C_NULL_PTR))
+#else
+                C = INT(CMP(C_NULL_PTR, C_LOC(A(I)), C_LOC(A(J))))
+#endif
+                IF (C .LE. 0) THEN
+                   B(K) = A(I)
+                   I = I + 1
+                   K = K + 1
+                ELSE ! C .GT. 0
+                   B(K) = A(J)
+                   J = J + 1
+                   K = K + 1
+                   L = L + 1
+                END IF
+             END DO
+             DO WHILE ((I .LE. IE) .AND. (K .LE. JE))
+                B(K) = A(I)
+                I = I + 1
+                K = K + 1
+             END DO
+             DO WHILE ((J .LE. JE) .AND. (K .LE. JE))
+                B(K) = A(J)
+                J = J + 1
+                K = K + 1
+             END DO
+          END IF
+          !$OMP END PARALLEL
+          TE = TE + L
+          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPT,A,B)
+          I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
+          IE = I + (EPT - 1)
+          !DIR$ VECTOR ALWAYS
+          DO J = I, IE
+             A(J) = B(J)
+          END DO
+          !$OMP END PARALLEL
+       END DO
+       IF (TE .EQ. 0) EXIT
+    END DO
+
     INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_SRT1
 
