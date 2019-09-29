@@ -267,6 +267,8 @@ CONTAINS
        IT = SL
     END IF
     WRITE (ULOG,'(I11,A)',ADVANCE='NO') IT, ','
+    FLUSH(ULOG)
+
     IF (INFO .LE. 0) THEN
        WRITE (ULOG,'(F12.6,A,F12.6,A,I11)') D_MZERO, ',', D_ZERO, ',', -1
     ELSE IF (SL .LE. 0) THEN
