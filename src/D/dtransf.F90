@@ -370,6 +370,8 @@ CONTAINS
     REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
     REAL(KIND=DWP) :: CZ, SZ, TZ ! always hyperbolic
 
+    REAL(KIND=DWP) :: T2U, X, Y
+
     IF (.NOT. H) THEN
        INFO = -HUGE(0)
        RETURN
@@ -377,7 +379,29 @@ CONTAINS
     INFO = 0
 
     IF (A(1,1) .NE. D_ZERO) THEN
-       CONTINUE ! TODO
+       X = A(1,1) / A(2,2) ! .GT. 0
+       Y = A(2,1) / A(2,2) ! .NE. 0
+       IF (ABS(Y) .LE. X) THEN
+          T2U = -SCALE(Y, 1) * X
+       ELSE ! ABS(Y) .GT. X
+          T2U = -SCALE(X, 1) * Y
+       END IF
+       !DIR$ FMA
+       T2U = T2U / (D_ONE + (X - Y) * (X + Y))
+       IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
+          TU = SIGN(D_ONE, T2U)
+       ELSE ! should always happen
+          !DIR$ FMA
+          TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
+       END IF
+       !DIR$ FMA
+       CU = D_ONE / SQRT(D_ONE + TU * TU)
+       ! SU = TU * CU
+       !DIR$ FMA
+       TZ = -(X * TU + Y)
+       !DIR$ FMA
+       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       ! SZ = TZ * CZ
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
        INFO = 1
        ! TU = D_ZERO
