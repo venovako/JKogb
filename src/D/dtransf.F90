@@ -257,7 +257,29 @@ CONTAINS
 
     IF (H) THEN
        IF (A(2,2) .NE. D_ZERO) THEN
-          CONTINUE ! TODO
+          X = A(1,2) / A(1,1) ! .NE. 0
+          Y = A(2,2) / A(1,1) ! .GT. 0
+          IF (ABS(X) .LE. Y) THEN
+             T2U = SCALE(X, 1) * Y
+          ELSE ! ABS(X) .GT. Y
+             T2U = SCALE(Y, 1) * X
+          END IF
+          !DIR$ FMA
+          T2U = T2U / (D_ONE + (Y - X) * (Y + X))
+          IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
+             TU = SIGN(D_ONE, T2U)
+          ELSE ! should always happen
+             !DIR$ FMA
+             TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
+          END IF
+          !DIR$ FMA
+          CU = D_ONE / SQRT(D_ONE + TU * TU)
+          ! SU = TU * CU
+          !DIR$ FMA
+          TZ = Y * TU - X
+          !DIR$ FMA
+          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+          ! SZ = TZ * CZ
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
           ! TU = D_ZERO
@@ -278,8 +300,8 @@ CONTAINS
        W(2,2) =  CZ
     ELSE ! trigonometric
        IF (A(2,2) .NE. D_ZERO) THEN
-          X = A(1,2) / A(1,1)
-          Y = A(2,2) / A(1,1) ! > 0
+          X = A(1,2) / A(1,1) ! .NE. 0
+          Y = A(2,2) / A(1,1) ! .GT. 0
           IF (ABS(X) .LE. Y) THEN
              T2U = -SCALE(X, 1) * Y
           ELSE ! ABS(X) .GT. Y
@@ -287,7 +309,7 @@ CONTAINS
           END IF
           !DIR$ FMA
           T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-          IF (ABS(T2U) .GT. HUGE(D_ZERO)) THEN
+          IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! should always happen
              !DIR$ FMA
