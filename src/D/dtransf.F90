@@ -359,8 +359,8 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2T(H, A, U, Z, INFO)
-    ! A upper antitriangular, not antidiagonal
+  SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
+    ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
@@ -376,39 +376,45 @@ CONTAINS
     END IF
     INFO = 0
 
-    IF (A(2,1) .NE. D_ZERO) THEN
+    IF (A(1,1) .NE. D_ZERO) THEN
        CONTINUE ! TODO
-    ELSE IF (ABS(A(1,1)) .LT. ABS(A(1,2))) THEN
-       CU = D_ZERO
-       SU = D_ONE
-       TZ = -A(1,1) / A(1,2)
+    ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
+       INFO = 1
+       ! TU = D_ZERO
+       ! CU = D_ONE
+       ! SU = D_ZERO
+       TZ = -A(2,1) / A(2,2)
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        ! SZ = TZ * CZ
-    ELSE ! (A(2,1) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
+    ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
        ! |TZ| .GE. 1
        INFO = -7
        RETURN
     END IF
 
-    V(1,1) =  CU
-    V(2,1) =  SU
-    V(1,2) = -SU
-    V(2,2) =  CU
+    IF (INFO .EQ. 0) THEN
+       V(1,1) =  CU
+       V(2,1) =  SU
+       V(1,2) = -SU
+       V(2,2) =  CU
+
+       CALL BA(V, 2, U(1,1), U(2,1), 2)
+       CALL BA(V, 2, A(1,1), A(2,1), 2)
+    ELSE ! INFO .NE. 0
+       INFO = 0
+    END IF
 
     W(1,1) =  CZ
     W(2,1) =  TZ ! SZ
     W(1,2) =  TZ ! SZ
     W(2,2) =  CZ
 
-    CALL BA(V, 2, U(1,1), U(2,1), 2)
-    CALL BA(V, 2, A(1,1), A(2,1), 2)
-
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
     CALL DHSVD2D(H, A, U, Z, INFO)
-  END SUBROUTINE DHSVD2T
+  END SUBROUTINE DHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -486,7 +492,14 @@ CONTAINS
        ! A upper antitriangular, not antidiagonal (X .NE. 0)
        !     | X R | <- R .NE. 0 the largest
        ! A = | x 0 |    element by magnitude
-       CALL DHSVD2T(H, A, U, Z, INFO)
+       ! swap the rows of U
+       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! swap the rows of A
+       CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! A lower triangular, not diagonal (X .NE. 0)
+       ! A = | x 0 |    R .NE. 0 the largest
+       !     | X R | <- element by magnitude
+       CALL DHSVD2L(H, A, U, Z, INFO)
     ELSE
        ! A upper triangular, not diagonal (X .NE. 0)
        !     | R X | <- R .NE. 0 the largest

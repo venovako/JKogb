@@ -304,8 +304,8 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2T(H, A, U, Z, INFO)
-    ! A upper antitriangular, not antidiagonal
+  SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
+    ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
@@ -328,7 +328,7 @@ CONTAINS
     CALL AB(W, 2, Z(1,1), Z(1,2))
 
     CALL ZHSVD2D(H, A, U, Z, INFO)
-  END SUBROUTINE ZHSVD2T
+  END SUBROUTINE ZHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -460,7 +460,14 @@ CONTAINS
        ! A upper antitriangular, not antidiagonal (X .NE. 0)
        !     | X R | <- R .NE. 0 the largest
        ! A = | x 0 |    element by magnitude
-       CALL ZHSVD2T(H, A, U, Z, INFO)
+       ! swap the rows of U
+       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! swap the rows of A
+       CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! A lower triangular, not diagonal (X .NE. 0)
+       ! A = | x 0 |    R .NE. 0 the largest
+       !     | X R | <- element by magnitude
+       CALL ZHSVD2L(H, A, U, Z, INFO)
     ELSE
        ! A upper triangular, not diagonal (X .NE. 0)
        !     | R X | <- R .NE. 0 the largest
