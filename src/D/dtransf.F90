@@ -287,8 +287,12 @@ CONTAINS
           END IF
           !DIR$ FMA
           T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-          !DIR$ FMA
-          TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
+          IF (ABS(T2U) .GT. HUGE(D_ZERO)) THEN
+             TU = SIGN(D_ONE, T2U)
+          ELSE ! should always happen
+             !DIR$ FMA
+             TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
+          END IF
           !DIR$ FMA
           CU = D_ONE / SQRT(D_ONE + TU * TU)
           ! SU = TU * CU
