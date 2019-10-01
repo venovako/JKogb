@@ -293,11 +293,11 @@ CONTAINS
        CONTINUE
     END IF
 
-    CALL BA(V, 2, U(1,1), U(2,1), 2)
-    CALL BA(V, 2, A(1,1), A(2,1), 2)
+    CALL CA(V, 2, U(1,1), U(2,1), 2)
+    CALL CA(V, 2, A(1,1), A(2,1), 2)
 
-    CALL AB(W, 2, A(1,1), A(1,2))
-    CALL AB(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, 2, A(1,1), A(1,2))
+    CALL AC(W, 2, Z(1,1), Z(1,2))
 
     CALL ZHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2U
@@ -321,11 +321,11 @@ CONTAINS
 
     ! TODO: transform
 
-    CALL BA(V, 2, U(1,1), U(2,1), 2)
-    CALL BA(V, 2, A(1,1), A(2,1), 2)
+    CALL CA(V, 2, U(1,1), U(2,1), 2)
+    CALL CA(V, 2, A(1,1), A(2,1), 2)
 
-    CALL AB(W, 2, A(1,1), A(1,2))
-    CALL AB(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, 2, A(1,1), A(1,2))
+    CALL AC(W, 2, Z(1,1), Z(1,2))
 
     CALL ZHSVD2D(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2L
