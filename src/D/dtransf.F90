@@ -278,7 +278,7 @@ CONTAINS
           !DIR$ FMA
           TZ = Y * TU - X
           !DIR$ FMA
-          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+          CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           ! SZ = TZ * CZ
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
@@ -400,7 +400,7 @@ CONTAINS
        !DIR$ FMA
        TZ = -(X * TU + Y)
        !DIR$ FMA
-       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        ! SZ = TZ * CZ
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
        INFO = 1
