@@ -419,12 +419,12 @@ CONTAINS
 
     IF (INFO .EQ. 0) THEN
        V(1,1) =  CU
-       V(2,1) =  SU
-       V(1,2) = -SU
+       V(2,1) =  TU ! SU
+       V(1,2) = -TU !-SU
        V(2,2) =  CU
 
-       CALL BA(V, 2, U(1,1), U(2,1), 2)
-       CALL BA(V, 2, A(1,1), A(2,1), 2)
+       CALL CA(V, 2, U(1,1), U(2,1), 2)
+       CALL CA(V, 2, A(1,1), A(2,1), 2)
     ELSE ! INFO .NE. 0
        INFO = 0
     END IF
