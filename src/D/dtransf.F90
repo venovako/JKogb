@@ -277,21 +277,47 @@ CONTAINS
           ! SU = TU * CU
           !DIR$ FMA
           TZ = Y * TU - X
+          IF (ABS(TZ) .GE. D_ONE) THEN
+             INFO = -6
+             RETURN
+          END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-          ! SZ = TZ * CZ
+          IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+             INFO = -7
+             RETURN
+          END IF
+          SZ = TZ * CZ
+          SZ = SZ * SZ ! SZ^2
+          IF ((SZ + D_ONE) .EQ. SZ) THEN
+             INFO = -8
+             RETURN
+          END IF
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
           INFO = 1
           ! TU = D_ZERO
           ! CU = D_ONE
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
+          IF (ABS(TZ) .GE. D_ONE) THEN
+             INFO = -9
+             RETURN
+          END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-          ! SZ = TZ * CZ
+          IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+             INFO = -10
+             RETURN
+          END IF
+          SZ = TZ * CZ
+          SZ = SZ * SZ ! SZ^2
+          IF ((SZ + D_ONE) .EQ. SZ) THEN
+             INFO = -11
+             RETURN
+          END IF
        ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
-          INFO=-6
+          INFO = -12
           RETURN
        END IF
        W(1,1) =  CZ
@@ -399,21 +425,47 @@ CONTAINS
        ! SU = TU * CU
        !DIR$ FMA
        TZ = -(X * TU + Y)
+       IF (ABS(TZ) .GE. D_ONE) THEN
+          INFO = -13
+          RETURN
+       END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-       ! SZ = TZ * CZ
+       IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+          INFO = -14
+          RETURN
+       END IF
+       SZ = TZ * CZ
+       SZ = SZ * SZ ! SZ^2
+       IF ((SZ + D_ONE) .EQ. SZ) THEN
+          INFO = -15
+          RETURN
+       END IF
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
        INFO = 1
        ! TU = D_ZERO
        ! CU = D_ONE
        ! SU = D_ZERO
        TZ = -A(2,1) / A(2,2)
+       IF (ABS(TZ) .GE. D_ONE) THEN
+          INFO = -16
+          RETURN
+       END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-       ! SZ = TZ * CZ
+       IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+          INFO = -17
+          RETURN
+       END IF
+       SZ = TZ * CZ
+       SZ = SZ * SZ ! SZ^2
+       IF ((SZ + D_ONE) .EQ. SZ) THEN
+          INFO = -18
+          RETURN
+       END IF
     ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
        ! |TZ| .GE. 1
-       INFO = -7
+       INFO = -19
        RETURN
     END IF
 
