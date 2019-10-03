@@ -6,18 +6,6 @@ MODULE UTILS
   INTEGER(c_int), PARAMETER :: SigCtrlC = 2_c_int ! SIGINT
   INTEGER(c_int), VOLATILE :: CtrlC = 0_c_int
 
-  ! INTERFACE
-  !    RECURSIVE FUNCTION PAR_SORT(T, A, N, C, X) BIND(C,NAME='par_sort')
-  !      USE, INTRINSIC :: ISO_C_BINDING
-  !      IMPLICIT NONE
-  !      INTEGER(KIND=c_int), INTENT(IN), VALUE :: T
-  !      TYPE(c_ptr), INTENT(IN), VALUE :: A, X
-  !      INTEGER(KIND=c_size_t), INTENT(IN), VALUE :: N
-  !      TYPE(c_funptr), INTENT(IN), VALUE :: C
-  !      INTEGER(KIND=c_int) :: PAR_SORT
-  !    END FUNCTION PAR_SORT
-  ! END INTERFACE
-
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -47,6 +35,8 @@ CONTAINS
     IF (S .EQ. SigCtrlC) CtrlC = 1_c_int
   END SUBROUTINE OnCtrlC
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE SetCtrlC
     IMPLICIT NONE
     INTERFACE
@@ -57,7 +47,6 @@ CONTAINS
          TYPE(c_funptr) :: C_SIGNAL
        END FUNCTION C_SIGNAL
     END INTERFACE
-
     OldCtrlC = C_SIGNAL(SigCtrlC, C_FUNLOC(OnCtrlC))
   END SUBROUTINE SetCtrlC
 
