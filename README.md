@@ -6,6 +6,7 @@ J-Kogbetliantz algorithm for the hyperbolic singular value decomposition (HSVD)
 A recent 64-bit Linux (e.g., CentOS 7.7) or macOS (e.g., Mojave) is needed.
 
 Have the Intel MKL (Math Kernel Library) installed.
+Other (sequential) BLAS and LAPACK libraries might work with some makefile tweaking.
 
 Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory parallel to this one.
 

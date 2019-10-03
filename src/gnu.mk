@@ -15,13 +15,14 @@ endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
 C11FLAGS=$(CPUFLAGS) -fopenmp
 ifeq ($(ARCH),Darwin)
-CC=clang
-CXX=clang++
+FC=gfortran-9
+CC=gcc-9
+CXX=g++-9
 else # Linux
+FC=gfortran
 CC=gcc
 CXX=g++
 endif # ?Darwin
-FC=gfortran
 CC += -std=gnu17
 CXX += -std=gnu++17
 ifdef NDEBUG
@@ -54,10 +55,10 @@ endif # ?NDEBUG
 LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../shared -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG) -L../../../JACSD -lvn$(PROFILE)$(DEBUG)
 ifeq ($(ARCH),Darwin)
-LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-liomp5 -lmkl_intel_thread
+LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread -liomp5
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core #-lgomp -lmkl_gnu_thread
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core #-lmkl_gnu_thread -lgomp
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
