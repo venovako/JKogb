@@ -221,7 +221,7 @@ CONTAINS
              CALL UH(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
+          IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
        END IF
     END DO
 !$OMP END PARALLEL DO
@@ -233,9 +233,8 @@ CONTAINS
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
 
-          IF (IAND(IT(I), 8) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
-          ! IF ((IAND(IT(I), 4) .NE. 0) .OR. (IAND(IT(I), 16) .NE. 0)) INFO = INFO + 1
-          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 8) .NE. 0)) INFO = INFO + 1
+          IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
+          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) INFO = INFO + 1
 
           A(Q,P) = Z_ZERO
           A(P,Q) = Z_ZERO

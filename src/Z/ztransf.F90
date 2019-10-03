@@ -509,24 +509,9 @@ CONTAINS
     A(1,2) = Z_ZERO
 
     ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) THEN
-       INFO = INFO + 2
-       ! check if |U| is almost identity, permuted or not, and record in INFO if otherwise
-       IF (((ABS(REAL(U(1,1))) .NE. D_ONE) .OR. (ABS(REAL(U(2,2))) .NE. D_ONE)) .AND. &
-            ((ABS(REAL(U(2,1))) .NE. D_ONE) .OR. (ABS(REAL(U(1,2))) .NE. D_ONE))) INFO = INFO + 4
-    END IF
-
+    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) THEN
-       INFO = INFO + 8
-       ! check if |Z| is almost identity (maybe permuted if Z is unitary), and record in INFO if otherwise
-       IF (H) THEN
-          IF ((ABS(REAL(Z(1,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(2,2))) .NE. D_ONE)) INFO = INFO + 16
-       ELSE ! Z unitary
-          IF (((ABS(REAL(Z(1,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(2,2))) .NE. D_ONE)) .AND. &
-               ((ABS(REAL(Z(2,1))) .NE. D_ONE) .OR. (ABS(REAL(Z(1,2))) .NE. D_ONE))) INFO = INFO + 16
-       END IF
-    END IF
+    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 4
   END SUBROUTINE ZHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -617,24 +617,9 @@ CONTAINS
     A(1,2) = D_ZERO
 
     ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) THEN
-       INFO = INFO + 2
-       ! check if |U| is almost identity, permuted or not, and record in INFO if otherwise
-       IF (((ABS(U(1,1)) .NE. D_ONE) .OR. (ABS(U(2,2)) .NE. D_ONE)) .AND. &
-            ((ABS(U(2,1)) .NE. D_ONE) .OR. (ABS((1,2)) .NE. D_ONE))) INFO = INFO + 4
-    END IF
-
+    IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) THEN
-       INFO = INFO + 8
-       ! check if |Z| is almost identity (maybe permuted if Z is orthogonal), and record in INFO if otherwise
-       IF (H) THEN
-          IF ((ABS(Z(1,1)) .NE. D_ONE) .OR. (ABS(Z(2,2)) .NE. D_ONE)) INFO = INFO + 16
-       ELSE ! Z orthogonal
-          IF (((ABS(Z(1,1)) .NE. D_ONE) .OR. (ABS(Z(2,2)) .NE. D_ONE)) .AND. &
-               ((ABS(Z(2,1)) .NE. D_ONE) .OR. (ABS(Z(1,2)) .NE. D_ONE))) INFO = INFO + 16
-       END IF
-    END IF
+    IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 4
   END SUBROUTINE DHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
