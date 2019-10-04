@@ -256,7 +256,7 @@ CONTAINS
 
     SL = 0
     INFO = 0
-    IF (CtrlC .NE. 0) RETURN
+    IF (CtrlC .NE. 0_ATOMIC_INT_KIND) RETURN
 
     WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ULOG)
@@ -279,7 +279,7 @@ CONTAINS
     FLUSH(ULOG)
 
     IF (SL .LE. 0) RETURN
-    IF (CtrlC .NE. 0) INFO = 0
+    IF (CtrlC .NE. 0_ATOMIC_INT_KIND) INFO = 0
     IF (INFO .LE. 0) THEN
        WRITE (ULOG,'(F12.6,A,I11)') D_MZERO, ',', -1
        FLUSH(ULOG)
@@ -404,7 +404,7 @@ CONTAINS
     FLUSH(ULOG)
 
     S = 0
-    DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0))
+    DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_ATOMIC_INT_KIND))
 #ifdef ANIMATE
        INFO = VN_MTXVIS_FRAME(CTX, A, N)
        IF (INFO .NE. 0) THEN

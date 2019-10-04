@@ -1,10 +1,11 @@
 MODULE UTILS
   USE, INTRINSIC :: ISO_C_BINDING
+  USE, INTRINSIC :: ISO_FORTRAN_ENV
   IMPLICIT NONE
 
   TYPE(c_funptr) :: OldCtrlC = C_NULL_FUNPTR
-  INTEGER(c_int), PARAMETER :: SigCtrlC = 2_c_int ! SIGINT
-  INTEGER(c_int), VOLATILE :: CtrlC = 0_c_int
+  INTEGER(KIND=c_int), PARAMETER :: SigCtrlC = 2_c_int ! SIGINT
+  INTEGER(KIND=ATOMIC_INT_KIND), VOLATILE :: CtrlC = 0_ATOMIC_INT_KIND
 
 CONTAINS
 
@@ -31,8 +32,8 @@ CONTAINS
 
   SUBROUTINE OnCtrlC(S) BIND(C)
     IMPLICIT NONE
-    INTEGER(c_int), INTENT(IN), VALUE :: S
-    IF (S .EQ. SigCtrlC) CtrlC = 1_c_int
+    INTEGER(KIND=c_int), INTENT(IN), VALUE :: S
+    IF (S .EQ. SigCtrlC) CtrlC = 1_ATOMIC_INT_KIND
   END SUBROUTINE OnCtrlC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -42,7 +43,7 @@ CONTAINS
     INTERFACE
        FUNCTION C_SIGNAL(S, H) BIND(C,NAME='signal')
          USE, INTRINSIC :: ISO_C_BINDING
-         INTEGER(c_int), INTENT(IN), VALUE :: S
+         INTEGER(KIND=c_int), INTENT(IN), VALUE :: S
          TYPE(c_funptr), INTENT(IN), VALUE :: H
          TYPE(c_funptr) :: C_SIGNAL
        END FUNCTION C_SIGNAL
