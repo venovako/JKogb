@@ -18,7 +18,7 @@ dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../.
 	$(FC) $(FFLAGS) -c dtypes.F90
 ifdef ANIMATE
 dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
-	$(FC) -DANIMATE $(FFLAGS) -c dstep.F90
+	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c dstep.F90
 else # !ANIMATE
 dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dstep.F90

@@ -18,7 +18,7 @@ ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../.
 	$(FC) $(FFLAGS) -c ztypes.F90
 ifdef ANIMATE
 zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/utils.mod ../../../JACSD/vn/vn_cmplxvis_f.mod $(MKFS)
-	$(FC) -DANIMATE $(FFLAGS) -c zstep.F90
+	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c zstep.F90
 else # !ANIMATE
 zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zstep.F90
