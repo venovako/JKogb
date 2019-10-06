@@ -91,7 +91,7 @@ SUBROUTINE ZOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
   IF (INFO .NE. 0) RETURN
 
   SZ(1) = M * N * C_SIZEOF(Z_ZERO) ! YU
-  SZ(2) = N * N * C_SIZEOF(Z_ZERO) !  Z
+  SZ(2) = N * N * C_SIZEOF(Z_ZERO) ! ZZ
   SZ(3) =     N * C_SIZEOF(D_ZERO) ! SY
 
   CALL BOPEN_RW((TRIM(FN)//c_char_'.YU'), SZ(1), FD(1))
@@ -100,7 +100,7 @@ SUBROUTINE ZOPEN_UZS_RW(FN, M, N, SZ, FD, INFO)
      RETURN
   END IF
 
-  CALL BOPEN_RW((TRIM(FN)//c_char_'.Z'), SZ(2), FD(2))
+  CALL BOPEN_RW((TRIM(FN)//c_char_'.ZZ'), SZ(2), FD(2))
   IF (FD(2) .LT. 0) THEN
      INFO = 2
      RETURN
