@@ -124,7 +124,7 @@ SUBROUTINE DWRITE_UZS(FD, YU, Z, SY, M, N, INFO)
   INTEGER(KIND=c_size_t) :: SZ(3), S
 
   SZ(1) = M * N * C_SIZEOF(D_ZERO) ! YU
-  SZ(2) = N * N * C_SIZEOF(D_ZERO) !  Z
+  SZ(2) = N * N * C_SIZEOF(D_ZERO) ! ZZ
   SZ(3) =     N * C_SIZEOF(D_ZERO) ! SY
 
   INFO = 0
