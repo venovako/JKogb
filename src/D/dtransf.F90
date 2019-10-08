@@ -624,6 +624,84 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE DSCALEA(A, S)
+    IMPLICIT NONE
+
+    REAL(KIND=DWP), PARAMETER :: TOOBIG = SCALE(HUGE(D_ZERO), -1)
+    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(D_ZERO)
+
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    INTEGER, INTENT(OUT) :: S
+
+    REAL(KIND=DWP) :: AA, AX
+    INTEGER :: DS, US, I, J
+
+    DS = 0
+    US = 0
+
+    DO J = 1, 2
+       DO I = 1, 2
+          AA = ABS(A(I,J))
+          IF (.NOT. (AA .LE. HUGE(D_ZERO))) THEN
+             ! -2 <= S <= -5
+             S = -((J - 1) * 2 + I + 1)
+             RETURN
+          END IF
+          ! DS cannot be less than -1, but...
+          IF (AA .GE. TOOBIG) DS = MIN(DS, -1)
+       END DO
+    END DO
+
+    IF (DS .NE. 0) THEN
+       DO J = 1, 2
+          DO I = 1, 2
+             A(I,J) = SCALE(A(I,J), DS)
+          END DO
+       END DO
+
+       S = DS
+    ELSE ! might perform upscaling
+       AX = D_ZERO
+
+       DO J = 1, 2
+          DO I = 1, 2
+             AA = ABS(A(I,J))
+             IF (AA .GT. AX) AX = AA
+             IF (AA .LT. TOOSMALL) US = MAX(US, (EXPONENT(TOOSMALL) - EXPONENT(AA)))
+          END DO
+       END DO
+
+       ! how much room there is between AX and TOOBIG
+       DS = EXPONENT(TOOBIG) - EXPONENT(AX)
+       IF (DS .LE. 0) THEN
+          ! DS cannot be less than 0, but...
+          US = 0
+       ELSE IF (US .GE. DS) THEN
+          ! now DS > 0
+          IF (SCALE(AX, DS) .GE. TOOBIG) THEN
+             ! can only be .LE., but it must not be .EQ.
+             US = DS - 1
+          ELSE ! cannot reach TOOBIG
+             US = DS
+          END IF
+       ELSE ! US .LT. DS, so US is fine
+          CONTINUE
+       END IF
+
+       IF (US .NE. 0) THEN
+          DO J = 1, 2
+             DO I = 1, 2
+                A(I,J) = SCALE(A(I,J), US)
+             END DO
+          END DO
+       END IF
+
+       S = US
+    END IF
+  END SUBROUTINE DSCALEA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   SUBROUTINE DHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -633,27 +711,16 @@ CONTAINS
 
     REAL(KIND=DWP) :: W(2,2)
 
-    W(1,1) = ABS(A(1,1))
-    W(2,1) = ABS(A(2,1))
-    W(1,2) = ABS(A(1,2))
-    W(2,2) = ABS(A(2,2))
-
-    IF (.NOT. (W(1,1) .LE. HUGE(D_ZERO))) THEN
-       INFO = -1
-    ELSE IF (.NOT. (W(2,1) .LE. HUGE(D_ZERO))) THEN
-       INFO = -2
-    ELSE IF (.NOT. (W(1,2) .LE. HUGE(D_ZERO))) THEN
-       INFO = -3
-    ELSE IF (.NOT. (W(2,2) .LE. HUGE(D_ZERO))) THEN
-       INFO = -4
-    ELSE ! A has no NaNs or infinities
-       INFO = 0
+    CALL DSCALEA(A, INFO)
+    IF (INFO .LT. -1) THEN
+       ! A has NaNs and/or infinities
+       INFO = INFO + 1
+       RETURN
     END IF
-    IF (INFO .NE. 0) RETURN
 
-    ! store diag(A) to W
-    W(2,1) = A(1,1)
-    W(1,2) = A(2,2)
+    INFO = 0
+    !DIR$ VECTOR ALWAYS
+    W = A
 
     ! U = I
     U(1,1) = D_ONE
