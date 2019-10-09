@@ -710,17 +710,18 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: W(2,2)
+    INTEGER :: S
 
-    CALL DSCALEA(A, INFO)
-    IF (INFO .LT. -1) THEN
+    W(2,1) = A(1,1)
+    W(1,2) = A(2,2)
+
+    CALL DSCALEA(A, S)
+    IF (S .LT. -1) THEN
        ! A has NaNs and/or infinities
-       INFO = INFO + 1
+       INFO = S + 1
        RETURN
     END IF
-
     INFO = 0
-    !DIR$ VECTOR ALWAYS
-    W = A
 
     ! U = I
     U(1,1) = D_ONE
@@ -743,8 +744,14 @@ CONTAINS
     END IF
     IF (INFO .LT. 0) RETURN
 
+    ! scale back if necessary
+    IF (S .NE. 0) THEN
+       A(1,1) = SCALE(A(1,1), -S)
+       A(2,2) = SCALE(A(2,2), -S)
+    END IF
     A(2,1) = W(2,1)
     A(1,2) = W(1,2)
+
     CALL DHSVD2S(H, A, U, Z, INFO)
   END SUBROUTINE DHSVD2
 
