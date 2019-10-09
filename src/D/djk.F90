@@ -14,23 +14,23 @@ PROGRAM DJK
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
-  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN and/or MAX do NOT handle NaNs properly!'
   CALL SetCtrlC
 
   CALL READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
-  IF (INFO .NE. 0) STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
+  IF (INFO .NE. 0) ERROR STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
 #ifndef NDEBUG
   WRITE (ULOG,'(A,A)')   '    FN=', TRIM(FN)
   WRITE (ULOG,'(A,I11)') '     N=', N
 #endif
-  IF (N .LE. 1) STOP 'N < 2'
+  IF (N .LE. 1) ERROR STOP 'N < 2'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') '   N_2=', N_2
 #endif
-  IF (INFO .LE. 0) STOP 'JSTEP_LEN'
+  IF (INFO .LE. 0) ERROR STOP 'JSTEP_LEN'
 
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
@@ -44,12 +44,12 @@ PROGRAM DJK
   WRITE (ULOG,'(A,I11)') 'ID_CMP=', ID_CMP
   WRITE (ULOG,'(A,I11)') 'ID_TRU=', ID_TRU
 #endif
-  IF (INFO .NE. 0) STOP 'DPROC_INIT'
+  IF (INFO .NE. 0) ERROR STOP 'DPROC_INIT'
 
   CALL DOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'DOPEN_YJ_RO'
+     ERROR STOP 'DOPEN_YJ_RO'
   END IF
 
   ALLOCATE(DARR(N, 3 * N + 1))
@@ -76,14 +76,14 @@ PROGRAM DJK
   CALL DREAD_YJ(FD, A, J, N, N, SZ, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'DREAD_YJ'
+     ERROR STOP 'DREAD_YJ'
   END IF
   CALL BCLOSEN(FD, 3)
 
   CALL R%TRU(N, P, Q, NN, INFO)
   IF (INFO .NE. NN) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'R%TRU'
+     ERROR STOP 'R%TRU'
   END IF
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') '    NN=', NN
@@ -110,13 +110,13 @@ PROGRAM DJK
   CALL DOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'DOPEN_UZS_RW'
+     ERROR STOP 'DOPEN_UZS_RW'
   END IF
 
   CALL DWRITE_UZS(FD, U, Z, S, N, N, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'DWRITE_UZS'
+     ERROR STOP 'DWRITE_UZS'
   END IF
 
   CALL BCLOSEN(FD, 3)
@@ -127,7 +127,6 @@ PROGRAM DJK
   A => NULL()
   IF (ALLOCATED(DARR)) DEALLOCATE(DARR)
 
-  STOP !'djk.exe successfully terminated'
 CONTAINS
 #include "readcl.F90"
 #include "bio.F90"

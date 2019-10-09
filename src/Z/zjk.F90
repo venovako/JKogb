@@ -16,23 +16,23 @@ PROGRAM ZJK
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
-  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) STOP 'MIN and/or MAX do NOT handle NaNs properly!'
+  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN and/or MAX do NOT handle NaNs properly!'
   CALL SetCtrlC
 
   CALL READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
-  IF (INFO .NE. 0) STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
+  IF (INFO .NE. 0) ERROR STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
 #ifndef NDEBUG
   WRITE (ULOG,'(A,A)')   '    FN=', TRIM(FN)
   WRITE (ULOG,'(A,I11)') '     N=', N
 #endif
-  IF (N .LE. 1) STOP 'N < 2'
+  IF (N .LE. 1) ERROR STOP 'N < 2'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') '   N_2=', N_2
 #endif
-  IF (INFO .LE. 0) STOP 'JSTEP_LEN'
+  IF (INFO .LE. 0) ERROR STOP 'JSTEP_LEN'
 
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
@@ -46,12 +46,12 @@ PROGRAM ZJK
   WRITE (ULOG,'(A,I11)') 'ID_CMP=', ID_CMP
   WRITE (ULOG,'(A,I11)') 'ID_TRU=', ID_TRU
 #endif
-  IF (INFO .NE. 0) STOP 'ZPROC_INIT'
+  IF (INFO .NE. 0) ERROR STOP 'ZPROC_INIT'
 
   CALL ZOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'ZOPEN_YJ_RO'
+     ERROR STOP 'ZOPEN_YJ_RO'
   END IF
 
   ALLOCATE(ZARR(N, 3 * N))
@@ -80,14 +80,14 @@ PROGRAM ZJK
   CALL ZREAD_YJ(FD, A, J, N, N, SZ, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'ZREAD_YJ'
+     ERROR STOP 'ZREAD_YJ'
   END IF
   CALL BCLOSEN(FD, 3)
 
   CALL R%TRU(N, P, Q, NN, INFO)
   IF (INFO .NE. NN) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'R%TRU'
+     ERROR STOP 'R%TRU'
   END IF
 #ifndef NDEBUG
   WRITE (ULOG,'(A,I11)') '    NN=', NN
@@ -114,13 +114,13 @@ PROGRAM ZJK
   CALL ZOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'ZOPEN_UZS_RW'
+     ERROR STOP 'ZOPEN_UZS_RW'
   END IF
 
   CALL ZWRITE_UZS(FD, U, Z, S, N, N, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ULOG,'(A,I11)') 'INFO=', INFO
-     STOP 'ZWRITE_UZS'
+     ERROR STOP 'ZWRITE_UZS'
   END IF
 
   CALL BCLOSEN(FD, 3)
@@ -132,7 +132,6 @@ PROGRAM ZJK
   A => NULL()
   IF (ALLOCATED(ZARR)) DEALLOCATE(ZARR)
 
-  STOP !'zjk.exe successfully terminated'
 CONTAINS
 #include "readcl.F90"
 #include "bio.F90"

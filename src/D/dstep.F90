@@ -11,16 +11,30 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DMAG1(N, P, Q, A, LDA, J)
+  REAL(KIND=DWP) FUNCTION DMAG1(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
+    REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
+    INTEGER :: INFO
+
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
-       DMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
-       ! not to be used in this form, but only as a mark of a hyperbolic case
-       ! IF (J(P) .NE. J(Q)) DMAG1 = -DMAG1
+       IF (J(P) .EQ. J(Q)) THEN
+          DMAG1 = A(Q,P) * A(Q,P) + A(P,Q) * A(P,Q)
+       ELSE ! J(P) .NE. J(Q)
+          A2(1,1) = A(P,P)
+          A2(2,1) = A(Q,P)
+          A2(1,2) = A(P,Q)
+          A2(2,2) = A(Q,Q)
+          CALL DHSVD2(.TRUE., A2, U2, Z2, INFO)
+          IF (INFO .LE. 0) THEN
+             DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+          ELSE ! a non-trivial transform
+             DMAG1 = ABODND(Z2, N, A(1,P), A(1,Q), P, Q)
+          END IF
+       END IF
     ELSE ! no transform
        DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF

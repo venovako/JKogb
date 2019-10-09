@@ -214,6 +214,174 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION ABODND(B, M, X, Y, P, Q)
+    ! skipping the diagonal elements X(P) and Y(Q),
+    ! D = SUM(oldX(I)**2-newX(I)**2 + oldY(I)**2-newY(I)**2)
+    !   = ||oldX oldY||_F^2 - ||newX newY||_F^2
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
+    INTEGER, INTENT(IN) :: M, P, Q
+
+    REAL(KIND=DWP) :: R1, R2, XX, YY
+    INTEGER :: I
+
+    IF ((M .LT. 2) .OR. (P .LE. 0) .OR. (P .GT. M) .OR. (Q .LE. P) .OR. (Q .GT. M)) THEN
+       ABODND = D_MZERO
+       RETURN
+    END IF
+    ABODND = Y(P) * Y(P) + X(Q) * X(Q)
+
+    IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
+       R1 = B(2,1) / B(1,1)
+       IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
+          R2 = B(1,2) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, P-1
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = P+1, Q-1
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = Q+1, M
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
+          R2 = B(2,2) / B(1,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, P-1
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = P+1, Q-1
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = Q+1, M
+             !DIR$ FMA
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+       END IF
+    ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
+       R1 = B(1,1) / B(2,1)
+       IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
+          R2 = B(1,2) / B(2,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, P-1
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = P+1, Q-1
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = Q+1, M
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+       ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
+          R2 = B(2,2) / B(1,2)
+          !DIR$ VECTOR ALWAYS
+          DO I = 1, P-1
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = P+1, Q-1
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+          !DIR$ VECTOR ALWAYS
+          DO I = Q+1, M
+             !DIR$ FMA
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             !DIR$ FMA
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             !DIR$ FMA
+             ABODND = ABODND + (X(I) - XX) * (X(I) + XX)
+             !DIR$ FMA
+             ABODND = ABODND + (Y(I) - YY) * (Y(I) + YY)
+          END DO
+       END IF
+    END IF
+  END FUNCTION ABODND
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
