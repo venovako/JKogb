@@ -332,21 +332,27 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: C
-    COMPLEX(KIND=DWP) :: S, R
+    REAL(KIND=DWP) :: C, T
+    COMPLEX(KIND=DWP) :: Q(2,2), R, S
 
-    REAL(KIND=DWP), EXTERNAL :: DZNRM2
-    EXTERNAL :: ZLARTG, ZROT !, ZSWAP
+    ! REAL(KIND=DWP), EXTERNAL :: DZNRM2
+    ! EXTERNAL :: ZLARTG, ZROT, ZSWAP
+
+    R = CMPLX(ABS(A(1,1)), ABS(A(2,1)), DWP)
+    S = CMPLX(ABS(A(1,2)), ABS(A(2,2)), DWP)
+    C = ABS(R) ! ||A_1||
+    T = ABS(S) ! ||A_2||
 
     ! column pivoting
-    IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
+    ! IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
+    IF (C .LT. T) THEN
        ! swap the columns of A
        ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        R = A(1,1)
@@ -392,17 +398,36 @@ CONTAINS
     END IF
 
     ! QR factorization of A
-    CALL ZLARTG(A(1,1), A(2,1), C, S, R)
-    IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
-       INFO = -5
-       RETURN
-    END IF
-    A(1,1) = R
-    A(2,1) = Z_ZERO
-    CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
-
+    ! CALL ZLARTG(A(1,1), A(2,1), C, S, R)
+    ! IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
+    !    INFO = -5
+    !    RETURN
+    ! END IF
+    ! A(1,1) = R
+    ! A(2,1) = Z_ZERO
+    ! CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
     ! premultiply U by Q^H
-    CALL ZROT(2, U(1,1), 2, U(2,1), 2, C, S)
+    ! CALL ZROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    ! |A(1,1)| >= |A(2,1)| cannot be 0; otherwise,
+    ! ||A_1||=0 >= ||A_2|| >= 0, so A=0
+    ! specifically, A is diagonal
+
+    ! C * |   1 e**i\alpha T | = Q
+    !     | -e**-i\alpha T 1 |
+    S = A(2,1) / A(1,1)
+    T = ABS(S)
+    ! e**i\alpha = conjg(S)/T
+    ! S is e**i\alpha * T here
+    S = CONJG(S)
+    C = D_ONE / SQRT(D_ONE + T * T)
+    Q(1,1) =  C
+    Q(2,1) = -CONJG(S)
+    Q(1,2) =  S
+    Q(2,2) =  C
+    CALL CA(Q, 2, A(1,1), A(2,1), 2)
+    CALL CA(Q, 2, U(1,1), U(2,1), 2)
+    A(2,1) = Z_ZERO
 
     ! make diag(A) real and non-negative
     ! the first row of U and A
