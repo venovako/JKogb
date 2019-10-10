@@ -610,7 +610,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
