@@ -38,9 +38,15 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-D_GNU_SOURCE -DUSE_MKL -DMKL_ILP64 -I. -I../shared -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LIBFLAGS=-D_GNU_SOURCE -I. -I../shared -I../../../JACSD/vn
+ifdef ANIMATE
+LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+endif # ANIMATE
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG) -L../../../JACSD -lvn$(PROFILE)$(DEBUG)
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl -lmemkind #-lmkl_intel_thread
+ifdef ANIMATE
+LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
+endif # ANIMATE
+LDFLAGS += -lpthread -lm -ldl -lmemkind
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
 CXXFLAGS=$(CFLAGS)

@@ -52,13 +52,20 @@ FPUFLAGS=-ffp-contract=fast
 FPUFFLAGS=$(FPUFLAGS) -ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../shared -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LIBFLAGS=-I. -I../shared -I../../../JACSD/vn
+ifdef ANIMATE
+LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+endif # ANIMATE
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG) -L../../../JACSD -lvn$(PROFILE)$(DEBUG)
 ifeq ($(ARCH),Darwin)
+ifdef ANIMATE
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread -liomp5
+endif # ANIMATE
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
+ifdef ANIMATE
 LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core #-lmkl_gnu_thread -lgomp
+endif # ANIMATE
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)

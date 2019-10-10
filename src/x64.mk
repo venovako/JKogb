@@ -41,13 +41,20 @@ FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-DUSE_MKL -DMKL_ILP64 -I. -I../shared -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+LIBFLAGS=-I. -I../shared -I../../../JACSD/vn
+ifdef ANIMATE
+LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+endif # ANIMATE
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG) -L../../../JACSD -lvn$(PROFILE)$(DEBUG)
 ifeq ($(ARCH),Darwin)
+ifdef ANIMATE
 LDFLAGS += -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
+endif # ANIMATE
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
+ifdef ANIMATE
 LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
+endif ANIMATE
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
