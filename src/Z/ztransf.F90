@@ -343,14 +343,28 @@ CONTAINS
     COMPLEX(KIND=DWP) :: S, R
 
     REAL(KIND=DWP), EXTERNAL :: DZNRM2
-    EXTERNAL :: ZLARTG, ZROT, ZSWAP
+    EXTERNAL :: ZLARTG, ZROT !, ZSWAP
 
     ! column pivoting
     IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
-       ! column swap of A
-       CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
-       ! column swap of Z
-       IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       ! swap the columns of A
+       ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
+       R = A(1,1)
+       S = A(2,1)
+       A(1,1) = A(1,2)
+       A(2,1) = A(2,2)
+       A(1,2) = R
+       A(2,2) = S
+       ! swap the columns of Z
+       ! IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       IF (.NOT. H) THEN
+          R = Z(1,1)
+          S = Z(2,1)
+          Z(1,1) = Z(1,2)
+          Z(2,1) = Z(2,2)
+          Z(1,2) = R
+          Z(2,2) = S
+       END IF
        ! record the swap
        INFO = 1
     ELSE ! no pivoting
@@ -359,10 +373,22 @@ CONTAINS
 
     ! row sorting
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
-       ! row swap of U
-       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
-       ! row swap of A
-       CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! swap the rows of U
+       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       R = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = R
+       U(2,2) = S
+       ! swap the rows of A
+       ! CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+       R = A(1,1)
+       S = A(1,2)
+       A(1,1) = A(2,1)
+       A(1,2) = A(2,2)
+       A(2,1) = R
+       A(2,2) = S
     END IF
 
     ! QR factorization of A
@@ -448,22 +474,49 @@ CONTAINS
        ! A diagonal
        IF (H .AND. (INFO .EQ. 1)) THEN
           ! swap the rows of U
-          CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+          ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+          R = U(1,1)
+          S = U(1,2)
+          U(1,1) = U(2,1)
+          U(1,2) = U(2,2)
+          U(2,1) = R
+          U(2,2) = S
           ! swap the diagonal elements of A
-          CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+          ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+          R = A(1,1)
+          A(1,1) = A(2,2)
+          A(2,2) = R
           ! early exit
           INFO = 0
        END IF
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
-       ! column swap of A
-       CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! swap the columns of A
+       ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
+       R = A(1,1)
+       S = A(2,1)
+       A(1,1) = A(1,2)
+       A(2,1) = A(2,2)
+       A(1,2) = R
+       A(2,2) = S
        ! A upper antitriangular, not antidiagonal (X .NE. 0)
        !     | X R | <- R .NE. 0 the largest
        ! A = | x 0 |    element by magnitude
        ! swap the rows of U
-       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       R = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = R
+       U(2,2) = S
        ! swap the rows of A
-       CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
+       R = A(1,1)
+       S = A(1,2)
+       A(1,1) = A(2,1)
+       A(1,2) = A(2,2)
+       A(2,1) = R
+       A(2,2) = S
        ! A lower triangular, not diagonal (X .NE. 0)
        ! A = | x 0 |    R .NE. 0 the largest
        !     | X R | <- element by magnitude
@@ -478,23 +531,39 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    EXTERNAL :: ZSWAP
+    COMPLEX(KIND=DWP) :: R, S
+    ! EXTERNAL :: ZSWAP
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
     IF ((.NOT. H) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) THEN
        ! swap the rows of U
-       CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+       R = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = R
+       U(2,2) = S
        ! swap the diagonal elements of A
-       CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+       ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+       R = A(1,1)
+       A(1,1) = A(2,2)
+       A(2,2) = R
        ! swap the columns of Z
-       CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       ! CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       R = Z(1,1)
+       S = Z(2,1)
+       Z(1,1) = Z(1,2)
+       Z(2,1) = Z(2,2)
+       Z(1,2) = R
+       Z(2,2) = S
     END IF
 
     ! record in INFO if old diag(A) and new diag(A) differ
