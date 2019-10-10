@@ -122,7 +122,7 @@ CONTAINS
     COMPLEX(KIND=DWP) :: XX, YY
     INTEGER :: I
 
-    !DIR$ VECTOR ALWAYS
+    !DIR$ VECTOR ALWAYS ASSERT
     DO I = 1, M
        XX = X(I) + Y(I) * B(2,1)
        YY = X(I) * B(1,2) + Y(I)
@@ -153,7 +153,7 @@ CONTAINS
        R1 = B(2,1) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
+          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
              YY = X(I) * R2 + Y(I)
@@ -162,7 +162,7 @@ CONTAINS
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
+          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
              YY = X(I) + Y(I) * R2
@@ -174,7 +174,7 @@ CONTAINS
        R1 = B(1,1) / B(2,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
+          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
              YY = X(I) * R2 + Y(I)
@@ -183,7 +183,7 @@ CONTAINS
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
+          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
              YY = X(I) + Y(I) * R2

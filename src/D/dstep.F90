@@ -136,7 +136,6 @@ CONTAINS
     ELSE IF (N_2 .LT. 0) THEN
        INFO = -13
     ELSE ! all OK
-       !DIR$ VECTOR ALWAYS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
@@ -386,12 +385,12 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS
+       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           U(INFO,S) = D_ZERO
        END DO
        U(S,S) = D_ONE
-       !DIR$ VECTOR ALWAYS
+       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           U(INFO,S) = D_ZERO
        END DO
@@ -400,12 +399,12 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,Z)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS
+       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           Z(INFO,S) = D_ZERO
        END DO
        Z(S,S) = D_ONE
-       !DIR$ VECTOR ALWAYS
+       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           Z(INFO,S) = D_ZERO
        END DO

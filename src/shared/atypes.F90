@@ -229,7 +229,7 @@ CONTAINS
           !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPT,A,B)
           I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
           IE = I + (EPT - 1)
-          !DIR$ VECTOR ALWAYS
+          !DIR$ VECTOR ALWAYS ASSERT
           DO J = I, IE
              A(J) = B(J)
           END DO
@@ -329,7 +329,7 @@ CONTAINS
        I = K
     END DO
 
-    !DIR$ VECTOR ALWAYS
+    !DIR$ VECTOR ALWAYS ASSERT
     DO I = SL+1, N_2
        STEP(I) = 0
     END DO
@@ -398,7 +398,7 @@ CONTAINS
        IF (J .GT. NN) EXIT
     END DO
 
-    !DIR$ VECTOR ALWAYS
+    !DIR$ VECTOR ALWAYS ASSERT
     DO I = SL+1, N_2
        STEP(I) = 0
     END DO
