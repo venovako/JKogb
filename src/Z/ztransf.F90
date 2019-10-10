@@ -275,7 +275,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -304,7 +304,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
     ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H

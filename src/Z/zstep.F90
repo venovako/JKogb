@@ -11,7 +11,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  REAL(KIND=DWP) FUNCTION ZMAG1(N, P, Q, A, LDA, J)
+  PURE REAL(KIND=DWP) FUNCTION ZMAG1(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -19,7 +19,15 @@ CONTAINS
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
          ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
-       ZMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
+       ZMAG1 = D_ZERO
+       !DIR$ FMA
+       ZMAG1 = ZMAG1 + REAL(A(Q,P)) * REAL(A(Q,P))
+       !DIR$ FMA
+       ZMAG1 = ZMAG1 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+       !DIR$ FMA
+       ZMAG1 = ZMAG1 + REAL(A(P,Q)) * REAL(A(P,Q))
+       !DIR$ FMA
+       ZMAG1 = ZMAG1 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ! not to be used in this form, but only as a mark of a hyperbolic case
        ! IF (J(P) .NE. J(Q)) ZMAG1 = -ZMAG1
     ELSE ! no transform
