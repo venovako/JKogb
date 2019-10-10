@@ -408,7 +408,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
     ! A upper triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -553,7 +553,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
     ! A lower triangular, not diagonal
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -662,48 +662,95 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
     ! A general
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: C, S, R
+    REAL(KIND=DWP) :: Q(2,2), C, S, R
 
-    REAL(KIND=DWP), EXTERNAL :: DNRM2
-    EXTERNAL :: DLARTG, DROT, DSWAP
+    ! REAL(KIND=DWP), EXTERNAL :: DNRM2
+    ! EXTERNAL :: DLARTG, DROT, DSWAP
+
+    C = HYPOT(A(1,1), A(2,1))
+    S = HYPOT(A(1,2), A(2,2))
 
     ! column pivoting
-    IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
-       ! column swap of A
-       CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
-       ! column swap of Z
-       IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+    ! IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
+    IF (C .LT. S) THEN
+       R = S
+       ! swap the columns of A
+       ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
+       C = A(1,1)
+       S = A(2,1)
+       A(1,1) = A(1,2)
+       A(2,1) = A(2,2)
+       A(1,2) = C
+       A(2,2) = S
+       ! swap the columns of Z
+       ! IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       IF (.NOT. H) THEN
+          C = Z(1,1)
+          S = Z(2,1)
+          Z(1,1) = Z(1,2)
+          Z(2,1) = Z(2,2)
+          Z(1,2) = C
+          Z(2,2) = S
+       END IF
        ! record the swap
        INFO = 1
     ELSE ! no pivoting
+       R = C
        INFO = 0
     END IF
 
     ! row sorting
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
-       ! row swap of U
-       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
-       ! row swap of A
-       CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! swap the rows of U
+       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       C = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = C
+       U(2,2) = S
+       ! swap the rows of A
+       ! CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+       C = A(1,1)
+       S = A(1,2)
+       A(1,1) = A(2,1)
+       A(1,2) = A(2,2)
+       A(2,1) = C
+       A(2,2) = S
     END IF
 
     ! QR factorization of A
-    CALL DLARTG(A(1,1), A(2,1), C, S, R)
-    IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
-       INFO = -5
-       RETURN
-    END IF
-    CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
-
+    ! CALL DLARTG(A(1,1), A(2,1), C, S, R)
+    ! IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
+    !    INFO = -5
+    !    RETURN
+    ! END IF
+    ! CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
     ! premultiply U by Q^T
-    CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
+    ! CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
+
+    ! |A(1,1)| >= |A(2,1)| cannot be 0; otherwise,
+    ! ||A_1||=0 >= ||A_2|| >= 0, so A=0
+    ! specifically, A is diagonal
+
+    R = SIGN(R, A(1,1))
+    ! S is tangent here, |S| <= 1
+    S = A(2,1) / A(1,1)
+    !DIR$ FMA
+    C = D_ONE / SQRT(D_ONE + S * S)
+    Q(1,1) =  C
+    Q(2,1) = -S
+    Q(1,2) =  S
+    Q(2,2) =  C
+    CALL CA(Q, 1, A(1,2), A(2,2), 2)
+    CALL CA(Q, 2, U(1,1), U(2,1), 2)
 
     ! make diag(A) non-negative
     IF (SIGN(D_ONE, R) .EQ. D_MONE) THEN
@@ -724,22 +771,49 @@ CONTAINS
        ! A diagonal
        IF (H .AND. (INFO .EQ. 1)) THEN
           ! swap the rows of U
-          CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+          ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+          C = U(1,1)
+          S = U(1,2)
+          U(1,1) = U(2,1)
+          U(1,2) = U(2,2)
+          U(2,1) = C
+          U(2,2) = S
           ! swap the diagonal elements of A
-          CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+          ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+          C = A(1,1)
+          A(1,1) = A(2,2)
+          A(2,2) = C
           ! early exit
           INFO = 0
        END IF
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
-       ! column swap of A
-       CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
+       ! swap the columns of A
+       ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
+       C = A(1,1)
+       S = A(2,1)
+       A(1,1) = A(1,2)
+       A(2,1) = A(2,2)
+       A(1,2) = C
+       A(2,2) = S
        ! A upper antitriangular, not antidiagonal (X .NE. 0)
        !     | X R | <- R .NE. 0 the largest
        ! A = | x 0 |    element by magnitude
        ! swap the rows of U
-       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       C = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = C
+       U(2,2) = S
        ! swap the rows of A
-       CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+       ! CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
+       C = A(1,1)
+       S = A(1,2)
+       A(1,1) = A(2,1)
+       A(1,2) = A(2,2)
+       A(2,1) = C
+       A(2,2) = S
        ! A lower triangular, not diagonal (X .NE. 0)
        ! A = | x 0 |    R .NE. 0 the largest
        !     | X R | <- element by magnitude
@@ -754,23 +828,39 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    EXTERNAL :: DSWAP
+    REAL(KIND=DWP) :: C, S
+    ! EXTERNAL :: DSWAP
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
     IF ((.NOT. H) .AND. (A(1,1) .LT. A(2,2))) THEN
        ! swap the rows of U
-       CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+       C = U(1,1)
+       S = U(1,2)
+       U(1,1) = U(2,1)
+       U(1,2) = U(2,2)
+       U(2,1) = C
+       U(2,2) = S
        ! swap the diagonal elements of A
-       CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+       ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+       C = A(1,1)
+       A(1,1) = A(2,2)
+       A(2,2) = C
        ! swap the columns of Z
-       CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       ! CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
+       C = Z(1,1)
+       S = Z(2,1)
+       Z(1,1) = Z(1,2)
+       Z(2,1) = Z(2,2)
+       Z(1,2) = C
+       Z(2,2) = S
     END IF
 
     ! record in INFO if old diag(A) and new diag(A) differ
@@ -870,7 +960,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DHSVD2(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
