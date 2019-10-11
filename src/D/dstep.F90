@@ -22,11 +22,7 @@ CONTAINS
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
        IF (J(P) .EQ. J(Q)) THEN
-          DMAG1 = D_ZERO
-          !DIR$ FMA
-          DMAG1 = DMAG1 + A(Q,P) * A(Q,P)
-          !DIR$ FMA
-          DMAG1 = DMAG1 + A(P,Q) * A(P,Q)
+          DMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
        ELSE ! J(P) .NE. J(Q)
           A2(1,1) = A(P,P)
           A2(2,1) = A(Q,P)
