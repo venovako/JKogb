@@ -209,6 +209,7 @@ CONTAINS
 
     REAL(KIND=DWP) :: V(2,2), A2(2,2)
     REAL(KIND=DWP), POINTER, CONTIGUOUS :: W(:,:,:)
+    REAL(KIND=DWP) :: TW
     INTEGER :: I, P, Q
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
 
@@ -254,6 +255,34 @@ CONTAINS
        END DO
        !$OMP END PARALLEL DO
     END IF
+
+    TW = D_MZERO
+    IF (INFO .GT. 0) THEN
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT) REDUCTION(+:TW)
+       DO I = 1, SL
+          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) TW = TW + DZ(STEP(I))%W
+       END DO
+       !$OMP END PARALLEL DO
+    END IF
+    SIGMA(1) = TW
+
+    P = 0
+    Q = 0
+    IF (INFO .GT. 0) THEN
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT,J) REDUCTION(+:P,Q)
+       DO I = 1, SL
+          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) THEN
+             IF (J(DZ(STEP(I))%P) .EQ. J(DZ(STEP(I))%Q)) THEN
+                P = P + 1
+             ELSE ! hyperbolic
+                Q = Q + 1
+             END IF
+          END IF
+       END DO
+       !$OMP END PARALLEL DO
+    END IF
+    SIGMA(2) = REAL(P, DWP)
+    SIGMA(3) = REAL(Q, DWP)
   END SUBROUTINE DSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -285,9 +314,9 @@ CONTAINS
     FLUSH(ULOG)
 
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6,A,I11)') D_MZERO, ',', D_ZERO, ',', -1
+       WRITE (ULOG,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE IF (SL .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6,A,I11)') (INFO * DNS2S), ',', D_ZERO, ',', -1
+       WRITE (ULOG,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') (INFO * DNS2S), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE
        WRITE (ULOG,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
     END IF
@@ -296,7 +325,7 @@ CONTAINS
     IF (SL .LE. 0) RETURN
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) INFO = 0
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,I11)') D_MZERO, ',', -1
+       WRITE (ULOG,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
        FLUSH(ULOG)
        RETURN
     END IF
@@ -304,7 +333,7 @@ CONTAINS
     IT = GET_THREAD_NS()
     CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
-    WRITE (ULOG,'(F12.6,A,I11)') (IT * DNS2S), ',', NL
+    WRITE (ULOG,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') (IT * DNS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ULOG)
 
     SL = MIN(SL, NL)
@@ -417,7 +446,7 @@ CONTAINS
     INFO = 0
 #endif
 
-    WRITE (ULOG,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN"'
+    WRITE (ULOG,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORM1D","TRIG","HYP"'
     FLUSH(ULOG)
 
     S = 0
