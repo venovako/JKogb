@@ -216,8 +216,8 @@ CONTAINS
 
   PURE REAL(KIND=DWP) FUNCTION ABODND(B, M, X, Y, P, Q)
     ! skipping the diagonal elements X(P) and Y(Q),
-    ! D = SUM(oldX(I)**2-newX(I)**2 + oldY(I)**2-newY(I)**2)
-    !   = ||oldX oldY||_F^2 - ||newX newY||_F^2
+    ! D = SUM(|oldX(I)|-|newX(I)| + |oldY(I)|-|newY(I)|)
+    !   = ||oldX oldY||_1 - ||newX newY||_1
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
     INTEGER, INTENT(IN) :: M, P, Q
