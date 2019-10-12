@@ -42,7 +42,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
+  PURE SUBROUTINE DPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT
     INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_TRU
@@ -89,6 +89,7 @@ CONTAINS
        R%PQI => PQI2
        R%TRU => TRU2
     CASE DEFAULT
+       R%PQI => NULL()
        R%TRU => NULL()
        INFO = -4
     END SELECT
