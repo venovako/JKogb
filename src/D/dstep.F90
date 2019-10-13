@@ -258,21 +258,13 @@ CONTAINS
     END IF
 
     TW = D_MZERO
-    IF (INFO .GT. 0) THEN
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT) REDUCTION(+:TW)
-       DO I = 1, SL
-          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) TW = TW + DZ(STEP(I))%W
-       END DO
-       !$OMP END PARALLEL DO
-    END IF
-    SIGMA(1) = TW
-
     P = 0
     Q = 0
     IF (INFO .GT. 0) THEN
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT,J) REDUCTION(+:P,Q)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT,J) REDUCTION(+:TW,P,Q)
        DO I = 1, SL
           IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) THEN
+             TW = TW + DZ(STEP(I))%W
              IF (J(DZ(STEP(I))%P) .EQ. J(DZ(STEP(I))%Q)) THEN
                 P = P + 1
              ELSE ! hyperbolic
@@ -282,6 +274,7 @@ CONTAINS
        END DO
        !$OMP END PARALLEL DO
     END IF
+    SIGMA(1) = TW
     SIGMA(2) = REAL(P, DWP)
     SIGMA(3) = REAL(Q, DWP)
   END SUBROUTINE DSTEP_TRANSF
@@ -478,7 +471,7 @@ CONTAINS
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
     DO S = 1, N
        SIGMA(S) = A(S,S)
-       ! for a simple calculation of ||off(A)||_F
+       ! for a simple calculation of ||off(A)||
        A(S,S) = D_ZERO
     END DO
     !$OMP END PARALLEL DO
