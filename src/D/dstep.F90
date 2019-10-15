@@ -113,6 +113,7 @@ CONTAINS
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
+    TYPE(AW) :: X
     INTEGER :: IP, IQ, I, II, IT
 #ifndef NDEBUG
     REAL(KIND=DWP) :: T
@@ -157,10 +158,32 @@ CONTAINS
     !$OMP END PARALLEL DO
 
     IF (IT .EQ. 0) GOTO 1
+    IF (IT .LT. NN) THEN
+       ! remove NaN weights
+       I = 1
+       II = NN
+       DO WHILE (.NOT. (DZ(II)%W .EQ. DZ(II)%W))
+          II = II - 1
+       END DO
+       DO WHILE (I .LT. II)
+          IF (DZ(I)%W .EQ. DZ(I)%W) THEN
+             I = I + 1
+          ELSE ! NaN
+             X = DZ(I)
+             DZ(I) = DZ(II)
+             DZ(II) = X
+             I = I + 1
+             II = II - 1
+             DO WHILE (.NOT. (DZ(II)%W .EQ. DZ(II)%W))
+                II = II - 1
+             END DO
+          END IF
+       END DO
+    END IF
 #ifndef NDEBUG
     I = OPEN_LOG('DSTEP_BUILD', S)
 #endif
-    CALL R%SRT(NT, NN, NM, DZ, R%CMP, II)
+    CALL R%SRT(NT, IT, NM, DZ, R%CMP, II)
     IF (II .LT. 0) THEN
        INFO = -11
        RETURN
@@ -168,13 +191,12 @@ CONTAINS
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
        T = II * DNS2S
-       CALL AW_OUT(I, '', NN, DZ, 0, STEP, II)
+       CALL AW_OUT(I, '', IT, DZ, 0, STEP, II)
        WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', T, ' s, '
     END IF
 #endif
 
-    IT = MIN(IT, N_2)
-    CALL R%NCP(NT, NN, NM, DZ, IT, SL, STEP, II)
+    CALL R%NCP(NT, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
     IF (II .LT. 0) THEN
        INFO = -13
        RETURN
@@ -191,7 +213,7 @@ CONTAINS
     IF (I .NE. -1) THEN
        T = INFO * DNS2S
        WRITE (I,'(A,F12.6,A)') 'BUILD: ', T, ' s'
-       CALL AW_OUT(I, '', NN, DZ, SL, STEP, II)
+       CALL AW_OUT(I, '', IT, DZ, SL, STEP, II)
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
 #endif
