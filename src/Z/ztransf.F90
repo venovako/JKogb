@@ -446,7 +446,7 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
 
     IF (.NOT. H) THEN
-       INFO = -HUGE(0)
+       INFO = -HUGE(INFO)
        RETURN
     END IF
     INFO = 0
@@ -531,7 +531,7 @@ CONTAINS
 
     ! QR factorization of A
     ! CALL ZLARTG(A(1,1), A(2,1), C, S, R)
-    ! IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
+    ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
     !    INFO = -5
     !    RETURN
     ! END IF

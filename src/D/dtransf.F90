@@ -398,7 +398,7 @@ CONTAINS
           END IF
           !DIR$ FMA
           T2U = T2U / (D_ONE + (Y - X) * (Y + X))
-          IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
+          IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! should always happen
              !DIR$ FMA
@@ -415,7 +415,7 @@ CONTAINS
           END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-          IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+          IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -7
              RETURN
           END IF
@@ -437,7 +437,7 @@ CONTAINS
           END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-          IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+          IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -10
              RETURN
           END IF
@@ -467,7 +467,7 @@ CONTAINS
           END IF
           !DIR$ FMA
           T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-          IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
+          IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! should always happen
              !DIR$ FMA
@@ -531,7 +531,7 @@ CONTAINS
     REAL(KIND=DWP) :: T2U, X, Y
 
     IF (.NOT. H) THEN
-       INFO = -HUGE(0)
+       INFO = -HUGE(INFO)
        RETURN
     END IF
     INFO = 0
@@ -546,7 +546,7 @@ CONTAINS
        END IF
        !DIR$ FMA
        T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-       IF (.NOT. (ABS(T2U) .LE. HUGE(D_ZERO))) THEN
+       IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
           TU = SIGN(D_ONE, T2U)
        ELSE ! should always happen
           !DIR$ FMA
@@ -563,7 +563,7 @@ CONTAINS
        END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-       IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+       IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -14
           RETURN
        END IF
@@ -585,7 +585,7 @@ CONTAINS
        END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
-       IF (.NOT. (CZ .LE. HUGE(D_ZERO))) THEN
+       IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -17
           RETURN
        END IF
@@ -692,7 +692,7 @@ CONTAINS
 
     ! QR factorization of A
     ! CALL DLARTG(A(1,1), A(2,1), C, S, R)
-    ! IF (.NOT. (ABS(R) .LE. HUGE(D_ZERO))) THEN
+    ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
     !    INFO = -5
     !    RETURN
     ! END IF
@@ -849,8 +849,8 @@ CONTAINS
   PURE SUBROUTINE DSCALEA(A, S)
     IMPLICIT NONE
 
-    REAL(KIND=DWP), PARAMETER :: TOOBIG = SCALE(HUGE(D_ZERO), -1)
-    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(D_ZERO)
+    REAL(KIND=DWP), PARAMETER :: TOOBIG = SCALE(HUGE(TOOBIG), -1)
+    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(TOOSMALL)
 
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(OUT) :: S
@@ -864,7 +864,7 @@ CONTAINS
     DO J = 1, 2
        DO I = 1, 2
           AA = ABS(A(I,J))
-          IF (.NOT. (AA .LE. HUGE(D_ZERO))) THEN
+          IF (.NOT. (AA .LE. HUGE(AA))) THEN
              ! -2 <= S <= -5
              S = -((J - 1) * 2 + I + 1)
              RETURN
