@@ -201,8 +201,8 @@ CONTAINS
     ! D = SUM(|oldX(I)|-|newX(I)| + |oldY(I)|-|newY(I)|)
     !   = ||oldX oldY||_1 - ||newX newY||_1
     IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
     INTEGER, INTENT(IN) :: M, P, Q
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
 
     COMPLEX(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
@@ -742,6 +742,84 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE DSCALEW(W, S)
+    IMPLICIT NONE
+
+    REAL(KIND=DWP), PARAMETER :: TOOBIG = SCALE(HUGE(TOOBIG), -1)
+    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(TOOSMALL)
+
+    REAL(KIND=DWP), INTENT(INOUT) :: W(2,2)
+    INTEGER, INTENT(OUT) :: S
+
+    REAL(KIND=DWP) :: AA, AX
+    INTEGER :: DS, US, I, J
+
+    DS = 0
+    US = 0
+
+    DO J = 1, 2
+       DO I = 1, 2
+          AA = W(I,J)
+          IF (.NOT. (AA .LE. HUGE(AA))) THEN
+             ! -2 <= S <= -5
+             S = -((J - 1) * 2 + I + 1)
+             RETURN
+          END IF
+          ! DS cannot be less than -1, but...
+          IF (AA .GE. TOOBIG) DS = MIN(DS, -1)
+       END DO
+    END DO
+
+    IF (DS .NE. 0) THEN
+       DO J = 1, 2
+          DO I = 1, 2
+             W(I,J) = SCALE(W(I,J), DS)
+          END DO
+       END DO
+
+       S = DS
+    ELSE ! might perform upscaling
+       AX = D_ZERO
+
+       DO J = 1, 2
+          DO I = 1, 2
+             AA = W(I,J)
+             IF (AA .GT. AX) AX = AA
+             IF (AA .LT. TOOSMALL) US = MAX(US, (EXPONENT(TOOSMALL) - EXPONENT(AA)))
+          END DO
+       END DO
+
+       ! how much room there is between AX and TOOBIG
+       DS = EXPONENT(TOOBIG) - EXPONENT(AX)
+       IF (DS .LE. 0) THEN
+          ! DS cannot be less than 0, but...
+          US = 0
+       ELSE IF (US .GE. DS) THEN
+          ! now DS > 0
+          IF (SCALE(AX, DS) .GE. TOOBIG) THEN
+             ! can only be .LE., but it must not be .EQ.
+             US = DS - 1
+          ELSE ! cannot reach TOOBIG
+             US = DS
+          END IF
+       ELSE ! US .LT. DS, so US is fine
+          CONTINUE
+       END IF
+
+       IF (US .NE. 0) THEN
+          DO J = 1, 2
+             DO I = 1, 2
+                W(I,J) = SCALE(W(I,J), US)
+             END DO
+          END DO
+       END IF
+
+       S = US
+    END IF
+  END SUBROUTINE DSCALEW
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: H
@@ -750,30 +828,36 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: W(2,2)
+    INTEGER :: S
 
     W(1,1) = ABS(A(1,1))
     W(2,1) = ABS(A(2,1))
     W(1,2) = ABS(A(1,2))
     W(2,2) = ABS(A(2,2))
 
-    IF (.NOT. (W(1,1) .LE. HUGE(D_ZERO))) THEN
-       INFO = -1
-    ELSE IF (.NOT. (W(2,1) .LE. HUGE(D_ZERO))) THEN
-       INFO = -2
-    ELSE IF (.NOT. (W(1,2) .LE. HUGE(D_ZERO))) THEN
-       INFO = -3
-    ELSE IF (.NOT. (W(2,2) .LE. HUGE(D_ZERO))) THEN
-       INFO = -4
-    ELSE ! A has no NaNs or infinities or elements of a module too large
-       INFO = 0
+    ! scale W as A would be scaled in the real case
+    ! TODO: if an entry of W is Infinity, A should be downscaled
+    CALL DSCALEW(W, S)
+    IF (S .LT. -1) THEN
+       ! W has NaNs and/or infinities
+       INFO = S + 1
+       RETURN
     END IF
-    IF (INFO .NE. 0) RETURN
+    INFO = 0
 
     ! store diag(A) to W
     W(1,1) = REAL(A(1,1))
     W(2,1) = AIMAG(A(1,1))
     W(1,2) = REAL(A(2,2))
     W(2,2) = AIMAG(A(2,2))
+
+    ! scale A
+    IF (S .NE. 0) THEN
+       A(1,1) = CMPLX(SCALE(REAL(A(1,1)), S), SCALE(AIMAG(A(1,1)), S), DWP)
+       A(2,1) = CMPLX(SCALE(REAL(A(2,1)), S), SCALE(AIMAG(A(2,1)), S), DWP)
+       A(1,2) = CMPLX(SCALE(REAL(A(1,2)), S), SCALE(AIMAG(A(1,2)), S), DWP)
+       A(2,2) = CMPLX(SCALE(REAL(A(2,2)), S), SCALE(AIMAG(A(2,2)), S), DWP)
+    END IF
 
     ! U = I
     U(1,1) = Z_ONE
@@ -796,8 +880,14 @@ CONTAINS
     END IF
     IF (INFO .LT. 0) RETURN
 
+    ! scale back if necessary
+    IF (S .NE. 0) THEN
+       A(1,1) = SCALE(REAL(A(1,1)), -S)
+       A(2,2) = SCALE(REAL(A(2,2)), -S)
+    END IF
     A(2,1) = CMPLX(W(1,1), W(2,1), DWP)
     A(1,2) = CMPLX(W(1,2), W(2,2), DWP)
+
     CALL ZHSVD2S(H, A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 

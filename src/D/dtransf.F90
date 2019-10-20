@@ -219,8 +219,8 @@ CONTAINS
     ! D = SUM(|oldX(I)|-|newX(I)| + |oldY(I)|-|newY(I)|)
     !   = ||oldX oldY||_1 - ||newX newY||_1
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
     INTEGER, INTENT(IN) :: M, P, Q
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
 
     REAL(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
@@ -380,8 +380,8 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, SZ, TZ ! trigonometric or hyperbolic
+    REAL(KIND=DWP) :: CU, TU !, SU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, TZ, SZ ! trigonometric or hyperbolic
 
     REAL(KIND=DWP) :: T2U, X, Y
 
@@ -525,8 +525,8 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, SU, TU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, SZ, TZ ! always hyperbolic
+    REAL(KIND=DWP) :: CU, TU !, SU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, TZ, SZ ! always hyperbolic
 
     REAL(KIND=DWP) :: T2U, X, Y
 
