@@ -258,39 +258,29 @@ CONTAINS
        INFO = IT(I)
        W(1,3,I) = B(1,1)
        W(2,3,I) = B(2,2)
-       IF (IT(I) .GE. 1) THEN
-          IF (IAND(IT(I), 2) .NE. 0) THEN
-             CALL BA(V, N, A(P,1), A(Q,1), LDA)
-             CALL UT2(V)
-             CALL AB(V, N, U(1,P), U(1,Q))
-          END IF
-          IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
+       IF (IAND(IT(I), 2) .NE. 0) THEN
+          CALL BA(V, N, A(P,1), A(Q,1), LDA)
+          CALL UT2(V)
+          CALL AB(V, N, U(1,P), U(1,Q))
        END IF
+       IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
     END DO
 !$OMP END PARALLEL DO
 
     IF (INFO .GE. 0) THEN
        INFO = 0
-       P = 0
-       Q = 0 ! number of diagonal pairs changed
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO,Q)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
 
           IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
-          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) INFO = INFO + 1
+          IF ((IAND(IT(I), 1) .NE. 0) .AND. ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0))) INFO = INFO + 1
 
           A(P,P) = W(1,3,I)
           A(Q,P) = D_ZERO
           A(P,Q) = D_ZERO
           A(Q,Q) = W(2,3,I)
-
-          IF (IAND(IT(I), 1) .EQ. 0) THEN
-             Q = 0
-          ELSE ! ... .EQ. 1
-             Q = 1
-          END IF
        END DO
        !$OMP END PARALLEL DO
     END IF

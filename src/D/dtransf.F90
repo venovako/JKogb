@@ -529,7 +529,9 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
+    A(1,2) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
+    INFO = 1
   END SUBROUTINE DHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -633,7 +635,9 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
+    A(2,1) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
+    INFO = 1
   END SUBROUTINE DHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -844,17 +848,6 @@ CONTAINS
        Z(2,2) = S
     END IF
 
-    ! record in INFO if old diag(A) and new diag(A) differ
-    IF ((A(1,1) .NE. A(2,1)) .OR. (A(2,2) .NE. A(1,2))) THEN
-       INFO = 1
-    ELSE ! old diag(A) .EQ. new diag(A)
-       INFO = 0
-    END IF
-
-    ! explicitly make A diagonal
-    A(2,1) = D_ZERO
-    A(1,2) = D_ZERO
-
     ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
@@ -948,11 +941,7 @@ CONTAINS
     REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: W(2,2)
     INTEGER :: S
-
-    W(2,1) = A(1,1)
-    W(1,2) = A(2,2)
 
     CALL DSCALEA(A, S)
     IF (S .LT. -1) THEN
@@ -1003,8 +992,6 @@ CONTAINS
        A(1,1) = SCALE(A(1,1), -S)
        A(2,2) = SCALE(A(2,2), -S)
     END IF
-    A(2,1) = W(2,1)
-    A(1,2) = W(1,2)
 
     CALL DHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE DHSVD2

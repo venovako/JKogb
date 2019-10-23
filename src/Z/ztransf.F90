@@ -448,7 +448,9 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
+    A(1,2) = Z_ZERO
     CALL ZHSVD2D(A, U, INFO)
+    INFO = 1
   END SUBROUTINE ZHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -471,7 +473,9 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
+    A(2,1) = Z_ZERO
     CALL ZHSVD2D(A, U, INFO)
+    INFO = 1
   END SUBROUTINE ZHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -740,17 +744,6 @@ CONTAINS
        Z(2,2) = S
     END IF
 
-    ! record in INFO if old diag(A) and new diag(A) differ
-    IF ((A(1,1) .NE. A(2,1)) .OR. (A(2,2) .NE. A(1,2))) THEN
-       INFO = 1
-    ELSE ! old diag(A) .EQ. new diag(A)
-       INFO = 0
-    END IF
-
-    ! explicitly make A diagonal
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
-
     ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
@@ -905,13 +898,6 @@ CONTAINS
     END SELECT
     INFO = 0
 
-    ! store diag(A) to W
-    I = -K
-    W(1,1) = SCALE(REAL(A(1,1)), I)
-    W(2,1) = SCALE(AIMAG(A(1,1)), I)
-    W(1,2) = SCALE(REAL(A(2,2)), I)
-    W(2,2) = SCALE(AIMAG(A(2,2)), I)
-
     ! scale A
     IF (S .NE. 0) THEN
        A(1,1) = CMPLX(SCALE(REAL(A(1,1)), S), SCALE(AIMAG(A(1,1)), S), DWP)
@@ -950,8 +936,6 @@ CONTAINS
        A(1,1) = SCALE(REAL(A(1,1)), I)
        A(2,2) = SCALE(REAL(A(2,2)), I)
     END IF
-    A(2,1) = CMPLX(W(1,1), W(2,1), DWP)
-    A(1,2) = CMPLX(W(1,2), W(2,2), DWP)
 
     CALL ZHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
