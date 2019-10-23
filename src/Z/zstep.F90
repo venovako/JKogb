@@ -429,7 +429,7 @@ CONTAINS
 
     IF (NT .LE. 0) THEN
        INFO = -1
-    ELSE IF (N .LT. 3) THEN
+    ELSE IF (N .LT. 4) THEN
        INFO = -2
     ELSE IF (LDU .LT. N) THEN
        INFO = -4
