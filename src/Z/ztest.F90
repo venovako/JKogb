@@ -28,7 +28,7 @@ PROGRAM ZTEST
   WRITE (*,*) 'INFO=', INFO
 
   IF (INFO .GE. 0) THEN
-     CALL UH(U)
+     CALL UH2(U)
      CALL JZHJ2(Z, J)
   END IF
 

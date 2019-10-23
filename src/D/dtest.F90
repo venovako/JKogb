@@ -28,7 +28,7 @@ PROGRAM DTEST
   WRITE (*,*) 'INFO=', INFO
 
   IF (INFO .GE. 0) THEN
-     CALL UT(U)
+     CALL UT2(U)
      CALL JZTJ2(Z, J)
   END IF
 

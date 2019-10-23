@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE UH(U)
+  PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
 
@@ -17,7 +17,7 @@ CONTAINS
     U(2,1) = CONJG(U(1,2))
     U(1,2) = CONJG(U21)
     U(2,2) = CONJG(U(2,2))
-  END SUBROUTINE UH
+  END SUBROUTINE UH2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -26,16 +26,14 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(2,2)
     INTEGER, INTENT(IN) :: J(2)
 
-    CALL UH(Z)
-    IF (J(1) .NE. 1) THEN
-       Z(1,1) = Z(1,1) * (J(1) * J(1))
-       Z(2,1) = Z(2,1) * J(1)
-       Z(1,2) = Z(1,2) * J(1)
+    CALL UH2(Z)
+    IF (J(1) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
     END IF
-    IF (J(2) .NE. 1) THEN
-       Z(2,1) = Z(2,1) * J(2)
-       Z(1,2) = Z(1,2) * J(2)
-       Z(2,2) = Z(2,2) * (J(2) * J(2))
+    IF (J(2) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
     END IF
   END SUBROUTINE JZHJ2
 
@@ -546,7 +544,7 @@ CONTAINS
     ! QR factorization of A
     ! CALL ZLARTG(A(1,1), A(2,1), C, S, R)
     ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
-    !    INFO = -5
+    !    INFO = -7
     !    RETURN
     ! END IF
     ! A(1,1) = R
@@ -572,6 +570,11 @@ CONTAINS
     Q(1,2) =  S
     Q(2,2) =  C
     CALL CA(Q, 2, A(1,1), A(2,1), 2)
+    ! should never happen
+    IF (.NOT. (ABS(A(1,1)) .LE. HUGE(D_ZERO))) THEN
+       INFO = -7
+       RETURN
+    END IF
     CALL CA(Q, 2, U(1,1), U(2,1), 2)
     A(2,1) = Z_ZERO
 
@@ -885,6 +888,21 @@ CONTAINS
        INFO = S + 1
        RETURN
     END IF
+
+    SELECT CASE (J(1))
+    CASE (-1,1)
+       CONTINUE
+    CASE DEFAULT
+       INFO = -5
+       RETURN
+    END SELECT
+    SELECT CASE (J(2))
+    CASE (-1,1)
+       CONTINUE
+    CASE DEFAULT
+       INFO = -6
+       RETURN
+    END SELECT
     INFO = 0
 
     ! store diag(A) to W

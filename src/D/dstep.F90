@@ -223,9 +223,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, INFO)
+  SUBROUTINE DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, NM, SL
+    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, NM, SL
     INTEGER, INTENT(INOUT) :: STEP(SL)
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
@@ -261,7 +261,7 @@ CONTAINS
        IF (IT(I) .GE. 1) THEN
           IF (IAND(IT(I), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
-             CALL UT(V)
+             CALL UT2(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
           IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
@@ -363,7 +363,7 @@ CONTAINS
     END IF
 
     IT = GET_THREAD_NS()
-    CALL DSTEP_TRANSF(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
+    CALL DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
     WRITE (ULOG,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') (IT * DNS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ULOG)

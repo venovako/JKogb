@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE UT(U)
+  PURE SUBROUTINE UT2(U)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(INOUT) :: U(2,2)
 
@@ -15,7 +15,7 @@ CONTAINS
     U21 = U(2,1)
     U(2,1) = U(1,2)
     U(1,2) = U21
-  END SUBROUTINE UT
+  END SUBROUTINE UT2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -24,16 +24,14 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: Z(2,2)
     INTEGER, INTENT(IN) :: J(2)
 
-    CALL UT(Z)
-    IF (J(1) .NE. 1) THEN
-       Z(1,1) = Z(1,1) * (J(1) * J(1))
-       Z(2,1) = Z(2,1) * J(1)
-       Z(1,2) = Z(1,2) * J(1)
+    CALL UT2(Z)
+    IF (J(1) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
     END IF
-    IF (J(2) .NE. 1) THEN
-       Z(2,1) = Z(2,1) * J(2)
-       Z(1,2) = Z(1,2) * J(2)
-       Z(2,2) = Z(2,2) * (J(2) * J(2))
+    IF (J(2) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
     END IF
   END SUBROUTINE JZTJ2
 
@@ -429,19 +427,19 @@ CONTAINS
           !DIR$ FMA
           TZ = Y * TU - X
           IF (ABS(TZ) .GE. D_ONE) THEN
-             INFO = -6
+             INFO = -8
              RETURN
           END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-             INFO = -7
+             INFO = -9
              RETURN
           END IF
           SZ = TZ * CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -8
+             INFO = -10
              RETURN
           END IF
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
@@ -451,24 +449,24 @@ CONTAINS
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           IF (ABS(TZ) .GE. D_ONE) THEN
-             INFO = -9
+             INFO = -11
              RETURN
           END IF
           !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-             INFO = -10
+             INFO = -12
              RETURN
           END IF
           SZ = TZ * CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -11
+             INFO = -13
              RETURN
           END IF
        ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
-          INFO = -12
+          INFO = -14
           RETURN
        END IF
        W(1,1) =  CZ
@@ -572,19 +570,19 @@ CONTAINS
        !DIR$ FMA
        TZ = -(X * TU + Y)
        IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -13
+          INFO = -15
           RETURN
        END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-          INFO = -14
+          INFO = -16
           RETURN
        END IF
        SZ = TZ * CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -15
+          INFO = -17
           RETURN
        END IF
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
@@ -594,24 +592,24 @@ CONTAINS
        ! SU = D_ZERO
        TZ = -A(2,1) / A(2,2)
        IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -16
+          INFO = -18
           RETURN
        END IF
        !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-          INFO = -17
+          INFO = -19
           RETURN
        END IF
        SZ = TZ * CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -18
+          INFO = -20
           RETURN
        END IF
     ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
        ! |TZ| .GE. 1
-       INFO = -19
+       INFO = -21
        RETURN
     END IF
 
@@ -683,6 +681,11 @@ CONTAINS
        R = C
        INFO = 0
     END IF
+    ! should never happen
+    IF (.NOT. (R .LE. HUGE(R))) THEN
+       INFO = -7
+       RETURN
+    END IF
 
     ! row sorting
     IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
@@ -707,7 +710,7 @@ CONTAINS
     ! QR factorization of A
     ! CALL DLARTG(A(1,1), A(2,1), C, S, R)
     ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
-    !    INFO = -5
+    !    INFO = -7
     !    RETURN
     ! END IF
     ! CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
@@ -957,6 +960,21 @@ CONTAINS
        INFO = S + 1
        RETURN
     END IF
+
+    SELECT CASE (J(1))
+    CASE (-1,1)
+       CONTINUE
+    CASE DEFAULT
+       INFO = -5
+       RETURN
+    END SELECT
+    SELECT CASE (J(2))
+    CASE (-1,1)
+       CONTINUE
+    CASE DEFAULT
+       INFO = -6
+       RETURN
+    END SELECT
     INFO = 0
 
     ! U = I
