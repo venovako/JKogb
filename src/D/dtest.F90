@@ -29,7 +29,7 @@ PROGRAM DTEST
 
   IF (INFO .GE. 0) THEN
      CALL UT(U)
-     CALL JVTJ(Z, J)
+     CALL JZTJ2(Z, J)
   END IF
 
   WRITE (*,*) 'A11=', A(1,1)

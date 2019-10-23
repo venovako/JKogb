@@ -21,23 +21,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE JVHJ(V, J)
+  PURE SUBROUTINE JZHJ2(Z, J)
     IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: V(2,2)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(2,2)
     INTEGER, INTENT(IN) :: J(2)
 
-    CALL UH(V)
+    CALL UH(Z)
     IF (J(1) .NE. 1) THEN
-       V(1,1) = V(1,1) * (J(1) * J(1))
-       V(2,1) = V(2,1) * J(1)
-       V(1,2) = V(1,2) * J(1)
+       Z(1,1) = Z(1,1) * (J(1) * J(1))
+       Z(2,1) = Z(2,1) * J(1)
+       Z(1,2) = Z(1,2) * J(1)
     END IF
     IF (J(2) .NE. 1) THEN
-       V(2,1) = V(2,1) * J(2)
-       V(1,2) = V(1,2) * J(2)
-       V(2,2) = V(2,2) * (J(2) * J(2))
+       Z(2,1) = Z(2,1) * J(2)
+       Z(1,2) = Z(1,2) * J(2)
+       Z(2,2) = Z(2,2) * (J(2) * J(2))
     END IF
-  END SUBROUTINE JVHJ
+  END SUBROUTINE JZHJ2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
