@@ -366,10 +366,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2D(A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2D(A, U, INFO)
     ! A diagonal
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
     INFO = 0
@@ -531,7 +531,7 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL DHSVD2D(A, U, Z, INFO)
+    CALL DHSVD2D(A, U, INFO)
   END SUBROUTINE DHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -635,7 +635,7 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL DHSVD2D(A, U, Z, INFO)
+    CALL DHSVD2D(A, U, INFO)
   END SUBROUTINE DHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -973,7 +973,7 @@ CONTAINS
 
     IF ((A(2,1) .EQ. D_ZERO) .AND. (A(1,2) .EQ. D_ZERO)) THEN
        ! A diagonal
-       CALL DHSVD2D(A, U, Z, INFO)
+       CALL DHSVD2D(A, U, INFO)
     ELSE
        ! A general
        CALL DHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
