@@ -842,15 +842,43 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: W(2,2)
-    INTEGER :: S
+    INTEGER :: S, I, K
 
     W(1,1) = ABS(A(1,1))
     W(2,1) = ABS(A(2,1))
     W(1,2) = ABS(A(1,2))
     W(2,2) = ABS(A(2,2))
 
+    S = 0
+    DO K = 1, 2
+       DO I = 1, 2
+          IF (.NOT. (W(I,K) .LE. HUGE(D_ZERO))) THEN
+             IF ((ABS(REAL(A(I,K))) .LE. HUGE(D_ZERO)) .AND. (ABS(AIMAG(A(I,K))) .LE. HUGE(D_ZERO))) THEN
+                S = -1
+                GOTO 1
+             END IF
+             INFO = -((K - 1) * 2 + I)
+             RETURN
+          END IF
+       END DO
+    END DO
+
+    ! prescale A
+1   IF (S .NE. 0) THEN
+       A(1,1) = CMPLX(SCALE(REAL(A(1,1)), S), SCALE(AIMAG(A(1,1)), S), DWP)
+       A(2,1) = CMPLX(SCALE(REAL(A(2,1)), S), SCALE(AIMAG(A(2,1)), S), DWP)
+       A(1,2) = CMPLX(SCALE(REAL(A(1,2)), S), SCALE(AIMAG(A(1,2)), S), DWP)
+       A(2,2) = CMPLX(SCALE(REAL(A(2,2)), S), SCALE(AIMAG(A(2,2)), S), DWP)
+
+       W(1,1) = ABS(A(1,1))
+       W(2,1) = ABS(A(2,1))
+       W(1,2) = ABS(A(1,2))
+       W(2,2) = ABS(A(2,2))
+    END IF
+    K = S
+    S = 0
+
     ! scale W as A would be scaled in the real case
-    ! TODO: if an entry of W is Infinity, A should be downscaled
     CALL DSCALEW(W, S)
     IF (S .LT. -1) THEN
        ! W has NaNs and/or infinities
@@ -860,10 +888,11 @@ CONTAINS
     INFO = 0
 
     ! store diag(A) to W
-    W(1,1) = REAL(A(1,1))
-    W(2,1) = AIMAG(A(1,1))
-    W(1,2) = REAL(A(2,2))
-    W(2,2) = AIMAG(A(2,2))
+    I = -K
+    W(1,1) = SCALE(REAL(A(1,1)), I)
+    W(2,1) = SCALE(AIMAG(A(1,1)), I)
+    W(1,2) = SCALE(REAL(A(2,2)), I)
+    W(2,2) = SCALE(AIMAG(A(2,2)), I)
 
     ! scale A
     IF (S .NE. 0) THEN
@@ -871,6 +900,9 @@ CONTAINS
        A(2,1) = CMPLX(SCALE(REAL(A(2,1)), S), SCALE(AIMAG(A(2,1)), S), DWP)
        A(1,2) = CMPLX(SCALE(REAL(A(1,2)), S), SCALE(AIMAG(A(1,2)), S), DWP)
        A(2,2) = CMPLX(SCALE(REAL(A(2,2)), S), SCALE(AIMAG(A(2,2)), S), DWP)
+       S = S + K
+    ELSE ! S .EQ. 0
+       S = K
     END IF
 
     ! U = I
@@ -896,8 +928,9 @@ CONTAINS
 
     ! scale back if necessary
     IF (S .NE. 0) THEN
-       A(1,1) = SCALE(REAL(A(1,1)), -S)
-       A(2,2) = SCALE(REAL(A(2,2)), -S)
+       I = -S
+       A(1,1) = SCALE(REAL(A(1,1)), I)
+       A(2,2) = SCALE(REAL(A(2,2)), I)
     END IF
     A(2,1) = CMPLX(W(1,1), W(2,1), DWP)
     A(1,2) = CMPLX(W(1,2), W(2,2), DWP)
