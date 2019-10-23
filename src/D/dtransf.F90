@@ -19,6 +19,26 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE JVTJ(V, J)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(INOUT) :: V(2,2)
+    INTEGER, INTENT(IN) :: J(2)
+
+    CALL UT(V)
+    IF (J(1) .NE. 1) THEN
+       V(1,1) = V(1,1) * (J(1) * J(1))
+       V(2,1) = V(2,1) * J(1)
+       V(1,2) = V(1,2) * J(1)
+    END IF
+    IF (J(2) .NE. 1) THEN
+       V(2,1) = V(2,1) * J(2)
+       V(1,2) = V(1,2) * J(2)
+       V(2,2) = V(2,2) * (J(2) * J(2))
+    END IF
+  END SUBROUTINE JVTJ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE CA(B, N, X, Y, LDA)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2)
@@ -346,10 +366,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2D(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2D(A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -512,15 +531,14 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL DHSVD2D(H, A, U, Z, INFO)
+    CALL DHSVD2D(A, U, Z, INFO)
   END SUBROUTINE DHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2L(H, A, U, Z, INFO)
-    ! A lower triangular, not diagonal
+  PURE SUBROUTINE DHSVD2L(A, U, Z, INFO)
+    ! A lower triangular, not diagonal, hyperbolic J
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -530,10 +548,6 @@ CONTAINS
 
     REAL(KIND=DWP) :: T2U, X, Y
 
-    IF (.NOT. H) THEN
-       INFO = -HUGE(INFO)
-       RETURN
-    END IF
     INFO = 0
 
     IF (A(1,1) .NE. D_ZERO) THEN
@@ -621,7 +635,7 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL DHSVD2D(H, A, U, Z, INFO)
+    CALL DHSVD2D(A, U, Z, INFO)
   END SUBROUTINE DHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -781,7 +795,7 @@ CONTAINS
        ! A lower triangular, not diagonal (X .NE. 0)
        ! A = | x 0 |    R .NE. 0 the largest
        !     | X R | <- element by magnitude
-       CALL DHSVD2L(H, A, U, Z, INFO)
+       CALL DHSVD2L(A, U, Z, INFO)
     ELSE
        ! A upper triangular, not diagonal (X .NE. 0)
        !     | R X | <- R .NE. 0 the largest
@@ -794,7 +808,7 @@ CONTAINS
 
   PURE SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
+    INTEGER, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -803,7 +817,7 @@ CONTAINS
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
-    IF ((.NOT. H) .AND. (A(1,1) .LT. A(2,2))) THEN
+    IF (((H .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((H .EQ. -2) .AND. (A(1,1) .GT. A(2,2)))) THEN
        ! swap the rows of U
        ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)
@@ -924,10 +938,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    INTEGER, INTENT(IN) :: J(2)
     REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
@@ -959,10 +973,10 @@ CONTAINS
 
     IF ((A(2,1) .EQ. D_ZERO) .AND. (A(1,2) .EQ. D_ZERO)) THEN
        ! A diagonal
-       CALL DHSVD2D(H, A, U, Z, INFO)
+       CALL DHSVD2D(A, U, Z, INFO)
     ELSE
        ! A general
-       CALL DHSVD2G(H, A, U, Z, INFO)
+       CALL DHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
     END IF
     IF (INFO .LT. 0) RETURN
 
@@ -974,7 +988,7 @@ CONTAINS
     A(2,1) = W(2,1)
     A(1,2) = W(1,2)
 
-    CALL DHSVD2S(H, A, U, Z, INFO)
+    CALL DHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE DHSVD2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

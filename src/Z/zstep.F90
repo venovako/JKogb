@@ -16,8 +16,8 @@ CONTAINS
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
-    COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
-    INTEGER :: INFO
+    COMPLEX(KIND=DWP) :: B(2,2), U2(2,2), Z2(2,2)
+    INTEGER :: J2(2), INFO
 
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
@@ -25,11 +25,13 @@ CONTAINS
        IF (J(P) .EQ. J(Q)) THEN
           ZMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
        ELSE ! J(P) .NE. J(Q)
-          A2(1,1) = A(P,P)
-          A2(2,1) = A(Q,P)
-          A2(1,2) = A(P,Q)
-          A2(2,2) = A(Q,Q)
-          CALL ZHSVD2(.TRUE., A2, U2, Z2, INFO)
+          B(1,1) = A(P,P)
+          B(2,1) = A(Q,P)
+          B(1,2) = A(P,Q)
+          B(2,2) = A(Q,Q)
+          J2(1) = J(P)
+          J2(2) = J(Q)
+          CALL ZHSVD2(B, J2, U2, Z2, INFO)
           IF (INFO .LE. 0) THEN
              ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE ! a non-trivial transform
@@ -231,30 +233,33 @@ CONTAINS
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V(2,2), A2(2,2)
+    COMPLEX(KIND=DWP) :: V(2,2), B(2,2)
     COMPLEX(KIND=DWP), POINTER, CONTIGUOUS :: W(:,:,:)
     REAL(KIND=DWP) :: TW
-    INTEGER :: I, P, Q
+    INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
 
-    CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,2,SL])
+    CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])
     INFO = HUGE(INFO)
 
-!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
+!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
        P = DZ(STEP(I))%P
        Q = DZ(STEP(I))%Q
 
-       A2(1,1) = A(P,P)
-       A2(2,1) = A(Q,P)
-       A2(1,2) = A(P,Q)
-       A2(2,2) = A(Q,Q)
+       B(1,1) = A(P,P)
+       B(2,1) = A(Q,P)
+       B(1,2) = A(P,Q)
+       B(2,2) = A(Q,Q)
+       K(1) = J(P)
+       K(2) = J(Q)
 
-       CALL ZHSVD2((J(P) .NE. J(Q)), A2, V, W(:,:,I), IT(I))
+       CALL ZHSVD2(B, K, V, W(:,:,I), IT(I))
        INFO = IT(I)
-
-       IF (IT(I) .GT. 1) THEN
+       W(1,3,I) = CMPLX(REAL(B(1,1)), D_ZERO, DWP)
+       W(2,3,I) = CMPLX(REAL(B(2,2)), D_ZERO, DWP)
+       IF (IT(I) .GE. 1) THEN
           IF (IAND(IT(I), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UH(V)
@@ -267,6 +272,7 @@ CONTAINS
 
     IF (INFO .GE. 0) THEN
        INFO = 0
+       P = 0
        Q = 0 ! number of diagonal pairs changed
        !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO,Q)
        DO I = 1, SL
@@ -276,8 +282,10 @@ CONTAINS
           IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
           IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) INFO = INFO + 1
 
+          A(P,P) = W(1,3,I)
           A(Q,P) = Z_ZERO
           A(P,Q) = Z_ZERO
+          A(Q,Q) = W(2,3,I)
 
           IF (IAND(IT(I), 1) .EQ. 0) THEN
              Q = 0
@@ -306,8 +314,8 @@ CONTAINS
        !$OMP END PARALLEL DO
     END IF
     SIGMA(1) = TW
-    SIGMA(2) = REAL(P, DWP)
-    SIGMA(3) = REAL(Q, DWP)
+    SIGMA(2) = P
+    SIGMA(3) = Q
   END SUBROUTINE ZSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

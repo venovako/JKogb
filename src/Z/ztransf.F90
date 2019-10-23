@@ -21,6 +21,26 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE JVHJ(V, J)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: V(2,2)
+    INTEGER, INTENT(IN) :: J(2)
+
+    CALL UH(V)
+    IF (J(1) .NE. 1) THEN
+       V(1,1) = V(1,1) * (J(1) * J(1))
+       V(2,1) = V(2,1) * J(1)
+       V(1,2) = V(1,2) * J(1)
+    END IF
+    IF (J(2) .NE. 1) THEN
+       V(2,1) = V(2,1) * J(2)
+       V(1,2) = V(1,2) * J(2)
+       V(2,2) = V(2,2) * (J(2) * J(2))
+    END IF
+  END SUBROUTINE JVHJ
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE CA(B, N, X, Y, LDA)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2)
@@ -328,10 +348,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2D(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2D(A, U, Z, INFO)
     ! A diagonal
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -431,24 +450,19 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL ZHSVD2D(H, A, U, Z, INFO)
+    CALL ZHSVD2D(A, U, Z, INFO)
   END SUBROUTINE ZHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2L(H, A, U, Z, INFO)
-    ! A lower triangular, not diagonal
+  PURE SUBROUTINE ZHSVD2L(A, U, Z, INFO)
+    ! A lower triangular, not diagonal, hyperbolic J
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
 
-    IF (.NOT. H) THEN
-       INFO = -HUGE(INFO)
-       RETURN
-    END IF
     INFO = 0
 
     ! TODO: transform
@@ -459,7 +473,7 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    CALL ZHSVD2D(H, A, U, Z, INFO)
+    CALL ZHSVD2D(A, U, Z, INFO)
   END SUBROUTINE ZHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -677,7 +691,7 @@ CONTAINS
        ! A lower triangular, not diagonal (X .NE. 0)
        ! A = | x 0 |    R .NE. 0 the largest
        !     | X R | <- element by magnitude
-       CALL ZHSVD2L(H, A, U, Z, INFO)
+       CALL ZHSVD2L(A, U, Z, INFO)
     ELSE
        ! A upper triangular, not diagonal (X .NE. 0)
        !     | R X | <- R .NE. 0 the largest
@@ -690,7 +704,7 @@ CONTAINS
 
   PURE SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
+    INTEGER, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -699,7 +713,7 @@ CONTAINS
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
-    IF ((.NOT. H) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) THEN
+    IF (((H .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((H .EQ. -2) .AND. (REAL(A(1,1)) .GT. REAL(A(2,2))))) THEN
        ! swap the rows of U
        ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
@@ -820,10 +834,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    INTEGER, INTENT(IN) :: J(2)
     COMPLEX(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
@@ -873,10 +887,10 @@ CONTAINS
 
     IF ((A(2,1) .EQ. Z_ZERO) .AND. (A(1,2) .EQ. Z_ZERO)) THEN
        ! A diagonal
-       CALL ZHSVD2D(H, A, U, Z, INFO)
+       CALL ZHSVD2D(A, U, Z, INFO)
     ELSE
        ! A general
-       CALL ZHSVD2G(H, A, U, Z, INFO)
+       CALL ZHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
     END IF
     IF (INFO .LT. 0) RETURN
 
@@ -888,7 +902,7 @@ CONTAINS
     A(2,1) = CMPLX(W(1,1), W(2,1), DWP)
     A(1,2) = CMPLX(W(1,2), W(2,2), DWP)
 
-    CALL ZHSVD2S(H, A, U, Z, INFO)
+    CALL ZHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -17,7 +17,7 @@ CONTAINS
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
     REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
-    INTEGER :: INFO
+    INTEGER :: J2(2), INFO
 
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
@@ -28,7 +28,9 @@ CONTAINS
           A2(2,1) = A(Q,P)
           A2(1,2) = A(P,Q)
           A2(2,2) = A(Q,Q)
-          CALL DHSVD2(.TRUE., A2, U2, Z2, INFO)
+          J2(1) = J(P)
+          J2(2) = J(Q)
+          CALL DHSVD2(A2, J2, U2, Z2, INFO)
           IF (INFO .LE. 0) THEN
              DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE ! a non-trivial transform
@@ -230,30 +232,32 @@ CONTAINS
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: V(2,2), A2(2,2)
+    REAL(KIND=DWP) :: V(2,2), B(2,2)
     REAL(KIND=DWP), POINTER, CONTIGUOUS :: W(:,:,:)
     REAL(KIND=DWP) :: TW
-    INTEGER :: I, P, Q
+    INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
 
     CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])
     INFO = HUGE(INFO)
 
-!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,A2) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
+!$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
        P = DZ(STEP(I))%P
        Q = DZ(STEP(I))%Q
 
-       A2(1,1) = A(P,P)
-       A2(2,1) = A(Q,P)
-       A2(1,2) = A(P,Q)
-       A2(2,2) = A(Q,Q)
+       B(1,1) = A(P,P)
+       B(2,1) = A(Q,P)
+       B(1,2) = A(P,Q)
+       B(2,2) = A(Q,Q)
+       K(1) = J(P)
+       K(2) = J(Q)
 
-       CALL DHSVD2((J(P) .NE. J(Q)), A2, V, W(:,:,I), IT(I))
+       CALL DHSVD2(B, K, V, W(:,:,I), IT(I))
        INFO = IT(I)
-       W(1,3,I) = A2(1,1)
-       W(2,3,I) = A2(2,2)
+       W(1,3,I) = B(1,1)
+       W(2,3,I) = B(2,2)
        IF (IT(I) .GE. 1) THEN
           IF (IAND(IT(I), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
@@ -309,8 +313,8 @@ CONTAINS
        !$OMP END PARALLEL DO
     END IF
     SIGMA(1) = TW
-    SIGMA(2) = REAL(P, DWP)
-    SIGMA(3) = REAL(Q, DWP)
+    SIGMA(2) = P
+    SIGMA(3) = Q
   END SUBROUTINE DSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
