@@ -37,11 +37,23 @@
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
        IF (J(P) .EQ. J(Q)) THEN
-          DMAG1 = D_ZERO
-          !DIR$ FMA
-          DMAG1 = DMAG1 + A(Q,P) * A(Q,P)
-          !DIR$ FMA
-          DMAG1 = DMAG1 + A(P,Q) * A(P,Q)
+          A2(2,1) = ABS(A(Q,P))
+          A2(1,2) = ABS(A(P,Q))
+          IF (A2(2,1) .GE. A2(1,2)) THEN
+             IF (A2(2,1) .EQ. D_ZERO) THEN
+                DMAG1 = D_ZERO
+             ELSE ! A2(2,1) .GT. D_ZERO
+                A2(1,1) = A2(1,2) / A2(2,1)
+                !DIR$ FMA
+                DMAG1 = A2(1,1) * A2(1,2) + A2(2,1)
+                DMAG1 = DMAG1 * A2(2,1)
+             END IF
+          ELSE ! A2(2,1) .LT. A2(1,2)
+             A2(2,2) = A2(2,1) / A2(1,2)
+             !DIR$ FMA
+             DMAG1 = A2(1,2) + A2(2,1) * A2(2,2)
+             DMAG1 = DMAG1 * A2(1,2)
+          END IF
        ELSE ! J(P) .NE. J(Q)
           A2(1,1) = A(P,P)
           A2(2,1) = A(Q,P)
@@ -76,7 +88,22 @@
        ABODND = D_MZERO
        RETURN
     END IF
-    ABODND = Y(P) * Y(P) + X(Q) * X(Q)
+
+    XX = ABS(X(Q))
+    YY = ABS(Y(P))
+    IF (XX .GE. YY) THEN
+       IF (XX .EQ. D_ZERO) THEN
+          ABODND = D_ZERO
+       ELSE ! XX .GT. D_ZERO
+          !DIR$ FMA
+          ABODND = (YY / XX) * YY + XX
+          ABODND = ABODND * XX
+       END IF
+    ELSE ! XX .LT. YY
+       !DIR$ FMA
+       ABODND = YY + XX * (XX / YY)
+       ABODND = ABODND * YY
+    END IF
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
        R1 = B(2,1) / B(1,1)

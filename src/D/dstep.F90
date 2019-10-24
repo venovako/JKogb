@@ -22,7 +22,23 @@ CONTAINS
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
        IF (J(P) .EQ. J(Q)) THEN
-          DMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
+          A2(2,1) = ABS(A(Q,P))
+          A2(1,2) = ABS(A(P,Q))
+          IF (A2(2,1) .GE. A2(1,2)) THEN
+             IF (A2(2,1) .EQ. D_ZERO) THEN
+                DMAG1 = D_ZERO
+             ELSE ! A2(2,1) .GT. D_ZERO
+                A2(1,1) = A2(1,2) / A2(2,1)
+                !DIR$ FMA
+                DMAG1 = A2(1,1) * A2(1,2) + A2(2,1)
+                DMAG1 = DMAG1 * A2(2,1)
+             END IF
+          ELSE ! A2(2,1) .LT. A2(1,2)
+             A2(2,2) = A2(2,1) / A2(1,2)
+             !DIR$ FMA
+             DMAG1 = A2(1,2) + A2(2,1) * A2(2,2)
+             DMAG1 = DMAG1 * A2(1,2)
+          END IF
        ELSE ! J(P) .NE. J(Q)
           A2(1,1) = A(P,P)
           A2(2,1) = A(Q,P)
@@ -41,6 +57,39 @@ CONTAINS
        DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
   END FUNCTION DMAG1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  ! PURE REAL(KIND=DWP) FUNCTION DMAG1(N, P, Q, A, LDA, J)
+  !   IMPLICIT NONE
+  !   INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
+  !   REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
+
+  !   REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
+  !   INTEGER :: J2(2), INFO
+
+  !   IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
+  !        (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
+  !      IF (J(P) .EQ. J(Q)) THEN
+  !         DMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
+  !      ELSE ! J(P) .NE. J(Q)
+  !         A2(1,1) = A(P,P)
+  !         A2(2,1) = A(Q,P)
+  !         A2(1,2) = A(P,Q)
+  !         A2(2,2) = A(Q,Q)
+  !         J2(1) = J(P)
+  !         J2(2) = J(Q)
+  !         CALL DHSVD2(A2, J2, U2, Z2, INFO)
+  !         IF (INFO .LE. 0) THEN
+  !            DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+  !         ELSE ! a non-trivial transform
+  !            DMAG1 = ABODND(Z2, N, A(1,P), A(1,Q), P, Q)
+  !         END IF
+  !      END IF
+  !   ELSE ! no transform
+  !      DMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+  !   END IF
+  ! END FUNCTION DMAG1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
