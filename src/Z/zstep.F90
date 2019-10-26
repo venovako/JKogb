@@ -11,7 +11,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION ZMAG1(N, P, Q, A, LDA, J)
+  PURE REAL(KIND=DWP) FUNCTION ZMAGF2(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -23,7 +23,15 @@ CONTAINS
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
          ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
        IF (J(P) .EQ. J(Q)) THEN
-          ZMAG1 = ABS(A(Q,P)) + ABS(A(P,Q))
+          ZMAGF2 = D_ZERO
+          !DIR$ FMA
+          ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
+          !DIR$ FMA
+          ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+          !DIR$ FMA
+          ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
+          !DIR$ FMA
+          ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ELSE ! J(P) .NE. J(Q)
           B(1,1) = A(P,P)
           B(2,1) = A(Q,P)
@@ -33,57 +41,15 @@ CONTAINS
           J2(2) = J(Q)
           CALL ZHSVD2(B, J2, U2, Z2, INFO)
           IF (INFO .LE. 0) THEN
-             ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+             ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE ! a non-trivial transform
-             ZMAG1 = ABODNZ1(Z2, N, A(1,P), A(1,Q), P, Q)
+             ZMAGF2 = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
           END IF
        END IF
     ELSE ! no transform
-       ZMAG1 = QUIET_NAN((P - 1) * N + (Q - 1))
+       ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
-  END FUNCTION ZMAG1
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE REAL(KIND=DWP) FUNCTION ZMAG2(N, P, Q, A, LDA, J)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
-    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
-
-    COMPLEX(KIND=DWP) :: B(2,2), U2(2,2), Z2(2,2)
-    INTEGER :: J2(2), INFO
-
-    IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
-         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
-         ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
-       IF (J(P) .EQ. J(Q)) THEN
-          ZMAG2 = D_ZERO
-          !DIR$ FMA
-          ZMAG2 = ZMAG2 + REAL(A(Q,P)) * REAL(A(Q,P))
-          !DIR$ FMA
-          ZMAG2 = ZMAG2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          !DIR$ FMA
-          ZMAG2 = ZMAG2 + REAL(A(P,Q)) * REAL(A(P,Q))
-          !DIR$ FMA
-          ZMAG2 = ZMAG2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-       ELSE ! J(P) .NE. J(Q)
-          B(1,1) = A(P,P)
-          B(2,1) = A(Q,P)
-          B(1,2) = A(P,Q)
-          B(2,2) = A(Q,Q)
-          J2(1) = J(P)
-          J2(2) = J(Q)
-          CALL ZHSVD2(B, J2, U2, Z2, INFO)
-          IF (INFO .LE. 0) THEN
-             ZMAG2 = QUIET_NAN((P - 1) * N + (Q - 1))
-          ELSE ! a non-trivial transform
-             ZMAG2 = ABODNZ2(Z2, N, A(1,P), A(1,Q), P, Q)
-          END IF
-       END IF
-    ELSE ! no transform
-       ZMAG2 = QUIET_NAN((P - 1) * N + (Q - 1))
-    END IF
-  END FUNCTION ZMAG2
+  END FUNCTION ZMAGF2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -107,12 +73,10 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    IF (ID_MAG .EQ. 0) ID_MAG = 2
+    IF (ID_MAG .EQ. 0) ID_MAG = 1
     SELECT CASE (ID_MAG)
     CASE (1)
-       R%MAG => ZMAG1
-    CASE (2)
-       R%MAG => ZMAG2
+       R%MAG => ZMAGF2
     CASE DEFAULT
        R%MAG => NULL()
        INFO = -2
