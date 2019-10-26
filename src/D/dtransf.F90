@@ -37,26 +37,33 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE CA(B, N, X, Y, LDA)
+  PURE SUBROUTINE CA(B, N, A)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2)
-    INTEGER, INTENT(IN) :: N, LDA
-    REAL(KIND=DWP), INTENT(INOUT) :: X(*), Y(*)
+    INTEGER, INTENT(IN) :: N
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,N)
 
-    REAL(KIND=DWP) :: XX, YY
-    INTEGER :: I, J
+    REAL(KIND=DWP) :: C(2,N)
+    INTEGER :: J
 
-    I = 1
-    !DIR$ VECTOR ALWAYS
-    DO J = 1, N
+    IF (N .EQ. 1) THEN
        !DIR$ FMA
-       XX = X(I) + B(1,2) * Y(I)
+       C(1,1) = (A(1,1) + B(1,2) * A(2,1)) * B(1,1)
        !DIR$ FMA
-       YY = B(2,1) * X(I) + Y(I)
-       X(I) = B(1,1) * XX
-       Y(I) = B(2,2) * YY
-       I = I + LDA
-    END DO
+       C(2,1) = (B(2,1) * A(1,1) + A(2,1)) * B(2,2)
+    ELSE IF (N .GE. 2) THEN
+       !DIR$ VECTOR ALWAYS ASSERT
+       DO J = 1, N
+          !DIR$ FMA
+          C(1,J) = (A(1,J) + B(1,2) * A(2,J)) * B(1,1)
+          !DIR$ FMA
+          C(2,J) = (B(2,1) * A(1,J) + A(2,J)) * B(2,2)
+       END DO
+    ELSE ! should never happen
+       RETURN
+    END IF
+    !DIR$ VECTOR ALWAYS ASSERT
+    A = C
   END SUBROUTINE CA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -139,24 +146,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AC(B, M, X, Y)
+  PURE SUBROUTINE AC(B, A)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2)
-    INTEGER, INTENT(IN) :: M
-    REAL(KIND=DWP), INTENT(INOUT) :: X(M), Y(M)
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
 
-    REAL(KIND=DWP) :: XX, YY
+    REAL(KIND=DWP) :: C(2,2)
     INTEGER :: I
 
     !DIR$ VECTOR ALWAYS ASSERT
-    DO I = 1, M
+    DO I = 1, 2
        !DIR$ FMA
-       XX = X(I) + Y(I) * B(2,1)
+       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) * B(1,1)
        !DIR$ FMA
-       YY = X(I) * B(1,2) + Y(I)
-       X(I) = XX * B(1,1)
-       Y(I) = YY * B(2,2)
+       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) * B(2,2)
     END DO
+    !DIR$ VECTOR ALWAYS ASSERT
+    A = C
   END SUBROUTINE AC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -703,14 +709,14 @@ CONTAINS
        V(1,2) = -TU !-SU
        V(2,2) =  CU
 
-       CALL CA(V, 2, U(1,1), U(2,1), 2)
-       CALL CA(V, 2, A(1,1), A(2,1), 2)
+       CALL CA(V, 2, U)
+       CALL CA(V, 2, A)
     ELSE ! INFO .NE. 0
        INFO = 0
     END IF
 
-    CALL AC(W, 2, A(1,1), A(1,2))
-    CALL AC(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, A)
+    CALL AC(W, Z)
 
     A(1,2) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
@@ -804,8 +810,8 @@ CONTAINS
        V(1,2) = -TU !-SU
        V(2,2) =  CU
 
-       CALL CA(V, 2, U(1,1), U(2,1), 2)
-       CALL CA(V, 2, A(1,1), A(2,1), 2)
+       CALL CA(V, 2, U)
+       CALL CA(V, 2, A)
     ELSE ! INFO .NE. 0
        INFO = 0
     END IF
@@ -815,8 +821,8 @@ CONTAINS
     W(1,2) =  TZ ! SZ
     W(2,2) =  CZ
 
-    CALL AC(W, 2, A(1,1), A(1,2))
-    CALL AC(W, 2, Z(1,1), Z(1,2))
+    CALL AC(W, A)
+    CALL AC(W, Z)
 
     A(2,1) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
@@ -917,8 +923,8 @@ CONTAINS
     Q(2,1) = -S
     Q(1,2) =  S
     Q(2,2) =  C
-    CALL CA(Q, 1, A(1,2), A(2,2), 2)
-    CALL CA(Q, 2, U(1,1), U(2,1), 2)
+    CALL CA(Q, 1, A(1,2))
+    CALL CA(Q, 2, U)
 
     ! make diag(A) non-negative
     IF (SIGN(D_ONE, R) .EQ. D_MONE) THEN
