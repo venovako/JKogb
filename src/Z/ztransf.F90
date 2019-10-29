@@ -449,6 +449,8 @@ CONTAINS
     REAL(KIND=DWP) :: W
 
     INFO = 0
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
 
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) real
@@ -541,7 +543,6 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    A(1,2) = Z_ZERO
     CALL ZHSVD2D(A, U, INFO)
     INFO = 1
   END SUBROUTINE ZHSVD2U
@@ -566,7 +567,6 @@ CONTAINS
     CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
 
-    A(2,1) = Z_ZERO
     CALL ZHSVD2D(A, U, INFO)
     INFO = 1
   END SUBROUTINE ZHSVD2L

@@ -243,8 +243,8 @@ CONTAINS
     ! D = SUM(oldX(I)^2-newX(I)^2 + oldY(I)^2-newY(I)^2)
     !   = ||oldX oldY||_F^2 - ||newX newY||_F^2
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
     INTEGER, INTENT(IN) :: M, P, Q
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
 
     REAL(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
@@ -428,6 +428,9 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     INFO = 0
+    ! make the zeroes positive
+    A(2,1) = D_ZERO
+    A(1,2) = D_ZERO
 
     IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
        ! A(1,1) negative
@@ -586,7 +589,6 @@ CONTAINS
     CALL AC(W, A)
     CALL AC(W, Z)
 
-    A(1,2) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
   END SUBROUTINE DHSVD2U
@@ -692,7 +694,6 @@ CONTAINS
     CALL AC(W, A)
     CALL AC(W, Z)
 
-    A(2,1) = D_ZERO
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
   END SUBROUTINE DHSVD2L
