@@ -743,22 +743,26 @@ CONTAINS
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
        ! A diagonal
-       IF (H .AND. (INFO .EQ. 1)) THEN
-          ! swap the rows of U
-          ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
-          R = U(1,1)
-          S = U(1,2)
-          U(1,1) = U(2,1)
-          U(1,2) = U(2,2)
-          U(2,1) = R
-          U(2,2) = S
-          ! swap the diagonal elements of A
-          ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
-          R = A(1,1)
-          A(1,1) = A(2,2)
-          A(2,2) = R
-          ! early exit
-          INFO = 0
+       IF (H) THEN
+          IF (INFO .EQ. 1) THEN
+             ! swap the rows of U
+             ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+             R = U(1,1)
+             S = U(1,2)
+             U(1,1) = U(2,1)
+             U(1,2) = U(2,2)
+             U(2,1) = R
+             U(2,2) = S
+             ! swap the diagonal elements of A
+             ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+             R = A(1,1)
+             A(1,1) = A(2,2)
+             A(2,2) = R
+          ELSE ! mark the transform
+             INFO = 1
+          END IF
+       ELSE ! mark the transform
+          INFO = 1
        END IF
     ELSE IF (H .AND. (INFO .EQ. 1)) THEN
        ! swap the columns of A
