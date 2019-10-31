@@ -130,6 +130,7 @@ CONTAINS
     REAL(KIND=DWP) :: T
 #endif
 
+    SL = 0
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (S .LT. 0) THEN
@@ -150,7 +151,6 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    SL = 0
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
