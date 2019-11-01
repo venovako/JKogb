@@ -281,6 +281,7 @@ CONTAINS
 
     INTEGER :: I, J, K, AP, AQ, BP, BQ
 
+    SL = 0
     IF (NT .LE. 1) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -297,7 +298,6 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    SL = 0
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
 
@@ -329,11 +329,6 @@ CONTAINS
        I = K
     END DO
 
-    !DIR$ VECTOR ALWAYS ASSERT
-    DO I = SL+1, N_2
-       STEP(I) = 0
-    END DO
-
 1   INFO = GET_THREAD_NS() - INFO
   END SUBROUTINE AW_NCP1
 
@@ -348,6 +343,7 @@ CONTAINS
     INTEGER :: I, J, K, AP, AQ, BP, BQ
     LOGICAL :: C
 
+    SL = 0
     IF (NT .NE. 1) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -364,7 +360,6 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    SL = 0
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
 
@@ -396,11 +391,6 @@ CONTAINS
        END DO
        SL = I
        IF (J .GT. NN) EXIT
-    END DO
-
-    !DIR$ VECTOR ALWAYS ASSERT
-    DO I = SL+1, N_2
-       STEP(I) = 0
     END DO
 
 2   INFO = GET_THREAD_NS() - INFO
