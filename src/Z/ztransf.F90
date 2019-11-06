@@ -6,6 +6,44 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE COMPLEX(KIND=DWP) FUNCTION ZFMA(A, B, C)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A, B, C
+
+    REAL(KIND=DWP) :: F, R, I
+
+    !DIR$ FMA
+    F = REAL(C) - AIMAG(A) * AIMAG(B)
+    !DIR$ FMA
+    R = REAL(A) * REAL(B) + F
+    !DIR$ FMA
+    F = AIMAG(A) * REAL(B) + AIMAG(C)
+    !DIR$ FMA
+    I = REAL(A) * AIMAG(B) + F
+
+    ZFMA = CMPLX(R, I, DWP)
+  END FUNCTION ZFMA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE COMPLEX(KIND=DWP) FUNCTION ZMUL(A, B)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A, B
+
+    REAL(KIND=DWP) :: F, R, I
+
+    F = AIMAG(A) * AIMAG(B)
+    !DIR$ FMA
+    R = REAL(A) * REAL(B) - F
+    F = AIMAG(A) * REAL(B)
+    !DIR$ FMA
+    I = REAL(A) * AIMAG(B) + F
+
+    ZMUL = CMPLX(R, I, DWP)
+  END FUNCTION ZMUL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
@@ -49,10 +87,19 @@ CONTAINS
     INTEGER :: I, J
 
     I = 1
+
+    ! DO J = 1, N
+    !    XX = X(I) + B(1,2) * Y(I)
+    !    YY = B(2,1) * X(I) + Y(I)
+    !    X(I) = B(1,1) * XX
+    !    Y(I) = B(2,2) * YY
+    !    I = I + LDA
+    ! END DO
+
     !DIR$ VECTOR ALWAYS
     DO J = 1, N
-       XX = X(I) + B(1,2) * Y(I)
-       YY = B(2,1) * X(I) + Y(I)
+       XX = ZFMA(B(1,2), Y(I), X(I))
+       YY = ZFMA(B(2,1), X(I), Y(I))
        X(I) = REAL(B(1,1)) * XX
        Y(I) = REAL(B(2,2)) * YY
        I = I + LDA
@@ -81,9 +128,17 @@ CONTAINS
     ! END DO
 
     IF (ABS(B(1,1)) .GE. ABS(B(1,2))) THEN
-       R1 = B(1,2) / B(1,1)
+       IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
+          R1 = B(1,2) / REAL(B(1,1))
+       ELSE ! B(1,1) complex
+          R1 = B(1,2) / B(1,1)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
-          R2 = B(2,1) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,1) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(2,1) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = X(I) + R1 * Y(I)
@@ -93,7 +148,11 @@ CONTAINS
              I = I + LDA
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
-          R2 = B(2,2) / B(2,1)
+          IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(2,1))
+          ELSE ! B(2,1) complex
+             R2 = B(2,2) / B(2,1)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = X(I) + R1 * Y(I)
@@ -104,9 +163,17 @@ CONTAINS
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(1,2))
-       R1 = B(1,1) / B(1,2)
+       IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
+          R1 = B(1,1) / REAL(B(1,2))
+       ELSE ! B(1,2) complex
+          R1 = B(1,1) / B(1,2)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
-          R2 = B(2,1) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,1) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(2,1) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = R1 * X(I) + Y(I)
@@ -116,7 +183,11 @@ CONTAINS
              I = I + LDA
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
-          R2 = B(2,2) / B(2,1)
+          IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(2,1))
+          ELSE ! B(2,1) complex
+             R2 = B(2,2) / B(2,1)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = R1 * X(I) + Y(I)
@@ -140,10 +211,17 @@ CONTAINS
     COMPLEX(KIND=DWP) :: XX, YY
     INTEGER :: I
 
-    !DIR$ VECTOR ALWAYS ASSERT
+    ! DO I = 1, M
+    !    XX = X(I) + Y(I) * B(2,1)
+    !    YY = X(I) * B(1,2) + Y(I)
+    !    X(I) = XX * REAL(B(1,1))
+    !    Y(I) = YY * REAL(B(2,2))
+    ! END DO
+
+    !DIR$ VECTOR ALWAYS
     DO I = 1, M
-       XX = X(I) + Y(I) * B(2,1)
-       YY = X(I) * B(1,2) + Y(I)
+       XX = ZFMA(Y(I), B(2,1), X(I))
+       YY = ZFMA(X(I), B(1,2), Y(I))
        X(I) = XX * REAL(B(1,1))
        Y(I) = YY * REAL(B(2,2))
     END DO
@@ -168,9 +246,17 @@ CONTAINS
     ! END DO
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
-       R1 = B(2,1) / B(1,1)
+       IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
+          R1 = B(2,1) / REAL(B(1,1))
+       ELSE ! B(1,1) complex
+          R1 = B(2,1) / B(1,1)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
-          R2 = B(1,2) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(1,2) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(1,2) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
@@ -179,7 +265,11 @@ CONTAINS
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
-          R2 = B(2,2) / B(1,2)
+          IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(1,2))
+          ELSE ! B(1,2) complex
+             R2 = B(2,2) / B(1,2)
+          END IF
           !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
@@ -189,9 +279,17 @@ CONTAINS
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
-       R1 = B(1,1) / B(2,1)
+       IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
+          R1 = B(1,1) / REAL(B(2,1))
+       ELSE ! B(2,1) complex
+          R1 = B(1,1) / B(2,1)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
-          R2 = B(1,2) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(1,2) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(1,2) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
@@ -200,7 +298,11 @@ CONTAINS
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
-          R2 = B(2,2) / B(1,2)
+          IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(1,2))
+          ELSE ! B(1,2) complex
+             R2 = B(2,2) / B(1,2)
+          END IF
           !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
@@ -241,14 +343,20 @@ CONTAINS
     ABODNZF2 = ABODNZF2 + AIMAG(X(Q)) * AIMAG(X(Q))
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
-       R1 = B(2,1) / B(1,1)
+       IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
+          R1 = B(2,1) / REAL(B(1,1))
+       ELSE ! B(1,1) complex
+          R1 = B(2,1) / B(1,1)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
-          R2 = B(1,2) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(1,2) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(1,2) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -261,9 +369,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -276,9 +382,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -290,12 +394,14 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
-          R2 = B(2,2) / B(1,2)
+          IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(1,2))
+          ELSE ! B(1,2) complex
+             R2 = B(2,2) / B(1,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -308,9 +414,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -323,9 +427,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -338,14 +440,20 @@ CONTAINS
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
-       R1 = B(1,1) / B(2,1)
+       IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
+          R1 = B(1,1) / REAL(B(2,1))
+       ELSE ! B(2,1) complex
+          R1 = B(1,1) / B(2,1)
+       END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
-          R2 = B(1,2) / B(2,2)
+          IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
+             R2 = B(1,2) / REAL(B(2,2))
+          ELSE ! B(2,2) complex
+             R2 = B(1,2) / B(2,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -358,9 +466,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -373,9 +479,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -387,12 +491,14 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
-          R2 = B(2,2) / B(1,2)
+          IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
+             R2 = B(2,2) / REAL(B(1,2))
+          ELSE ! B(1,2) complex
+             R2 = B(2,2) / B(1,2)
+          END IF
           !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -405,9 +511,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -420,9 +524,7 @@ CONTAINS
           END DO
           !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
@@ -479,8 +581,8 @@ CONTAINS
        ! A(1,1) complex .NE. 0
        W = ABS(A(1,1))
        V = CONJG(A(1,1) / W)
-       U(1,1) = V * U(1,1)
-       U(1,2) = V * U(1,2)
+       U(1,1) = ZMUL(V, U(1,1))
+       U(1,2) = ZMUL(V, U(1,2))
        A(1,1) = W
     END IF
 
@@ -511,8 +613,8 @@ CONTAINS
        ! A(2,2) complex .NE. 0
        W = ABS(A(2,2))
        V = CONJG(A(2,2) / W)
-       U(2,1) = V * U(2,1)
-       U(2,2) = V * U(2,2)
+       U(2,1) = ZMUL(V, U(2,1))
+       U(2,2) = ZMUL(V, U(2,2))
        A(2,2) = W
     END IF
   END SUBROUTINE ZHSVD2D
@@ -656,7 +758,11 @@ CONTAINS
 
     ! C * |   1 e**i\alpha T | = Q
     !     | -e**-i\alpha T 1 |
-    S = A(2,1) / A(1,1)
+    IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
+       S = A(2,1) / REAL(A(1,1))
+    ELSE ! A(1,1) complex
+       S = A(2,1) / A(1,1)
+    END IF
     T = ABS(S)
     ! e**i\alpha = conjg(S)/T
     ! S is e**i\alpha * T here
@@ -706,9 +812,9 @@ CONTAINS
        R = A(1,1)
        A(1,1) = ABS(A(1,1))
        R = CONJG(R / REAL(A(1,1)))
-       U(1,1) = R * U(1,1)
-       U(1,2) = R * U(1,2)
-       A(1,2) = R * A(1,2)
+       U(1,1) = ZMUL(R, U(1,1))
+       U(1,2) = ZMUL(R, U(1,2))
+       A(1,2) = ZMUL(R, A(1,2))
     END IF
     ! the second row of U and A
     IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
@@ -737,8 +843,8 @@ CONTAINS
        R = A(2,2)
        A(2,2) = ABS(A(2,2))
        R = CONJG(R / REAL(A(2,2)))
-       U(2,1) = R * U(2,1)
-       U(2,2) = R * U(2,2)
+       U(2,1) = ZMUL(R, U(2,1))
+       U(2,2) = ZMUL(R, U(2,2))
     END IF
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
