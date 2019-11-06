@@ -65,15 +65,15 @@ CONTAINS
 
     SELECT CASE (CLK(3))
     CASE (1000)       ! ms
-       WRITE (UOUT,1) Q, R
+       WRITE (OUTPUT_UNIT,1) Q, R
     CASE (1000000)    ! us
-       WRITE (UOUT,2) Q, R
+       WRITE (OUTPUT_UNIT,2) Q, R
     CASE (1000000000) ! ns
-       WRITE (UOUT,3) Q, R
+       WRITE (OUTPUT_UNIT,3) Q, R
     CASE DEFAULT      ! other scale
-       WRITE (UOUT,4) Q, R, CLK(3)
+       WRITE (OUTPUT_UNIT,4) Q, R, CLK(3)
     END SELECT
-    FLUSH(UOUT)
+    FLUSH(OUTPUT_UNIT)
 
 1   FORMAT(I5,'.',I3.3,' s')
 2   FORMAT(I5,'.',I6.6,' s')

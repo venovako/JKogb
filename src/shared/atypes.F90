@@ -81,13 +81,12 @@ CONTAINS
   !     outer bands first
   !       within a band, the lower elements first
 #ifdef _GNU_SOURCE
-  RECURSIVE FUNCTION AW_CMP1(PA, PB, CTX) BIND(C)
+  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP1(PA, PB, CTX) BIND(C)
 #else
-  RECURSIVE FUNCTION AW_CMP1(CTX, PA, PB) BIND(C)
+  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP1(CTX, PA, PB) BIND(C)
 #endif
     IMPLICIT NONE
     TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB, CTX
-    INTEGER(KIND=c_int) :: AW_CMP1
 
     TYPE(AW), POINTER :: A, B
 

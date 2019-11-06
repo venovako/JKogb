@@ -334,39 +334,43 @@ CONTAINS
     INFO = 0
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) RETURN
 
-    WRITE (ULOG,'(I10,A)',ADVANCE='NO') S, ','
-    FLUSH(ULOG)
+    WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
+    FLUSH(ERROR_UNIT)
     CALL ZSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, N_2, SL, STEP, INFO)
     IF (INFO .LE. 0) THEN
        IT = INFO
     ELSE
        IT = SL
     END IF
-    WRITE (ULOG,'(I11,A)',ADVANCE='NO') IT, ','
-    FLUSH(ULOG)
+    WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') IT, ','
+    FLUSH(ERROR_UNIT)
 
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
+       WRITE (ERROR_UNIT,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
+            D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE IF (SL .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') (INFO * DNS2S), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
-    ELSE
-       WRITE (ULOG,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
+       WRITE (ERROR_UNIT,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
+            (INFO * DNS2S), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
+    ELSE ! default
+       WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
     END IF
-    FLUSH(ULOG)
+    FLUSH(ERROR_UNIT)
 
     IF (SL .LE. 0) RETURN
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) INFO = 0
     IF (INFO .LE. 0) THEN
-       WRITE (ULOG,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
-       FLUSH(ULOG)
+       WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
+            D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
+       FLUSH(ERROR_UNIT)
        RETURN
     END IF
 
     IT = GET_THREAD_NS()
     CALL ZSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
     IT = MAX(GET_THREAD_NS() - IT, 1)
-    WRITE (ULOG,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') (IT * DNS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
-    FLUSH(ULOG)
+    WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
+         (IT * DNS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
+    FLUSH(ERROR_UNIT)
 
     SL = MIN(SL, NL)
     INFO = INFO + IT
@@ -478,22 +482,24 @@ CONTAINS
 #ifdef ANIMATE
     INFO = VN_CMPLXVIS_START(CTX, FNAME, ACT, N, N, SX, SY, LEN_TRIM(FNAME))
     IF (INFO .NE. 0) THEN
-       WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_START:', INFO
+       WRITE (ERROR_UNIT,'(A,I11)') 'VN_CMPLXVIS_START:', INFO
+       FLUSH(ERROR_UNIT)
        RETURN
     END IF
 #else
     INFO = 0
 #endif
 
-    WRITE (ULOG,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORM1D","TRIG","HYP"'
-    FLUSH(ULOG)
+    WRITE (ERROR_UNIT,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORM1D","TRIG","HYP"'
+    FLUSH(ERROR_UNIT)
 
     S = 0
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_ATOMIC_INT_KIND))
 #ifdef ANIMATE
        INFO = VN_CMPLXVIS_FRAME(CTX, A, N)
        IF (INFO .NE. 0) THEN
-          WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_FRAME:', INFO
+          WRITE (ERROR_UNIT,'(A,I11)') 'VN_CMPLXVIS_FRAME:', INFO
+          FLUSH(ERROR_UNIT)
           RETURN
        END IF
 #endif
@@ -510,7 +516,10 @@ CONTAINS
 
 #ifdef ANIMATE
     S = VN_CMPLXVIS_STOP(CTX)
-    IF (S .NE. 0) WRITE (ULOG,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
+    IF (S .NE. 0) THEN
+       WRITE (ERROR_UNIT,'(A,I11)') 'VN_CMPLXVIS_STOP:', S
+       FLUSH(ERROR_UNIT)
+    END IF
 #endif
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)

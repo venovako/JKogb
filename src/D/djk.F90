@@ -20,35 +20,43 @@ PROGRAM DJK
   CALL READCL(FN, N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO)
   IF (INFO .NE. 0) ERROR STOP 'zjk.exe FN N N_2 [ID_MAG [ID_CMP [ID_TRU]]]'
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,A)')   '    FN=', TRIM(FN)
-  WRITE (ULOG,'(A,I11)') '     N=', N
+  WRITE (ERROR_UNIT,'(A,A)')   '    FN=', TRIM(FN)
+  FLUSH(ERROR_UNIT)
+  WRITE (ERROR_UNIT,'(A,I11)') '     N=', N
+  FLUSH(ERROR_UNIT)
 #endif
   IF (N .LE. 1) ERROR STOP 'N < 2'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '   N_2=', N_2
+  WRITE (ERROR_UNIT,'(A,I11)') '   N_2=', N_2
+  FLUSH(ERROR_UNIT)
 #endif
   IF (INFO .LE. 0) ERROR STOP 'JSTEP_LEN'
 
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '    NT=', NT
+  WRITE (ERROR_UNIT,'(A,I11)') '    NT=', NT
+  FLUSH(ERROR_UNIT)
 #endif
 
   CALL DPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') 'ID_MAG=', ID_MAG
-  WRITE (ULOG,'(A,I11)') 'ID_CMP=', ID_CMP
-  WRITE (ULOG,'(A,I11)') 'ID_TRU=', ID_TRU
+  WRITE (ERROR_UNIT,'(A,I11)') 'ID_MAG=', ID_MAG
+  FLUSH(ERROR_UNIT)
+  WRITE (ERROR_UNIT,'(A,I11)') 'ID_CMP=', ID_CMP
+  FLUSH(ERROR_UNIT)
+  WRITE (ERROR_UNIT,'(A,I11)') 'ID_TRU=', ID_TRU
+  FLUSH(ERROR_UNIT)
 #endif
   IF (INFO .NE. 0) ERROR STOP 'DPROC_INIT'
 
   CALL DOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
      ERROR STOP 'DOPEN_YJ_RO'
   END IF
 
@@ -70,34 +78,38 @@ PROGRAM DJK
   NM = 2 * (NN + INFO)
   ALLOCATE(DZ(NM))
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '    NM=', NM
+  WRITE (ERROR_UNIT,'(A,I11)') '    NM=', NM
+  FLUSH(ERROR_UNIT)
 #endif
 
   CALL DREAD_YJ(FD, A, J, N, N, SZ, INFO)
   IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
      ERROR STOP 'DREAD_YJ'
   END IF
   CALL BCLOSEN(FD, 3)
 
   CALL R%TRU(N, P, Q, NN, INFO)
   IF (INFO .NE. NN) THEN
-     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
      ERROR STOP 'R%TRU'
   END IF
 #ifndef NDEBUG
-  WRITE (ULOG,'(A,I11)') '    NN=', NN
+  WRITE (ERROR_UNIT,'(A,I11)') '    NN=', NN
+  FLUSH(ERROR_UNIT)
 #endif
 
   FD(1) = GET_THREAD_NS()
   CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
   FD(1) = GET_THREAD_NS() - FD(1)
   IF (INFO .GE. 0) THEN
-     WRITE (UOUT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
-     FLUSH(UOUT)
+     WRITE (OUTPUT_UNIT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
+     FLUSH(OUTPUT_UNIT)
   ELSE ! error
-     WRITE (ULOG,'(A,I10,A,F12.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DNS2s), ' s'
-     FLUSH(ULOG)
+     WRITE (ERROR_UNIT,'(A,I10,A,F12.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DNS2s), ' s'
+     FLUSH(ERROR_UNIT)
   END IF
 
   IF (ALLOCATED(DZ)) DEALLOCATE(DZ)
@@ -109,13 +121,15 @@ PROGRAM DJK
 
   CALL DOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
   IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
      ERROR STOP 'DOPEN_UZS_RW'
   END IF
 
   CALL DWRITE_UZS(FD, U, Z, S, N, N, INFO)
   IF (INFO .NE. 0) THEN
-     WRITE (ULOG,'(A,I11)') 'INFO=', INFO
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
      ERROR STOP 'DWRITE_UZS'
   END IF
 

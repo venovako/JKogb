@@ -6,6 +6,8 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! after zfma() from CUDA's cuComplex.h
+
   PURE COMPLEX(KIND=DWP) FUNCTION ZFMA(A, B, C)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B, C
