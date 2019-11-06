@@ -16,7 +16,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
-    COMPLEX(KIND=DWP) :: B(2,2), U2(2,2), Z2(2,2)
+    COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: J2(2), INFO
 
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
@@ -33,13 +33,13 @@ CONTAINS
           !DIR$ FMA
           ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ELSE ! J(P) .NE. J(Q)
-          B(1,1) = A(P,P)
-          B(2,1) = A(Q,P)
-          B(1,2) = A(P,Q)
-          B(2,2) = A(Q,Q)
+          A2(1,1) = A(P,P)
+          A2(2,1) = A(Q,P)
+          A2(1,2) = A(P,Q)
+          A2(2,2) = A(Q,Q)
           J2(1) = J(P)
           J2(2) = J(Q)
-          CALL ZHSVD2(B, J2, U2, Z2, INFO)
+          CALL ZHSVD2(A2, J2, U2, Z2, INFO)
           IF (INFO .LE. 0) THEN
              ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE ! a non-trivial transform
@@ -156,7 +156,7 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NT,NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
