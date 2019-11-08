@@ -90,6 +90,19 @@ PROGRAM DJK
   END IF
   CALL BCLOSEN(FD, 3)
 
+  FD = 0
+  DO INFO = 1, N
+     IF (J(INFO) .EQ. 1) THEN
+        FD(1) = FD(1) + 1
+     ELSE IF (J(INFO) .EQ. -1) THEN
+        FD(2) = FD(2) + 1
+     ELSE ! error
+        ERROR STOP 'invalid entry in J'
+     END IF
+  END DO
+  WRITE (OUTPUT_UNIT,'(2(A,I11),A)') 'J contains', FD(1), ' positive and', FD(2), ' negative signs.'
+  FLUSH(OUTPUT_UNIT)
+
   CALL R%TRU(N, P, Q, NN, INFO)
   IF (INFO .NE. NN) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
