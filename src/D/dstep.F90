@@ -47,8 +47,10 @@ CONTAINS
           J2(1) = J(P)
           J2(2) = J(Q)
           CALL DHSVD2(A2, J2, U2, Z2, INFO)
-          IF (INFO .LE. 0) THEN
+          IF (INFO .LE. 1) THEN
              DMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
+          ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
+             DMAGF2 = D_MZERO
           ELSE ! a non-trivial transform
              DMAGF2 = ABODNDF2(Z2, N, A(1,P), A(1,Q), P, Q)
           END IF
