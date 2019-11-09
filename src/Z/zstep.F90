@@ -43,7 +43,7 @@ CONTAINS
           IF (INFO .LE. 1) THEN
              ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
-             DMAGF2 = D_MZERO
+             ZMAGF2 = D_MZERO
           ELSE ! a non-trivial transform
              ZMAGF2 = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
           END IF
