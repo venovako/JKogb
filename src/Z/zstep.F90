@@ -23,7 +23,7 @@ CONTAINS
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
          ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
        IF (J(P) .EQ. J(Q)) THEN
-1         ZMAGF2 = D_ZERO
+          ZMAGF2 = D_ZERO
           !DIR$ FMA
           ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
           !DIR$ FMA
@@ -32,7 +32,6 @@ CONTAINS
           ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
           !DIR$ FMA
           ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-          RETURN
        ELSE ! J(P) .NE. J(Q)
           A2(1,1) = A(P,P)
           A2(2,1) = A(Q,P)
@@ -44,7 +43,15 @@ CONTAINS
           IF (INFO .LE. 1) THEN
              ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
-             GOTO 1
+             ZMAGF2 = D_ZERO
+             !DIR$ FMA
+             ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
+             !DIR$ FMA
+             ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+             !DIR$ FMA
+             ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
+             !DIR$ FMA
+             ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
           ELSE ! a non-trivial transform
              ZMAGF2 = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
           END IF
@@ -154,9 +161,9 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_THREAD_NS()
-    IF (N .EQ. 0) GOTO 2
-    IF (NN .EQ. 0) GOTO 2
-    IF (N_2 .EQ. 0) GOTO 2
+    IF (N .EQ. 0) GOTO 1
+    IF (NN .EQ. 0) GOTO 1
+    IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
@@ -171,7 +178,7 @@ CONTAINS
     END DO
     !$OMP END PARALLEL DO
 
-    IF (IT .EQ. 0) GOTO 2
+    IF (IT .EQ. 0) GOTO 1
     IF (IT .LT. NN) THEN
        ! remove NaN weights
        I = 1
@@ -222,7 +229,7 @@ CONTAINS
     END IF
 #endif
 
-2   INFO = MAX(GET_THREAD_NS() - INFO, 1)
+1   INFO = MAX(GET_THREAD_NS() - INFO, 1)
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
        T = INFO * DNS2S
@@ -493,7 +500,7 @@ CONTAINS
     INFO = 0
 #endif
 
-    WRITE (ERROR_UNIT,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORM1D","TRIG","HYP"'
+    WRITE (ERROR_UNIT,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORMF2D","TRIG","HYP"'
     FLUSH(ERROR_UNIT)
 
     S = 0
