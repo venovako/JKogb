@@ -29,13 +29,11 @@ CONTAINS
                 DMAGF2 = D_ZERO
              ELSE ! A2(2,1) .GT. D_ZERO
                 A2(1,1) = A2(1,2) / A2(2,1)
-                !DIR$ FMA
                 DMAGF2 = A2(1,1) * A2(1,2) + A2(2,1)
                 DMAGF2 = DMAGF2 * A2(2,1)
              END IF
           ELSE ! A2(2,1) .LT. A2(1,2)
              A2(2,2) = A2(2,1) / A2(1,2)
-             !DIR$ FMA
              DMAGF2 = A2(1,2) + A2(2,1) * A2(2,2)
              DMAGF2 = DMAGF2 * A2(1,2)
           END IF
@@ -57,13 +55,11 @@ CONTAINS
                    DMAGF2 = D_ZERO
                 ELSE ! A2(2,1) .GT. D_ZERO
                    A2(1,1) = A2(1,2) / A2(2,1)
-                   !DIR$ FMA
                    DMAGF2 = A2(1,1) * A2(1,2) + A2(2,1)
                    DMAGF2 = DMAGF2 * A2(2,1)
                 END IF
              ELSE ! A2(2,1) .LT. A2(1,2)
                 A2(2,2) = A2(2,1) / A2(1,2)
-                !DIR$ FMA
                 DMAGF2 = A2(1,2) + A2(2,1) * A2(2,2)
                 DMAGF2 = DMAGF2 * A2(1,2)
              END IF
@@ -471,12 +467,10 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           U(INFO,S) = D_ZERO
        END DO
        U(S,S) = D_ONE
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           U(INFO,S) = D_ZERO
        END DO
@@ -485,12 +479,10 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,Z)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           Z(INFO,S) = D_ZERO
        END DO
        Z(S,S) = D_ONE
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           Z(INFO,S) = D_ZERO
        END DO

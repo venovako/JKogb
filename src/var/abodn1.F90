@@ -21,53 +21,35 @@
        R1 = B(2,1) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
@@ -76,53 +58,35 @@
        R1 = B(1,1) / B(2,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODND1 = ABODND1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
@@ -153,53 +117,35 @@
        R1 = B(2,1) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
@@ -208,53 +154,35 @@
        R1 = B(1,1) / B(2,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
              ABODNZ1 = ABODNZ1 + (ABS(X(I)) - ABS(XX)) + (ABS(Y(I)) - ABS(YY))
           END DO

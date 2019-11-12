@@ -24,13 +24,9 @@ CONTAINS
          ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
        IF (J(P) .EQ. J(Q)) THEN
           ZMAGF2 = D_ZERO
-          !DIR$ FMA
           ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
-          !DIR$ FMA
           ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          !DIR$ FMA
           ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
-          !DIR$ FMA
           ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ELSE ! J(P) .NE. J(Q)
           A2(1,1) = A(P,P)
@@ -44,13 +40,9 @@ CONTAINS
              ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
           ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
              ZMAGF2 = D_ZERO
-             !DIR$ FMA
              ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
-             !DIR$ FMA
              ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-             !DIR$ FMA
              ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
-             !DIR$ FMA
              ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
           ELSE ! a non-trivial transform
              ZMAGF2 = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
@@ -463,12 +455,10 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           U(INFO,S) = Z_ZERO
        END DO
        U(S,S) = Z_ONE
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           U(INFO,S) = Z_ZERO
        END DO
@@ -477,12 +467,10 @@ CONTAINS
 
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,Z)
     DO S = 1, N
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = 1, S-1
           Z(INFO,S) = Z_ZERO
        END DO
        Z(S,S) = Z_ONE
-       !DIR$ VECTOR ALWAYS ASSERT
        DO INFO = S+1, N
           Z(INFO,S) = Z_ZERO
        END DO

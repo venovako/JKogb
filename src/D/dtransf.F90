@@ -47,22 +47,16 @@ CONTAINS
     INTEGER :: J
 
     IF (N .EQ. 1) THEN
-       !DIR$ FMA
        C(1,1) = (A(1,1) + B(1,2) * A(2,1)) * B(1,1)
-       !DIR$ FMA
        C(2,1) = (B(2,1) * A(1,1) + A(2,1)) * B(2,2)
     ELSE IF (N .GE. 2) THEN
-       !DIR$ VECTOR ALWAYS ASSERT
        DO J = 1, N
-          !DIR$ FMA
           C(1,J) = (A(1,J) + B(1,2) * A(2,J)) * B(1,1)
-          !DIR$ FMA
           C(2,J) = (B(2,1) * A(1,J) + A(2,J)) * B(2,2)
        END DO
     ELSE ! should never happen
        RETURN
     END IF
-    !DIR$ VECTOR ALWAYS ASSERT
     A = C
   END SUBROUTINE CA
 
@@ -91,11 +85,8 @@ CONTAINS
        R1 = B(1,2) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
-             !DIR$ FMA
              XX = X(I) + R1 * Y(I)
-             !DIR$ FMA
              YY = R2 * X(I) + Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
@@ -103,11 +94,8 @@ CONTAINS
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
-             !DIR$ FMA
              XX = X(I) + R1 * Y(I)
-             !DIR$ FMA
              YY = X(I) + R2 * Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,1)
@@ -118,11 +106,8 @@ CONTAINS
        R1 = B(1,1) / B(1,2)
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
-             !DIR$ FMA
              XX = R1 * X(I) + Y(I)
-             !DIR$ FMA
              YY = R2 * X(I) + Y(I)
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,2)
@@ -130,11 +115,8 @@ CONTAINS
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
-             !DIR$ FMA
              XX = R1 * X(I) + Y(I)
-             !DIR$ FMA
              YY = X(I) + R2 * Y(I)
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,1)
@@ -154,14 +136,10 @@ CONTAINS
     REAL(KIND=DWP) :: C(2,2)
     INTEGER :: I
 
-    !DIR$ VECTOR ALWAYS ASSERT
     DO I = 1, 2
-       !DIR$ FMA
        C(I,1) = (A(I,1) + A(I,2) * B(2,1)) * B(1,1)
-       !DIR$ FMA
        C(I,2) = (A(I,1) * B(1,2) + A(I,2)) * B(2,2)
     END DO
-    !DIR$ VECTOR ALWAYS ASSERT
     A = C
   END SUBROUTINE AC
 
@@ -187,22 +165,16 @@ CONTAINS
        R1 = B(2,1) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
-             !DIR$ FMA
              XX = X(I) + Y(I) * R1
-             !DIR$ FMA
              YY = X(I) * R2 + Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
-             !DIR$ FMA
              XX = X(I) + Y(I) * R1
-             !DIR$ FMA
              YY = X(I) + Y(I) * R2
              X(I) = XX * B(1,1)
              Y(I) = YY * B(1,2)
@@ -212,22 +184,16 @@ CONTAINS
        R1 = B(1,1) / B(2,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
-             !DIR$ FMA
              XX = X(I) * R1 + Y(I)
-             !DIR$ FMA
              YY = X(I) * R2 + Y(I)
              X(I) = XX * B(2,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
-             !DIR$ FMA
              XX = X(I) * R1 + Y(I)
-             !DIR$ FMA
              YY = X(I) + Y(I) * R2
              X(I) = XX * B(2,1)
              Y(I) = YY * B(1,2)
@@ -260,12 +226,10 @@ CONTAINS
        IF (XX .EQ. D_ZERO) THEN
           ABODNDF2 = D_ZERO
        ELSE ! XX .GT. D_ZERO
-          !DIR$ FMA
           ABODNDF2 = (YY / XX) * YY + XX
           ABODNDF2 = ABODNDF2 * XX
        END IF
     ELSE ! XX .LT. YY
-       !DIR$ FMA
        ABODNDF2 = YY + XX * (XX / YY)
        ABODNDF2 = ABODNDF2 * YY
     END IF
@@ -274,72 +238,42 @@ CONTAINS
        R1 = B(2,1) / B(1,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) + Y(I) * R1) * B(1,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        END IF
@@ -347,72 +281,42 @@ CONTAINS
        R1 = B(1,1) / B(2,1)
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) * R2 + Y(I)) * B(2,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
-             !DIR$ FMA
              XX = (X(I) * R1 + Y(I)) * B(2,1)
-             !DIR$ FMA
              YY = (X(I) + Y(I) * R2) * B(1,2)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             !DIR$ FMA
              ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        END IF
@@ -473,24 +377,19 @@ CONTAINS
           ELSE ! ABS(X) .GT. Y
              T2U = SCALE(Y, 1) * X
           END IF
-          !DIR$ FMA
           T2U = T2U / (D_ONE + (Y - X) * (Y + X))
           IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! should always happen
-             !DIR$ FMA
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
-          !DIR$ FMA
           CU = D_ONE / SQRT(D_ONE + TU * TU)
           ! SU = TU * CU
-          !DIR$ FMA
           TZ = Y * TU - X
           IF (ABS(TZ) .GE. D_ONE) THEN
              INFO = -8
              RETURN
           END IF
-          !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -9
@@ -512,7 +411,6 @@ CONTAINS
              INFO = -11
              RETURN
           END IF
-          !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -12
@@ -542,20 +440,15 @@ CONTAINS
           ELSE ! ABS(X) .GT. Y
              T2U = -SCALE(Y, 1) * X
           END IF
-          !DIR$ FMA
           T2U = T2U / (D_ONE + (X - Y) * (X + Y))
           IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! should always happen
-             !DIR$ FMA
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
-          !DIR$ FMA
           CU = D_ONE / SQRT(D_ONE + TU * TU)
           ! SU = TU * CU
-          !DIR$ FMA
           TZ = Y * TU - X
-          !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
           ! SZ = TZ * CZ
        ELSE ! A(2,2) .EQ. 0
@@ -564,7 +457,6 @@ CONTAINS
           ! CU = D_ONE
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
-          !DIR$ FMA
           CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
           ! SZ = TZ * CZ
        END IF
@@ -617,24 +509,19 @@ CONTAINS
        ELSE ! ABS(Y) .GT. X
           T2U = -SCALE(X, 1) * Y
        END IF
-       !DIR$ FMA
        T2U = T2U / (D_ONE + (X - Y) * (X + Y))
        IF (.NOT. (ABS(T2U) .LE. HUGE(T2U))) THEN
           TU = SIGN(D_ONE, T2U)
        ELSE ! should always happen
-          !DIR$ FMA
           TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
        END IF
-       !DIR$ FMA
        CU = D_ONE / SQRT(D_ONE + TU * TU)
        ! SU = TU * CU
-       !DIR$ FMA
        TZ = -(X * TU + Y)
        IF (ABS(TZ) .GE. D_ONE) THEN
           INFO = -15
           RETURN
        END IF
-       !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -16
@@ -656,7 +543,6 @@ CONTAINS
           INFO = -18
           RETURN
        END IF
-       !DIR$ FMA
        CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -19
@@ -786,7 +672,6 @@ CONTAINS
     R = SIGN(R, A(1,1))
     ! S is tangent here, |S| <= 1
     S = A(2,1) / A(1,1)
-    !DIR$ FMA
     C = D_ONE / SQRT(D_ONE + S * S)
     Q(1,1) =  C
     Q(2,1) = -S

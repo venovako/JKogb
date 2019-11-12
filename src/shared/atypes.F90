@@ -228,7 +228,6 @@ CONTAINS
           !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPT,A,B)
           I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
           IE = I + (EPT - 1)
-          !DIR$ VECTOR ALWAYS ASSERT
           DO J = I, IE
              A(J) = B(J)
           END DO

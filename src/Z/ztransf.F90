@@ -14,13 +14,9 @@ CONTAINS
 
     REAL(KIND=DWP) :: F, R, I
 
-    !DIR$ FMA
     F = REAL(C) - AIMAG(A) * AIMAG(B)
-    !DIR$ FMA
     R = REAL(A) * REAL(B) + F
-    !DIR$ FMA
     F = AIMAG(A) * REAL(B) + AIMAG(C)
-    !DIR$ FMA
     I = REAL(A) * AIMAG(B) + F
 
     ZFMA = CMPLX(R, I, DWP)
@@ -35,10 +31,8 @@ CONTAINS
     REAL(KIND=DWP) :: F, R, I
 
     F = AIMAG(A) * AIMAG(B)
-    !DIR$ FMA
     R = REAL(A) * REAL(B) - F
     F = AIMAG(A) * REAL(B)
-    !DIR$ FMA
     I = REAL(A) * AIMAG(B) + F
 
     ZMUL = CMPLX(R, I, DWP)
@@ -98,7 +92,6 @@ CONTAINS
     !    I = I + LDA
     ! END DO
 
-    !DIR$ VECTOR ALWAYS
     DO J = 1, N
        XX = ZFMA(B(1,2), Y(I), X(I))
        YY = ZFMA(B(2,1), X(I), Y(I))
@@ -141,7 +134,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(2,1) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = X(I) + R1 * Y(I)
              YY = R2 * X(I) + Y(I)
@@ -155,7 +147,6 @@ CONTAINS
           ELSE ! B(2,1) complex
              R2 = B(2,2) / B(2,1)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = X(I) + R1 * Y(I)
              YY = X(I) + R2 * Y(I)
@@ -176,7 +167,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(2,1) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = R1 * X(I) + Y(I)
              YY = R2 * X(I) + Y(I)
@@ -190,7 +180,6 @@ CONTAINS
           ELSE ! B(2,1) complex
              R2 = B(2,2) / B(2,1)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO J = 1, N
              XX = R1 * X(I) + Y(I)
              YY = X(I) + R2 * Y(I)
@@ -220,7 +209,6 @@ CONTAINS
     !    Y(I) = YY * REAL(B(2,2))
     ! END DO
 
-    !DIR$ VECTOR ALWAYS
     DO I = 1, M
        XX = ZFMA(Y(I), B(2,1), X(I))
        YY = ZFMA(X(I), B(1,2), Y(I))
@@ -259,7 +247,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(1,2) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
              YY = X(I) * R2 + Y(I)
@@ -272,7 +259,6 @@ CONTAINS
           ELSE ! B(1,2) complex
              R2 = B(2,2) / B(1,2)
           END IF
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) + Y(I) * R1
              YY = X(I) + Y(I) * R2
@@ -292,7 +278,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(1,2) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
              YY = X(I) * R2 + Y(I)
@@ -305,7 +290,6 @@ CONTAINS
           ELSE ! B(1,2) complex
              R2 = B(2,2) / B(1,2)
           END IF
-          !DIR$ VECTOR ALWAYS ASSERT
           DO I = 1, M
              XX = X(I) * R1 + Y(I)
              YY = X(I) + Y(I) * R2
@@ -335,13 +319,9 @@ CONTAINS
        RETURN
     END IF
     ABODNZF2 = D_ZERO
-    !DIR$ FMA
     ABODNZF2 = ABODNZF2 + REAL(Y(P)) * REAL(Y(P))
-    !DIR$ FMA
     ABODNZF2 = ABODNZF2 + AIMAG(Y(P)) * AIMAG(Y(P))
-    !DIR$ FMA
     ABODNZF2 = ABODNZF2 + REAL(X(Q)) * REAL(X(Q))
-    !DIR$ FMA
     ABODNZF2 = ABODNZF2 + AIMAG(X(Q)) * AIMAG(X(Q))
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
@@ -356,7 +336,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(1,2) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -364,12 +343,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -377,12 +353,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -390,9 +363,7 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
@@ -401,7 +372,6 @@ CONTAINS
           ELSE ! B(1,2) complex
              R2 = B(2,2) / B(1,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -409,12 +379,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -422,12 +389,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
              XX = (X(I) + Y(I) * R1) * B(1,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -435,9 +399,7 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        END IF
@@ -453,7 +415,6 @@ CONTAINS
           ELSE ! B(2,2) complex
              R2 = B(1,2) / B(2,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -461,12 +422,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -474,12 +432,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) * R2 + Y(I)) * B(2,2)
@@ -487,9 +442,7 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
@@ -498,7 +451,6 @@ CONTAINS
           ELSE ! B(1,2) complex
              R2 = B(2,2) / B(1,2)
           END IF
-          !DIR$ VECTOR ALWAYS
           DO I = 1, P-1
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -506,12 +458,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = P+1, Q-1
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -519,12 +468,9 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
-          !DIR$ VECTOR ALWAYS
           DO I = Q+1, M
              XX = (X(I) * R1 + Y(I)) * B(2,1)
              YY = (X(I) + Y(I) * R2) * B(1,2)
@@ -532,9 +478,7 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             !DIR$ FMA
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        END IF
