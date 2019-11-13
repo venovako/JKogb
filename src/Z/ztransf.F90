@@ -497,8 +497,9 @@ CONTAINS
     REAL(KIND=DWP) :: W
 
     INFO = 0
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
+    ! TODO: uncomment
+    ! A(2,1) = Z_ZERO
+    ! A(1,2) = Z_ZERO
 
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) real
@@ -578,6 +579,16 @@ CONTAINS
 
     INFO = 0
 
+    V(1,1) = Z_ONE
+    V(2,1) = Z_ZERO
+    V(1,2) = Z_ZERO
+    V(2,2) = Z_ONE
+
+    W(1,1) = Z_ONE
+    W(2,1) = Z_ZERO
+    W(1,2) = Z_ZERO
+    W(2,2) = Z_ONE
+
     ! TODO: transform
     IF (H) THEN
        CONTINUE
@@ -606,6 +617,16 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
 
     INFO = 0
+
+    V(1,1) = Z_ONE
+    V(2,1) = Z_ZERO
+    V(1,2) = Z_ZERO
+    V(2,2) = Z_ONE
+
+    W(1,1) = Z_ONE
+    W(2,1) = Z_ZERO
+    W(1,2) = Z_ZERO
+    W(2,2) = Z_ONE
 
     ! TODO: transform
 
