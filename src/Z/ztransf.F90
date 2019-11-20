@@ -606,7 +606,11 @@ CONTAINS
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
        CU = D_ONE / SQRT(D_ONE + TU * TU)
        APQAQQ = A(1,2) * REAL(A(2,2))
-       Y_ = (CONJG(APQAQQ) / ABS(APQAQQ)) * TU * SIGN(D_ONE, REAL(APQAQQ))
+       IF (APQAQQ .EQ. Z_ZERO) THEN
+          Y_ = TU * SIGN(D_ONE, REAL(APQAQQ))
+       ELSE ! .NE. ZERO
+          Y_ = (CONJG(APQAQQ) / ABS(APQAQQ)) * TU * SIGN(D_ONE, REAL(APQAQQ))
+       END IF
        V(1,1) = CU
        V(2,1) = Y_
        V(1,2) = -CONJG(Y_)
