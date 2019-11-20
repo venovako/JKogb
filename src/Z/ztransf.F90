@@ -497,9 +497,8 @@ CONTAINS
     REAL(KIND=DWP) :: W
 
     INFO = 0
-    ! TODO: uncomment
-    ! A(2,1) = Z_ZERO
-    ! A(1,2) = Z_ZERO
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
 
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
        ! A(1,1) real
@@ -575,7 +574,8 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2)
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), APQ_APP, APQAQQ, X_, Y_, Z_
+    REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
 
     INFO = 0
 
@@ -589,11 +589,35 @@ CONTAINS
     W(1,2) = Z_ZERO
     W(2,2) = Z_ONE
 
-    ! TODO: transform
     IF (H) THEN
+       ! TODO: transform
        CONTINUE
-    ELSE
-       CONTINUE
+    ELSE ! trigonometric
+       APQ_APP = A(1,2) / REAL(A(1,1))
+       X_ = CONJG(APQ_APP)
+       X = ABS(APQ_APP)
+       Y = REAL(A(2,2)) / REAL(A(1,1))
+       T2 = D_ONE + (X - Y) * (X + Y)
+       IF (X .LT. Y) THEN
+          T2 = -(SCALE(X, 1) * Y) / T2
+       ELSE ! .GE.
+          T2 = -(SCALE(Y, 1) * X) / T2
+       END IF
+       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       CU = D_ONE / SQRT(D_ONE + TU * TU)
+       APQAQQ = A(1,2) * REAL(A(2,2))
+       Y_ = (CONJG(APQAQQ) / ABS(APQAQQ)) * TU * SIGN(D_ONE, REAL(APQAQQ))
+       V(1,1) = CU
+       V(2,1) = Y_
+       V(1,2) = -CONJG(Y_)
+       V(2,2) = CU
+       Z_ = CMPLX(Y * REAL(Y_) - REAL(X_), Y * AIMAG(Y_) - AIMAG(X_), DWP)
+       TZ = ABS(Z_)
+       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       W(1,1) = CZ
+       W(2,1) = -Z_
+       W(1,2) = CONJG(Z_)
+       W(2,2) = CZ
     END IF
 
     CALL CA(V, 2, U(1,1), U(2,1), 2)
