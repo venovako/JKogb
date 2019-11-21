@@ -133,6 +133,9 @@ CONTAINS
 #endif
 
     SL = 0
+#ifndef NDEBUG
+    I = -1
+#endif
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (S .LT. 0) THEN
