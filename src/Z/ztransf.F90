@@ -89,11 +89,14 @@ CONTAINS
   PURE COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B
-
+#ifdef NDEBUG
+    ZZDIV = A / B
+#else
     REAL(KIND=DWP) :: F
 
     F = ABS(B)
     ZZDIV = ZZMUL(CONJG(B / F), A) / F
+#endif
   END FUNCTION ZZDIV
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
