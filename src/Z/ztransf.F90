@@ -85,6 +85,19 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  ! assume that B is not real and |B| .NE. 0
+  PURE COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A, B
+
+    REAL(KIND=DWP) :: F
+
+    F = ABS(B)
+    ZZDIV = ZZMUL(CONJG(B / F), A) / F
+  END FUNCTION ZZDIV
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
@@ -171,13 +184,13 @@ CONTAINS
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(1,2) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = B(1,2) / B(1,1)
+          R1 = ZZDIV(B(1,2), B(1,1))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(2,1) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(2,1) / B(2,2)
+             R2 = ZZDIV(B(2,1), B(2,2))
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, Y(I), X(I)) !X(I) + R1 * Y(I)
@@ -190,7 +203,7 @@ CONTAINS
           IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(2,1))
           ELSE ! B(2,1) complex
-             R2 = B(2,2) / B(2,1)
+             R2 = ZZDIV(B(2,2), B(2,1))
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, Y(I), X(I)) !X(I) + R1 * Y(I)
@@ -204,13 +217,13 @@ CONTAINS
        IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(1,2))
        ELSE ! B(1,2) complex
-          R1 = B(1,1) / B(1,2)
+          R1 = ZZDIV(B(1,1), B(1,2))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(2,1) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(2,1) / B(2,2)
+             R2 = ZZDIV(B(2,1), B(2,2))
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, X(I), Y(I)) !R1 * X(I) + Y(I)
@@ -223,7 +236,7 @@ CONTAINS
           IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(2,1))
           ELSE ! B(2,1) complex
-             R2 = B(2,2) / B(2,1)
+             R2 = ZZDIV(B(2,2), B(2,1))
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, X(I), Y(I)) !R1 * X(I) + Y(I)
@@ -284,13 +297,13 @@ CONTAINS
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(2,1) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = B(2,1) / B(1,1)
+          R1 = ZZDIV(B(2,1), B(1,1))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(1,2) / B(2,2)
+             R2 = ZZDIV(B(1,2), B(2,2))
           END IF
           DO I = 1, M
              XX = ZZFMA(Y(I), R1, X(I)) !X(I) + Y(I) * R1
@@ -302,7 +315,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = B(2,2) / B(1,2)
+             R2 = ZZDIV(B(2,2), B(1,2))
           END IF
           DO I = 1, M
              XX = ZZFMA(Y(I), R1, X(I)) !X(I) + Y(I) * R1
@@ -315,13 +328,13 @@ CONTAINS
        IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(2,1))
        ELSE ! B(2,1) complex
-          R1 = B(1,1) / B(2,1)
+          R1 = ZZDIV(B(1,1), B(2,1))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(1,2) / B(2,2)
+             R2 = ZZDIV(B(1,2), B(2,2))
           END IF
           DO I = 1, M
              XX = ZZFMA(X(I), R1, Y(I)) !X(I) * R1 + Y(I)
@@ -333,7 +346,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = B(2,2) / B(1,2)
+             R2 = ZZDIV(B(2,2), B(1,2))
           END IF
           DO I = 1, M
              XX = ZZFMA(X(I), R1, Y(I)) !X(I) * R1 + Y(I)
@@ -373,17 +386,17 @@ CONTAINS
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(2,1) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = B(2,1) / B(1,1)
+          R1 = ZZDIV(B(2,1), B(1,1))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(1,2) / B(2,2)
+             R2 = ZZDIV(B(1,2), B(2,2))
           END IF
           DO I = 1, P-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -392,8 +405,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -402,8 +415,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -415,11 +428,11 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = B(2,2) / B(1,2)
+             R2 = ZZDIV(B(2,2), B(1,2))
           END IF
           DO I = 1, P-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -428,8 +441,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -438,8 +451,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -452,17 +465,17 @@ CONTAINS
        IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(2,1))
        ELSE ! B(2,1) complex
-          R1 = B(1,1) / B(2,1)
+          R1 = ZZDIV(B(1,1), B(2,1))
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = B(1,2) / B(2,2)
+             R2 = ZZDIV(B(1,2), B(2,2))
           END IF
           DO I = 1, P-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -471,8 +484,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -481,8 +494,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(X(I), R2, Y(I)), B(2,2)) !(X(I) * R2 + Y(I)) * B(2,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -494,11 +507,11 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = B(2,2) / B(1,2)
+             R2 = ZZDIV(B(2,2), B(1,2))
           END IF
           DO I = 1, P-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -507,8 +520,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -517,8 +530,8 @@ CONTAINS
              ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
+             XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
+             YY = ZZMUL(ZZFMA(Y(I), R2, X(I)), B(1,2)) !(X(I) + Y(I) * R2) * B(1,2)
              AXI = ABS(X(I))
              AXX = ABS(XX)
              AYI = ABS(Y(I))
@@ -800,7 +813,7 @@ CONTAINS
     IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
        S = A(2,1) / REAL(A(1,1))
     ELSE ! A(1,1) complex
-       S = A(2,1) / A(1,1)
+       S = ZZDIV(A(2,1), A(1,1))
     END IF
     T = ABS(S)
     ! e**i\alpha = conjg(S)/T
