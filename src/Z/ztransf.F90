@@ -6,6 +6,36 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE COMPLEX(KIND=DWP) FUNCTION ZDFMA(A, B, C)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: A
+    COMPLEX(KIND=DWP), INTENT(IN) :: B, C
+
+    REAL(KIND=DWP) :: R, I
+
+    R = A * REAL(B) + REAL(C)
+    I = A * AIMAG(B) + AIMAG(C)
+
+    ZDFMA = CMPLX(R, I, DWP)
+  END FUNCTION ZDFMA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE COMPLEX(KIND=DWP) FUNCTION ZJFMA(A, B, C)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: A ! imaginary
+    COMPLEX(KIND=DWP), INTENT(IN) :: B, C
+
+    REAL(KIND=DWP) :: R, I
+
+    R = -A * AIMAG(B) + REAL(C)
+    I = A * REAL(B) + AIMAG(C)
+
+    ZJFMA = CMPLX(R, I, DWP)
+  END FUNCTION ZJFMA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   ! after cuCfma() from CUDA's cuComplex.h
 
   PURE COMPLEX(KIND=DWP) FUNCTION ZFMA(A, B, C)
@@ -14,12 +44,18 @@ CONTAINS
 
     REAL(KIND=DWP) :: F, R, I
 
-    F = REAL(C) - AIMAG(A) * AIMAG(B)
-    R = REAL(A) * REAL(B) + F
-    F = AIMAG(A) * REAL(B) + AIMAG(C)
-    I = REAL(A) * AIMAG(B) + F
+    IF (AIMAG(A) .EQ. D_ZERO) THEN
+       ZFMA = ZDFMA(REAL(A), B, C)
+    ELSE IF (REAL(A) .EQ. D_ZERO) THEN
+       ZFMA = ZJFMA(AIMAG(A), B, C)
+    ELSE ! A complex
+       F = REAL(C) - AIMAG(A) * AIMAG(B)
+       R = REAL(A) * REAL(B) + F
+       F = AIMAG(A) * REAL(B) + AIMAG(C)
+       I = REAL(A) * AIMAG(B) + F
 
-    ZFMA = CMPLX(R, I, DWP)
+       ZFMA = CMPLX(R, I, DWP)
+    END IF
   END FUNCTION ZFMA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -574,7 +610,7 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), APQ_APP, APQAQQ, X_, Y_, Z_
+    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
     REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
 
     INFO = 0
@@ -593,9 +629,8 @@ CONTAINS
        ! TODO: transform
        CONTINUE
     ELSE ! trigonometric
-       APQ_APP = A(1,2) / REAL(A(1,1))
-       X_ = CONJG(APQ_APP)
-       X = ABS(APQ_APP)
+       X_ = CONJG(A(1,2) / REAL(A(1,1)))
+       X = ABS(X_)
        Y = REAL(A(2,2)) / REAL(A(1,1))
        T2 = D_ONE + (X - Y) * (X + Y)
        IF (X .LT. Y) THEN
@@ -605,17 +640,17 @@ CONTAINS
        END IF
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
        CU = D_ONE / SQRT(D_ONE + TU * TU)
-       APQAQQ = A(1,2) * REAL(A(2,2))
-       IF (APQAQQ .EQ. Z_ZERO) THEN
-          Y_ = TU * SIGN(D_ONE, REAL(APQAQQ))
+       Y_ = A(1,2) * REAL(A(2,2))
+       IF (Y_ .EQ. Z_ZERO) THEN
+          Y_ = TU * SIGN(D_ONE, REAL(Y_))
        ELSE ! .NE. ZERO
-          Y_ = (CONJG(APQAQQ) / ABS(APQAQQ)) * TU * SIGN(D_ONE, REAL(APQAQQ))
+          Y_ = (CONJG(Y_) / ABS(Y_)) * TU * SIGN(D_ONE, REAL(Y_))
        END IF
        V(1,1) = CU
        V(2,1) = Y_
        V(1,2) = -CONJG(Y_)
        V(2,2) = CU
-       Z_ = CMPLX(Y * REAL(Y_) - REAL(X_), Y * AIMAG(Y_) - AIMAG(X_), DWP)
+       Z_ = ZDFMA(Y, Y_, -X_)
        TZ = ABS(Z_)
        CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
        W(1,1) = CZ

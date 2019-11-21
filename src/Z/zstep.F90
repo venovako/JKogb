@@ -267,8 +267,8 @@ CONTAINS
        CALL ZHSVD2(B, K, V, W(:,:,I), IT(I))
        INFO = IT(I)
        IF (IT(I) .GE. 0) THEN
-          W(1,3,I) = CMPLX(REAL(B(1,1)), D_ZERO, DWP)
-          W(2,3,I) = CMPLX(REAL(B(2,2)), D_ZERO, DWP)
+          W(1,3,I) = REAL(B(1,1))
+          W(2,3,I) = REAL(B(2,2))
           IF (IAND(IT(I), 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UH2(V)
