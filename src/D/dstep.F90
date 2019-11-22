@@ -356,7 +356,11 @@ CONTAINS
 
     SL = 0
     INFO = 0
+#ifdef USE_PGI
+    IF (CtrlC .NE. 0_c_int) RETURN
+#else
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) RETURN
+#endif
 
     WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
@@ -381,7 +385,11 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     IF (SL .LE. 0) RETURN
+#ifdef USE_PGI
+    IF (CtrlC .NE. 0_c_int) INFO = 0
+#else
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) INFO = 0
+#endif
     IF (INFO .LE. 0) THEN
        WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
             D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
@@ -507,7 +515,11 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     S = 0
+#ifdef USE_PGI
+    DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_c_int))
+#else
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_ATOMIC_INT_KIND))
+#endif
 #ifdef ANIMATE
        INFO = VN_MTXVIS_FRAME(CTX, A, N)
        IF (INFO .NE. 0) THEN

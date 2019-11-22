@@ -1,9 +1,15 @@
 MODULE UTILS
   USE, INTRINSIC :: ISO_C_BINDING
+#ifndef USE_PGI
   USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: ATOMIC_INT_KIND
+#endif
   IMPLICIT NONE
 
+#ifdef USE_PGI
+  INTEGER(KIND=c_int), VOLATILE :: CtrlC = 0_c_int
+#else
   INTEGER(KIND=ATOMIC_INT_KIND), VOLATILE :: CtrlC = 0_ATOMIC_INT_KIND
+#endif
   INTEGER(KIND=c_int), PARAMETER, PRIVATE :: SigCtrlC = 2_c_int ! SIGINT
   TYPE(c_funptr), PRIVATE :: OldCtrlC = C_NULL_FUNPTR
 
@@ -33,7 +39,11 @@ CONTAINS
   SUBROUTINE OnCtrlC(S) BIND(C)
     IMPLICIT NONE
     INTEGER(KIND=c_int), INTENT(IN), VALUE :: S
+#ifdef USE_PGI
+    IF (S .EQ. SigCtrlC) CtrlC = 1_c_int
+#else
     IF (S .EQ. SigCtrlC) CtrlC = 1_ATOMIC_INT_KIND
+#endif
   END SUBROUTINE OnCtrlC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

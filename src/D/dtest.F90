@@ -2,8 +2,14 @@ PROGRAM DTEST
   USE DTRANSF
   IMPLICIT NONE
 
+#ifdef USE_PGI
+  INTEGER, PARAMETER :: QWP = 8
+#else
+  INTEGER, PARAMETER :: QWP = 16
+#endif
+
   REAL(KIND=DWP) :: A(2,2), U(2,2), Z(2,2), B(2,2)
-  REAL(KIND=16) :: C(2,2), D(2,2)
+  REAL(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
   A = D_ZERO

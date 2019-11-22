@@ -1,10 +1,10 @@
 SHELL=/bin/bash
+ARCH=$(shell uname)
 ifdef NDEBUG
 DEBUG=
 else # DEBUG
 DEBUG=g
 endif # ?NDEBUG
-ARCH=$(shell uname)
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
@@ -70,4 +70,3 @@ endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
-CXXFLAGS=$(CFLAGS)

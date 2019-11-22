@@ -1,10 +1,10 @@
 SHELL=/bin/bash
+ARCH=$(shell uname)
 ifdef NDEBUG
 DEBUG=
 else # DEBUG
 DEBUG=g
 endif # ?NDEBUG
-ARCH=$(shell uname)
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
@@ -59,4 +59,3 @@ endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
-CXXFLAGS=$(CFLAGS)
