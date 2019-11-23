@@ -49,7 +49,7 @@ DBGFLAGS=-$(DEBUG)
 DBGFFLAGS=$(DBGFLAGS) -fcheck=all -finit-local-zero -finit-real=snan -finit-derived -pedantic -Wall -Wextra -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 DBGCFLAGS=$(DBGFLAGS) -ftrapv
 FPUFLAGS=-ffp-contract=fast
-FPUFFLAGS=$(FPUFLAGS) -ffpe-trap=invalid,zero,overflow
+FPUFFLAGS=$(FPUFLAGS) #-ffpe-trap=invalid,zero,overflow
 FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared -I../../../JACSD/vn
