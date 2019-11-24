@@ -33,6 +33,7 @@
 *.optrpt
 
 # Input
+data
 *.Y
 *.J
 
