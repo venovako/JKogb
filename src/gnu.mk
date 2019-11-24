@@ -13,18 +13,14 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
-C11FLAGS=$(CPUFLAGS) -fopenmp
+C11FLAGS=$(CPUFLAGS) -std=gnu17
 ifeq ($(ARCH),Darwin)
 FC=gfortran-9
 CC=gcc-9
-CXX=g++-9
 else # Linux
 FC=gfortran
 CC=gcc
-CXX=g++
 endif # ?Darwin
-CC += -std=gnu17
-CXX += -std=gnu++17
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
 DBGFLAGS=-DNDEBUG -fopt-info-optimized-vec -pedantic -Wall -Wextra
@@ -37,7 +33,7 @@ DBGFFLAGS=$(DBGFLAGS) -Wno-compare-reals -Warray-temporaries -Wcharacter-truncat
 DBGCFLAGS=$(DBGFLAGS)
 FPUFLAGS=-ffp-contract=fast
 FPUFFLAGS=$(FPUFLAGS)
-FPUCFLAGS=$(FPUFLAGS)
+FPUCFLAGS=$(FPUFLAGS) #-fno-math-errno
 else # DEBUG
 OPTFLAGS=-O$(DEBUG) -march=native
 DBGFLAGS=-$(DEBUG) -fsanitize=address -pedantic -Wall -Wextra
@@ -70,7 +66,11 @@ LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-a
 endif # ANIMATE
 endif # ?Darwin
 ifndef NDEBUG
+ifeq ($(ARCH),Darwin)
 LDFLAGS += -lubsan
+else # Linux
+$(error debug build currently not possible with RH devtoolset)
+endif # ?Darwin
 endif # DEBUG
 LDFLAGS += -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
