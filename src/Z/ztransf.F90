@@ -636,7 +636,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
-    REAL(KIND=DWP) :: X, Y, S, T2, TU, TZ, CU, CZ
+    REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
 
     INFO = 0
 
@@ -651,8 +651,43 @@ CONTAINS
     W(2,2) = Z_ONE
 
     IF (H) THEN
-       ! TODO: transform
-       CONTINUE
+       X_ = CONJG(A(1,2) / REAL(A(1,1)))
+       X = ABS(X_)
+       Y = REAL(A(2,2)) / REAL(A(1,1))
+       IF (X .EQ. D_ONE) THEN
+          IF (Y .EQ. D_ZERO) THEN
+             ! TH .EQ. 1
+             INFO = -8
+          ELSE ! should never happen
+             INFO = -9
+          END IF
+          RETURN
+       END IF
+       Y_ = A(1,2) * REAL(A(2,2))
+       T2 = D_ONE + (Y - X) * (Y + X)
+       IF (X .LT. Y) THEN
+          T2 = (SCALE(X, 1) * Y) / T2
+       ELSE ! .GE.
+          T2 = (SCALE(Y, 1) * X) / T2
+       END IF
+       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       CU = D_ONE / SQRT(D_ONE + TU * TU)
+       IF (Y_ .EQ. Z_ZERO) THEN
+          Y_ = TU
+       ELSE ! Y_ .NE. Z_ZERO
+          Y_ = (CONJG(Y_) / ABS(Y_)) * TU
+       END IF
+       V(1,1) = CU
+       V(2,1) = Y_
+       V(1,2) = -CONJG(Y_)
+       V(2,2) = CU
+       Z_ = ZDFMA(Y, Y_, -X_)
+       TZ = ABS(Z_)
+       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       W(1,1) = CZ
+       W(2,1) = Z_
+       W(1,2) = CONJG(Z_)
+       W(2,2) = CZ
     ELSE ! trigonometric
        X_ = CONJG(A(1,2) / REAL(A(1,1)))
        X = ABS(X_)
@@ -661,17 +696,15 @@ CONTAINS
        T2 = D_ONE + (X - Y) * (X + Y)
        IF (X .LT. Y) THEN
           T2 = -(SCALE(X, 1) * Y) / T2
-       ELSE ! .GE.
+       ELSE ! X .GE. Y
           T2 = -(SCALE(Y, 1) * X) / T2
        END IF
-       S = SIGN(D_ONE, REAL(Y_))
-       T2 = S * T2
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
        CU = D_ONE / SQRT(D_ONE + TU * TU)
        IF (Y_ .EQ. Z_ZERO) THEN
-          Y_ = TU * S
-       ELSE ! .NE. ZERO
-          Y_ = (CONJG(Y_) / ABS(Y_)) * (TU * S)
+          Y_ = TU
+       ELSE ! Y_ .NE. Z_ZERO
+          Y_ = (CONJG(Y_) / ABS(Y_)) * TU
        END IF
        V(1,1) = CU
        V(2,1) = Y_
