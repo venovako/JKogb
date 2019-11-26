@@ -683,7 +683,7 @@ CONTAINS
        V(2,2) = CU
        Z_ = ZDFMA(Y, Y_, -X_)
        TZ = ABS(Z_)
-       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
        W(1,1) = CZ
        W(2,1) = Z_
        W(1,2) = CONJG(Z_)
