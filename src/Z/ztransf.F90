@@ -638,18 +638,6 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
     REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
 
-    INFO = 0
-
-    V(1,1) = Z_ONE
-    V(2,1) = Z_ZERO
-    V(1,2) = Z_ZERO
-    V(2,2) = Z_ONE
-
-    W(1,1) = Z_ONE
-    W(2,1) = Z_ZERO
-    W(1,2) = Z_ZERO
-    W(2,2) = Z_ONE
-
     IF (H) THEN
        X_ = CONJG(A(1,2) / REAL(A(1,1)))
        X = ABS(X_)
@@ -739,18 +727,6 @@ CONTAINS
 
     COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
     REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
-
-    INFO = 0
-
-    V(1,1) = Z_ONE
-    V(2,1) = Z_ZERO
-    V(1,2) = Z_ZERO
-    V(2,2) = Z_ONE
-
-    W(1,1) = Z_ONE
-    W(2,1) = Z_ZERO
-    W(1,2) = Z_ZERO
-    W(2,2) = Z_ONE
 
     X_ = A(2,1) / REAL(A(2,2))
     X = ABS(X_)
