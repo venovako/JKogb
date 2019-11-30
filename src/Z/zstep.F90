@@ -155,7 +155,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
@@ -206,7 +206,7 @@ CONTAINS
     END IF
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       T = II * DNS2S
+       T = II * DUS2S
        CALL AW_OUT(I, '', IT, DZ, 0, STEP, II)
        WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', T, ' s, '
     END IF
@@ -219,15 +219,15 @@ CONTAINS
     END IF
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       T = II * DNS2S
+       T = II * DUS2S
        WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'NCP: ', T, ' s, '
     END IF
 #endif
 
-1   INFO = MAX(GET_THREAD_NS() - INFO, 1)
+1   INFO = MAX(GET_SYS_US() - INFO, 1)
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       T = INFO * DNS2S
+       T = INFO * DUS2S
        WRITE (I,'(A,F12.6,A)') 'BUILD: ', T, ' s'
        CALL AW_OUT(I, '', IT, DZ, SL, STEP, II)
        CLOSE(UNIT=I, IOSTAT=II)
@@ -359,9 +359,9 @@ CONTAINS
             D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE IF (SL .LE. 0) THEN
        WRITE (ERROR_UNIT,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
-            (INFO * DNS2S), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
+            (INFO * DUS2S), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE ! default
-       WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (INFO * DNS2S), ','
+       WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (INFO * DUS2S), ','
     END IF
     FLUSH(ERROR_UNIT)
 
@@ -378,11 +378,11 @@ CONTAINS
        RETURN
     END IF
 
-    IT = GET_THREAD_NS()
+    IT = GET_SYS_US()
     CALL ZSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
-    IT = MAX(GET_THREAD_NS() - IT, 1)
+    IT = MAX(GET_SYS_US() - IT, 1)
     WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
-         (IT * DNS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
+         (IT * DUS2S), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ERROR_UNIT)
 
     SL = MIN(SL, NL)

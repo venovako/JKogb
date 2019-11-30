@@ -50,7 +50,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
@@ -71,7 +71,7 @@ CONTAINS
        END DO
     END IF
 
-    INFO = GET_THREAD_NS() - INFO
+    INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -155,7 +155,7 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
 
     EPA = NM / 2
     A => DZ(1:EPA)
@@ -236,7 +236,7 @@ CONTAINS
        IF (TE .EQ. 0) EXIT
     END DO
 
-    INFO = GET_THREAD_NS() - INFO
+    INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_SRT1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -260,13 +260,13 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
 #ifdef _GNU_SOURCE
     CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
 #else
     CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_NULL_PTR, C_FUNLOC(CMP))
 #endif
-    INFO = GET_THREAD_NS() - INFO
+    INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_SRT2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -295,7 +295,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
 
@@ -327,7 +327,7 @@ CONTAINS
        I = K
     END DO
 
-1   INFO = GET_THREAD_NS() - INFO
+1   INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_NCP1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -357,7 +357,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
 
@@ -391,7 +391,7 @@ CONTAINS
        IF (J .GT. NN) EXIT
     END DO
 
-2   INFO = GET_THREAD_NS() - INFO
+2   INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_NCP2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -422,7 +422,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_THREAD_NS()
+    INFO = GET_SYS_US()
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3
 
@@ -509,7 +509,7 @@ CONTAINS
     END DO
     !$OMP END PARALLEL DO
 
-3   INFO = GET_THREAD_NS() - INFO
+3   INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_NCP3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -118,14 +118,14 @@ PROGRAM ZJK
   FLUSH(ERROR_UNIT)
 #endif
 
-  FD(1) = GET_THREAD_NS()
+  FD(1) = GET_SYS_US()
   CALL ZSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
-  FD(1) = GET_THREAD_NS() - FD(1)
+  FD(1) = GET_SYS_US() - FD(1)
   IF (INFO .GE. 0) THEN
-     WRITE (OUTPUT_UNIT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DNS2s), ' s'
+     WRITE (OUTPUT_UNIT,'(A,I10,A,F12.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DUS2s), ' s'
      FLUSH(OUTPUT_UNIT)
   ELSE ! error
-     WRITE (ERROR_UNIT,'(A,I10,A,F12.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DNS2s), ' s'
+     WRITE (ERROR_UNIT,'(A,I10,A,F12.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DUS2s), ' s'
      FLUSH(ERROR_UNIT)
   END IF
 
