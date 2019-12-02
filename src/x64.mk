@@ -11,7 +11,7 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icc -std=c11
 FC=ifort
 CXX=icpc -std=c++17
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -DUSE_TSC -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE

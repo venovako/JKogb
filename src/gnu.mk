@@ -8,7 +8,7 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp -rdynamic
+CPUFLAGS=-DUSE_GNU -DUSE_X64 -DUSE_TSC -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp -rdynamic
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE

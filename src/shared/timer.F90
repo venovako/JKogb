@@ -1,6 +1,6 @@
 MODULE TIMER
-  USE VN_TIMER_F
   USE PARAMS
+  USE VN_TIMER_F
   IMPLICIT NONE
 
 CONTAINS
@@ -21,65 +21,56 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE INTEGER FUNCTION TIMER2INT(CLK)
+  REAL(KIND=c_double) FUNCTION TIMER2DBLE(CLK)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: CLK(3)
-    TIMER2INT = CLK(2) - CLK(1)
-  END FUNCTION TIMER2INT
+    INTEGER(KIND=c_int64_t), INTENT(IN), TARGET :: CLK(4)
+#ifdef USE_TSC
+    INTEGER(KIND=c_int64_t), TARGET :: SEC, REM
+    TIMER2DBLE = TSC_LAP(CLK(3), CLK(1), CLK(2), SEC, REM)
+#else
+    TIMER2DBLE = (CLK(2) - CLK(1)) / REAL(CLK(3), c_double)
+#endif
+  END FUNCTION TIMER2DBLE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION TIMER2DBLE(CLK)
+  SUBROUTINE TIMER_INIT(CLK)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: CLK(3)
-    TIMER2DBLE = TIMER2INT(CLK) / REAL(CLK(3), DWP)
-  END FUNCTION TIMER2DBLE
+    INTEGER(KIND=c_int64_t), INTENT(OUT), TARGET :: CLK(4)
+#ifdef USE_TSC
+    CLK(3) = TSC_GET_FREQ_HZ(CLK(4))
+#else
+    CALL SYSTEM_CLOCK(CLK(2), CLK(3), CLK(4))
+#endif
+    CLK(1) = 0_c_int64_t
+    CLK(2) = 0_c_int64_t
+  END SUBROUTINE TIMER_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE TIMER_START(CLK)
     IMPLICIT NONE
-    INTEGER, INTENT(OUT) :: CLK(3)
-    CALL SYSTEM_CLOCK(CLK(1), CLK(3))
+    INTEGER(KIND=c_int64_t), INTENT(OUT), TARGET :: CLK(4)
+#ifdef USE_TSC
+    INTEGER(KIND=c_int32_t), TARGET :: AUX
+    CLK(1) = INT(RDTSC_BEG(AUX))
+#else
+    CALL SYSTEM_CLOCK(CLK(1))
+#endif
   END SUBROUTINE TIMER_START
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   SUBROUTINE TIMER_STOP(CLK)
     IMPLICIT NONE
-    INTEGER, INTENT(OUT) :: CLK(3)
+    INTEGER(KIND=c_int64_t), INTENT(OUT), TARGET :: CLK(4)
+#ifdef USE_TSC
+    INTEGER(KIND=c_int32_t), TARGET :: AUX
+    CLK(2) = INT(RDTSC_END(AUX))
+#else
     CALL SYSTEM_CLOCK(CLK(2))
+#endif
   END SUBROUTINE TIMER_STOP
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  SUBROUTINE TIMER_PRINT(CLK)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: CLK(3)
-
-    INTEGER :: C, Q, R
-
-    C = TIMER2INT(CLK)
-    Q = C / CLK(3)
-    R = MOD(C, CLK(3))
-
-    SELECT CASE (CLK(3))
-    CASE (1000)       ! ms
-       WRITE (OUTPUT_UNIT,1) Q, R
-    CASE (1000000)    ! us
-       WRITE (OUTPUT_UNIT,2) Q, R
-    CASE (1000000000) ! ns
-       WRITE (OUTPUT_UNIT,3) Q, R
-    CASE DEFAULT      ! other scale
-       WRITE (OUTPUT_UNIT,4) Q, R, CLK(3)
-    END SELECT
-    FLUSH(OUTPUT_UNIT)
-
-1   FORMAT(I5,'.',I3.3,' s')
-2   FORMAT(I5,'.',I6.6,' s')
-3   FORMAT(I5,'.',I9.9,' s')
-4   FORMAT(I5,'+',I12,'/',I12,' s')
-  END SUBROUTINE TIMER_PRINT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
