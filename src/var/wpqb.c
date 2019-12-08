@@ -1,30 +1,27 @@
 #include "wpqb.h"
 
-#include <assert.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-
-static_assert(sizeof(extended) == 16, "sizeof(extended) != 16");
-
 int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q)
 {
   if (a) {
     if (p >= q)
       return -2;
-    a->i.a[0] = 0x01u;
-    a->i.a[1] = 0x02u;
-    a->i.a[2] = 0x03u;
-    a->i.a[3] = 0x04u;
-    a->i.a[4] = 0x05u;
-    a->i.a[5] = 0x06u;
-    a->i.a[6] = 0x07u;
-    a->i.a[7] = 0xC0u;
-    a->i.a[8] = 0xFFu;
-    a->i.a[9] = 0x7Fu;
     a->i.p = p;
     a->i.q = q;
     a->i.b = (q - p);
+    union { uint16_t us; struct { uint8_t lo, hi; } lh; } x;
+    x.us = a->i.p;
+    a->i.a[0] = x.lh.lo;
+    a->i.a[1] = x.lh.hi;
+    x.us = a->i.q;
+    a->i.a[2] = x.lh.lo;
+    a->i.a[3] = x.lh.hi;
+    x.us = a->i.b;
+    a->i.a[4] = x.lh.lo;
+    a->i.a[5] = x.lh.hi;
+    a->i.a[6] = 0x00u;
+    a->i.a[7] = 0xC0u;
+    a->i.a[8] = 0xFFu;
+    a->i.a[9] = 0x7Fu;
     return 0;
   }
   return -1;

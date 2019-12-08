@@ -1,11 +1,7 @@
 #ifndef WPQB_H
 #define WPQB_H
 
-#include <stdalign.h>
-#include <stdint.h>
-
-/* Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable */
-typedef long double extended;
+#include "common.h"
 
 typedef union {
   alignas(16) extended w;
