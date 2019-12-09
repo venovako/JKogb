@@ -1,6 +1,20 @@
 #include "wpqb.h"
 
-int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q)
+wpqb *wpqb_alloc(const uint32_t n_a)
+{
+  return (n_a ? aligned_alloc((size_t)16, n_a * sizeof(wpqb)) : NULL);
+}
+
+int wpqb_free(wpqb *const a)
+{
+  if (a) {
+    free(a);
+    return 0;
+  }
+  return -1;
+}
+
+int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q, const extended *const w)
 {
   if (a) {
     if (p >= q)
@@ -8,23 +22,53 @@ int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q)
     a->i.p = p;
     a->i.q = q;
     a->i.b = (q - p);
-    union { uint16_t us; struct { uint8_t lo, hi; } lh; } x;
-    x.us = a->i.p;
-    a->i.a[0] = x.lh.lo;
-    a->i.a[1] = x.lh.hi;
-    x.us = a->i.q;
-    a->i.a[2] = x.lh.lo;
-    a->i.a[3] = x.lh.hi;
-    x.us = a->i.b;
-    a->i.a[4] = x.lh.lo;
-    a->i.a[5] = x.lh.hi;
-    a->i.a[6] = 0x00u;
-    a->i.a[7] = 0xC0u;
-    a->i.a[8] = 0xFFu;
-    a->i.a[9] = 0x7Fu;
+    if (w)
+      a->w = *w;
+    else {
+      union { uint16_t us; struct { uint8_t lo, hi; } lh; } x;
+      x.us = a->i.p;
+      a->i.a[0] = x.lh.lo;
+      a->i.a[1] = x.lh.hi;
+      x.us = a->i.q;
+      a->i.a[2] = x.lh.lo;
+      a->i.a[3] = x.lh.hi;
+      x.us = a->i.b;
+      a->i.a[4] = x.lh.lo;
+      a->i.a[5] = x.lh.hi;
+      a->i.a[6] = 0x00u;
+      a->i.a[7] = 0xC0u;
+      a->i.a[8] = 0xFFu;
+      a->i.a[9] = 0x7Fu;
+    }
     return 0;
   }
   return -1;
+}
+
+int wpqb_print(FILE *const f, wpqb *const a)
+{
+  return (f ? (a ? fprintf(f, "%# -30.21LE,%5hu,%5hu,%5hu", a->w, a->i.p, a->i.q, a->i.b) : -2) : -1);
+}
+
+int wpqb_dump(FILE *const f, wpqb *const a, const uint32_t n_a)
+{
+  if (!n_a)
+    return 0;
+  if (!a)
+    return -2;
+  if (!f)
+    return -1;
+
+  if (16 != fprintf(f, "\"w\",\"p\",\"q\",\"b\"\n"))
+    return 1;
+  for (uint32_t i = UINT32_C(0); i < n_a; ++i) {
+    if (48 != wpqb_print(f, (a + i)))
+      return (int)((i + UINT32_C(1)) << 1);
+    if (1 != fprintf(f, "\n"))
+      return (int)(((i + UINT32_C(1)) << 1) + UINT32_C(1));
+  }
+
+  return (fflush(f) ? (int)(n_a << 1) : 0);
 }
 
 int wpqb_cmp(const wpqb *const a, const wpqb *const b)
