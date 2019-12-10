@@ -32,4 +32,8 @@ typedef long double extended;
 #define F0(i, j, ldA) (((j) * (ldA)) + (i))
 #endif /* !F0 */
 
+#ifndef F1
+#define F1(i, j, ldA) ((((j)-1) * (ldA)) + ((i)-1))
+#endif /* !F1 */
+
 #endif /* !COMMON_H */
