@@ -28,4 +28,8 @@
 /* Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable */
 typedef long double extended;
 
+#ifndef F0
+#define F0(i, j, ldA) (((j) * (ldA)) + (i))
+#endif /* !F0 */
+
 #endif /* !COMMON_H */

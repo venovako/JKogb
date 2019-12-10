@@ -112,7 +112,7 @@ int wpqb_sort(wpqb *const a, const uint32_t n_a)
   return 0;
 }
 
-int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s)
+int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
 {
   if (!n_s)
     return 0;
@@ -152,6 +152,24 @@ int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_
     }
     if (j >= n_a)
       break;
+  }
+
+  if (w) {
+    uint16_t p = UINT16_C(0), n = n_s_;
+    for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
+      if (a[s[i]].w > 0.0L)
+        p = i + UINT16_C(1);
+      else if (a[s[i]].w < 0.0L) {
+        n = i;
+        break;
+      }
+    }
+    w[0] =  0.0L;
+    w[1] = -0.0L;
+    for (uint16_t i = p; i; )
+      w[0] += a[s[--i]].w;
+    for (uint16_t i = n; i < n_s_; ++i)
+      w[1] += a[s[i]].w;
   }
 
   return (int)n_s_;
