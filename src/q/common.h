@@ -28,6 +28,34 @@
 /* Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable */
 typedef long double extended;
 
+#ifndef FINT32
+typedef int64_t fint;
+typedef uint64_t fnat;
+#ifndef FINT_C
+#define FINT_C(x) INT64_C(x)
+#else /* FINT_C */
+#error FINT_C already defined
+#endif /* ?FINT_C */
+#ifndef FNAT_C
+#define FNAT_C(x) UINT64_C(x)
+#else /* FNAT_C */
+#error FNAT_C already defined
+#endif /* ?FNAT_C */
+#else /* FINT32 */
+typedef int32_t fint;
+typedef uint32_t fnat;
+#ifndef FINT_C
+#define FINT_C(x) INT32_C(x)
+#else /* FINT_C */
+#error FINT_C already defined
+#endif /* ?FINT_C */
+#ifndef FNAT_C
+#define FNAT_C(x) UINT32_C(x)
+#else /* FNAT_C */
+#error FNAT_C already defined
+#endif /* ?FNAT_C */
+#endif /* ?FINT32 */
+
 #ifndef F0
 #define F0(i, j, ldA) (((j) * (ldA)) + (i))
 #endif /* !F0 */

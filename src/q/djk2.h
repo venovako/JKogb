@@ -3,7 +3,6 @@
 
 #include "common.h"
 
-extern int Ut2(double *const U, const size_t ldU);
-extern int JZtJ2(double *const Z, const size_t ldZ, const int *const J);
+extern void dhsvd2_(double A[static 2][2], const fint J[static 2], double U[static 2][2], double Z[static 2][2], fint info[static 1]);
 
 #endif /* !DJK2_H */
