@@ -360,8 +360,8 @@ void dhsvd2_(double A[static 2][2], const fint J[static 2], double U[static 2][2
   qhsvd2_(A_, J, U_, Z_, info);
 
   if (*info >= FINT_C(0)) {
-    dassgn2(A, (const extended (*const)[2])A_);
-    dassgn2(U, (const extended (*const)[2])U_);
-    dassgn2(Z, (const extended (*const)[2])Z_);
+    dassgn2(A, (const extended (*)[2])A_);
+    dassgn2(U, (const extended (*)[2])U_);
+    dassgn2(Z, (const extended (*)[2])Z_);
   }
 }
