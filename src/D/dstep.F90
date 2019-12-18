@@ -11,13 +11,21 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef USE_EXTENDED
+  REAL(KIND=DWP) FUNCTION DMAGF2(N, P, Q, A, LDA, J)
+#else
   PURE REAL(KIND=DWP) FUNCTION DMAGF2(N, P, Q, A, LDA, J)
+#endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
     REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: J2(2), INFO
+
+#ifdef USE_EXTENDED
+    EXTERNAL :: DHSVD2
+#endif
 
     IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
          (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. ((J(P) .EQ. J(Q)) .AND. (A(P,P) .LT. A(Q,Q)))) THEN
@@ -269,6 +277,10 @@ CONTAINS
     REAL(KIND=DWP) :: TW
     INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
+
+#ifdef USE_EXTENDED
+    EXTERNAL :: DHSVD2
+#endif
 
     CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])

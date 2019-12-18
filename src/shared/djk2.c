@@ -91,16 +91,75 @@ static inline void qhsvd2d(extended A[static 2][2], extended U[static 2][2], fin
 
 static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
 {
+  extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   *info = FINT_C(0);
 
   if (h) {
+    if (A[1][1] != 0.0L) {
+      const extended
+        x = (A[1][0] / A[0][0]),
+        y = (A[1][1] / A[0][0]);
+      extended t2 = ((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
+      t2 /= fmal((y - x), (y + x), 1.0L);
+      tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+      cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+      tz = fmal(y, tu, -x);
+      if (fabsl(tz) >= 1.0L) {
+        *info = FINT_C(-8);
+        return;
+      }
+      cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+    }
+    else if (fabsl(A[1][0]) < fabsl(A[0][0])) {
+      *info = FINT_C(1);
+      tz = -(A[1][0] / A[0][0]);
+      if (fabsl(tz) >= 1.0L) {
+        *info = FINT_C(-11);
+        return;
+      }
+      cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+    }
+    else {
+      *info = FINT_C(-14);
+      return;
+    }
   }
   else {
+    if (A[1][1] != 0.0L) {
+      const extended
+        x = (A[1][0] / A[0][0]),
+        y = (A[1][1] / A[0][0]);
+      extended t2 = -((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
+      t2 /= fmal((x - y), (x + y), 1.0L);
+      tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+      cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+      tz = fmal(y, tu, -x);
+      cz = (1.0L / sqrtl(fmal(tz, tz, 1.0L)));
+    }
+    else {
+      *info = FINT_C(1);
+      tz = -(A[1][0] / A[0][0]);
+      cz = (1.0L / sqrtl(fmal(tz, tz, 1.0L)));
+    }
   }
 
   if (*info)
     *info = FINT_C(0);
   else {
+    const extended V[2][2] = { { cu, tu }, { -tu, cu } };
+    CA2(V, U);
+    CA2(V, A);
+  }
+
+  if (h) {
+    const extended W[2][2] = { { cz, tz }, { tz, cz } };
+    AC(A, W);
+    AC(Z, W);
+  }
+  else {
+    const extended W[2][2] = { { cz, -tz }, { tz, cz } };
+    AC(A, W);
+    AC(Z, W);
   }
 
   qhsvd2d(A, U, info);
@@ -109,12 +168,49 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
 
 static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
 {
+  extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   *info = FINT_C(0);
+
+  if (A[0][0] != 0.0L) {
+    const extended
+      x = (A[0][0] / A[1][1]),
+      y = (A[0][1] / A[1][1]);
+    extended t2 = -((fabsl(y) <= x) ? (scalbnl(y, 1) * x) : (scalbnl(x, 1) * y));
+    t2 /= fmal((x - y), (x + y), 1.0L);
+    tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+    cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+    tz = -fmal(x, tu, y);
+    if (fabsl(tz) >= 1.0L) {
+      *info = FINT_C(-15);
+      return;
+    }
+    cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+  }
+  else if (fabsl(A[0][1]) < fabsl(A[1][1])) {
+    *info = FINT_C(1);
+    tz = -(A[0][1] / A[1][1]);
+    if (fabsl(tz) >= 1.0L) {
+      *info = FINT_C(-18);
+      return;
+    }
+    cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+  }
+  else {
+    *info = FINT_C(-21);
+    return;
+  }
 
   if (*info)
     *info = FINT_C(0);
   else {
+    const extended V[2][2] = { { cu, tu }, { -tu, cu } };
+    CA2(V, U);
+    CA2(V, A);
   }
+
+  const extended W[2][2] = { { cz, tz }, { tz, cz } };
+  AC(A, W);
+  AC(Z, W);
 
   qhsvd2d(A, U, info);
   *info = FINT_C(1);
@@ -122,6 +218,78 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
 
 static inline void qhsvd2g(const bool h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
 {
+  extended r = 0.0L,
+    c = hypotl(A[0][0], A[0][1]),
+    s = hypotl(A[1][0], A[1][1]);
+
+  if (c < s) {
+    r = s;
+    qswp(&(A[0][0]), &(A[1][0]));
+    qswp(&(A[0][1]), &(A[1][1]));
+    if (!h) {
+      qswp(&(Z[0][0]), &(Z[1][0]));
+      qswp(&(Z[0][1]), &(Z[1][1]));
+    }
+    *info = FINT_C(1);
+  }
+  else {
+    r = c;
+    *info = FINT_C(0);
+  }
+
+  if (fabsl(A[0][0]) < fabsl(A[0][1])) {
+    qswp(&(U[0][0]), &(U[0][1]));
+    qswp(&(U[1][0]), &(U[1][1]));
+    qswp(&(A[0][0]), &(A[0][1]));
+    qswp(&(A[1][0]), &(A[1][1]));
+  }
+
+  r = copysignl(r, A[0][0]);
+  s = A[0][1] / A[0][0];
+  c = 1.0L / sqrtl(fmal(s, s, 1.0L));
+
+  const extended Q[2][2] = { { c, -s }, { s, c } };
+  CA1(Q, A[1]);
+  CA2(Q, U);
+
+  if (copysignl(1.0L, r) == -1.0L) {
+    U[0][0] = -U[0][0];
+    U[1][0] = -U[1][0];
+    A[1][0] = -A[1][0];
+    r = -r;
+  }
+  A[0][0] = r;
+  if (copysignl(1.0L, A[1][1]) == -1.0L) {
+    U[0][1] = -U[0][1];
+    U[1][1] = -U[1][1];
+    A[1][1] = -A[1][1];
+  }
+  A[0][1] = 0.0L;
+
+  if (A[1][0] == 0.0L) {
+    if (h) {
+      if (*info == FINT_C(1)) {
+        qswp(&(U[0][0]), &(U[0][1]));
+        qswp(&(U[1][0]), &(U[1][1]));
+        qswp(&(A[0][0]), &(A[1][1]));
+      }
+      else
+        *info = FINT_C(1);
+    }
+    else
+      *info = FINT_C(1);
+  }
+  else if (h && (*info == FINT_C(1))) {
+    qswp(&(A[0][0]), &(A[1][0]));
+    qswp(&(A[0][1]), &(A[1][1]));
+    qswp(&(U[0][0]), &(U[0][1]));
+    qswp(&(U[1][0]), &(U[1][1]));
+    qswp(&(A[0][0]), &(A[0][1]));
+    qswp(&(A[1][0]), &(A[1][1]));
+    qhsvd2l(A, U, Z, info);
+  }
+  else
+    qhsvd2u(h, A, U, Z, info);
 }
 
 static inline void qhsvd2s(const fint h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])

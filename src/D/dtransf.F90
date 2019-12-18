@@ -881,6 +881,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifndef USE_EXTENDED
   PURE SUBROUTINE DHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
@@ -942,6 +943,7 @@ CONTAINS
 
     CALL DHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE DHSVD2
+#endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
