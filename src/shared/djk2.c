@@ -33,8 +33,8 @@ static inline void CA1(const extended B[static 2][2], extended A[static 2])
 {
   const extended C[2] =
     {
-     (fmal(B[1][0], A[1], A[0]) * B[0][0]),
-     (fmal(B[0][1], A[0], A[1]) * B[1][1])
+     (fmal(B[1][0], A[1], A[0]) / B[0][0]),
+     (fmal(B[0][1], A[0], A[1]) / B[1][1])
     };
   qassgn1(A, C);
 }
@@ -44,12 +44,12 @@ static inline void CA2(const extended B[static 2][2], extended A[static 2][2])
   const extended C[2][2] =
     {
      {
-      (fmal(B[1][0], A[0][1], A[0][0]) * B[0][0]),
-      (fmal(B[0][1], A[0][0], A[0][1]) * B[1][1])
+      (fmal(B[1][0], A[0][1], A[0][0]) / B[0][0]),
+      (fmal(B[0][1], A[0][0], A[0][1]) / B[1][1])
      },
      {
-      (fmal(B[1][0], A[1][1], A[1][0]) * B[0][0]),
-      (fmal(B[0][1], A[1][0], A[1][1]) * B[1][1])
+      (fmal(B[1][0], A[1][1], A[1][0]) / B[0][0]),
+      (fmal(B[0][1], A[1][0], A[1][1]) / B[1][1])
      }
     };
   qassgn2(A, C);
@@ -60,12 +60,12 @@ static inline void AC(extended A[static 2][2], const extended B[static 2][2])
   const extended C[2][2] =
     {
      {
-      (fmal(A[1][0], B[0][1], A[0][0]) * B[0][0]),
-      (fmal(A[1][1], B[0][1], A[0][1]) * B[0][0])
+      (fmal(A[1][0], B[0][1], A[0][0]) / B[0][0]),
+      (fmal(A[1][1], B[0][1], A[0][1]) / B[0][0])
      },
      {
-      (fmal(A[0][0], B[1][0], A[1][0]) * B[1][1]),
-      (fmal(A[0][1], B[1][0], A[1][1]) * B[1][1])
+      (fmal(A[0][0], B[1][0], A[1][0]) / B[1][1]),
+      (fmal(A[0][1], B[1][0], A[1][1]) / B[1][1])
      }
     };
   qassgn2(A, C);
@@ -102,13 +102,13 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
       extended t2 = ((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
       t2 /= fmal((y - x), (y + x), 1.0L);
       tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
-      cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+      cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
       tz = fmal(y, tu, -x);
       if (fabsl(tz) >= 1.0L) {
         *info = FINT_C(-8);
         return;
       }
-      cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+      cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
     }
     else if (fabsl(A[1][0]) < fabsl(A[0][0])) {
       *info = FINT_C(1);
@@ -117,7 +117,7 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
         *info = FINT_C(-11);
         return;
       }
-      cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+      cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
     }
     else {
       *info = FINT_C(-14);
@@ -132,14 +132,14 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
       extended t2 = -((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
       t2 /= fmal((x - y), (x + y), 1.0L);
       tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
-      cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+      cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
       tz = fmal(y, tu, -x);
-      cz = (1.0L / sqrtl(fmal(tz, tz, 1.0L)));
+      cz = sqrtl(fmal(tz, tz, 1.0L)); /* 1.0L / */
     }
     else {
       *info = FINT_C(1);
       tz = -(A[1][0] / A[0][0]);
-      cz = (1.0L / sqrtl(fmal(tz, tz, 1.0L)));
+      cz = sqrtl(fmal(tz, tz, 1.0L)); /* 1.0L / */
     }
   }
 
@@ -178,13 +178,13 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
     extended t2 = -((fabsl(y) <= x) ? (scalbnl(y, 1) * x) : (scalbnl(x, 1) * y));
     t2 /= fmal((x - y), (x + y), 1.0L);
     tu = (!(fabsl(t2) <= LDBL_MAX) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
-    cu = (1.0L / sqrtl(fmal(tu, tu, 1.0L)));
+    cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
     tz = -fmal(x, tu, y);
     if (fabsl(tz) >= 1.0L) {
       *info = FINT_C(-15);
       return;
     }
-    cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+    cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
   }
   else if (fabsl(A[0][1]) < fabsl(A[1][1])) {
     *info = FINT_C(1);
@@ -193,7 +193,7 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
       *info = FINT_C(-18);
       return;
     }
-    cz = (1.0L / sqrtl(fmal(-tz, tz, 1.0L)));
+    cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
   }
   else {
     *info = FINT_C(-21);
@@ -246,7 +246,7 @@ static inline void qhsvd2g(const bool h, extended A[static 2][2], extended U[sta
 
   r = copysignl(r, A[0][0]);
   s = A[0][1] / A[0][0];
-  c = 1.0L / sqrtl(fmal(s, s, 1.0L));
+  c = sqrtl(fmal(s, s, 1.0L)); /* 1.0L / */
 
   const extended Q[2][2] = { { c, -s }, { s, c } };
   CA1(Q, A[1]);

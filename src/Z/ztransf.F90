@@ -6,7 +6,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE COMPLEX(KIND=DWP) FUNCTION ZDFMA(A, B, C)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZDFMA(A, B, C)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: A
     COMPLEX(KIND=DWP), INTENT(IN) :: B, C
@@ -21,7 +21,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE COMPLEX(KIND=DWP) FUNCTION ZJFMA(A, B, C)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZJFMA(A, B, C)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: A ! imaginary
     COMPLEX(KIND=DWP), INTENT(IN) :: B, C
@@ -38,7 +38,7 @@ CONTAINS
 
   ! after cuCfma() from CUDA's cuComplex.h
 
-  PURE COMPLEX(KIND=DWP) FUNCTION ZZFMA(A, B, C)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZZFMA(A, B, C)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B, C
 
@@ -54,7 +54,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE COMPLEX(KIND=DWP) FUNCTION ZFMA(A, B, C)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZFMA(A, B, C)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B, C
 
@@ -69,7 +69,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE COMPLEX(KIND=DWP) FUNCTION ZZMUL(A, B)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZZMUL(A, B)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B
 
@@ -86,7 +86,7 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! assume that B is not real and |B| .NE. 0
-  PURE COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
+  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B
 #ifdef NDEBUG
@@ -156,8 +156,8 @@ CONTAINS
     DO J = 1, N
        XX = ZFMA(B(1,2), Y(I), X(I))
        YY = ZFMA(B(2,1), X(I), Y(I))
-       X(I) = REAL(B(1,1)) * XX
-       Y(I) = REAL(B(2,2)) * YY
+       X(I) = XX / REAL(B(1,1))
+       Y(I) = YY / REAL(B(2,2))
        I = I + LDA
     END DO
   END SUBROUTINE CA
@@ -273,8 +273,8 @@ CONTAINS
     DO I = 1, M
        XX = ZFMA(Y(I), B(2,1), X(I))
        YY = ZFMA(X(I), B(1,2), Y(I))
-       X(I) = XX * REAL(B(1,1))
-       Y(I) = YY * REAL(B(2,2))
+       X(I) = XX / REAL(B(1,1))
+       Y(I) = YY / REAL(B(2,2))
     END DO
   END SUBROUTINE AC
 
@@ -659,7 +659,7 @@ CONTAINS
           T2 = (SCALE(Y, 1) * X) / T2
        END IF
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-       CU = D_ONE / SQRT(D_ONE + TU * TU)
+       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
        IF (Y_ .EQ. Z_ZERO) THEN
           Y_ = TU
        ELSE ! Y_ .NE. Z_ZERO
@@ -671,7 +671,7 @@ CONTAINS
        V(2,2) = CU
        Z_ = ZDFMA(Y, Y_, -X_)
        TZ = ABS(Z_)
-       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
        W(1,1) = CZ
        W(2,1) = Z_
        W(1,2) = CONJG(Z_)
@@ -688,7 +688,7 @@ CONTAINS
           T2 = -(SCALE(Y, 1) * X) / T2
        END IF
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-       CU = D_ONE / SQRT(D_ONE + TU * TU)
+       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
        IF (Y_ .EQ. Z_ZERO) THEN
           Y_ = TU
        ELSE ! Y_ .NE. Z_ZERO
@@ -700,7 +700,7 @@ CONTAINS
        V(2,2) = CU
        Z_ = ZDFMA(Y, Y_, -X_)
        TZ = ABS(Z_)
-       CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
+       CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
        W(1,1) = CZ
        W(2,1) = -Z_
        W(1,2) = CONJG(Z_)
@@ -748,7 +748,7 @@ CONTAINS
        T2 = -(SCALE(Y, 1) * X) / T2
     END IF
     TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-    CU = D_ONE / SQRT(D_ONE + TU * TU)
+    CU = SQRT(D_ONE + TU * TU) ! D_ONE /
     IF (Y_ .EQ. Z_ZERO) THEN
        Y_ = TU
     ELSE ! Y_ .NE. Z_ZERO
@@ -760,7 +760,7 @@ CONTAINS
     V(2,2) = CU
     Z_ = -ZDFMA(Y, Y_, X_)
     TZ = ABS(Z_)
-    CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+    CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
     W(1,1) = CZ
     W(2,1) = Z_
     W(1,2) = CONJG(Z_)
@@ -870,7 +870,7 @@ CONTAINS
     ! e**i\alpha = conjg(S)/T
     ! S is e**i\alpha * T here
     S = CONJG(S)
-    C = D_ONE / SQRT(D_ONE + T * T)
+    C = SQRT(D_ONE + T * T) ! D_ONE /
     Q(1,1) =  C
     Q(2,1) = -CONJG(S)
     Q(1,2) =  S

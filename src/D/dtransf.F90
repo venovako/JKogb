@@ -47,12 +47,12 @@ CONTAINS
     INTEGER :: J
 
     IF (N .EQ. 1) THEN
-       C(1,1) = (A(1,1) + B(1,2) * A(2,1)) * B(1,1)
-       C(2,1) = (B(2,1) * A(1,1) + A(2,1)) * B(2,2)
+       C(1,1) = (A(1,1) + B(1,2) * A(2,1)) / B(1,1)
+       C(2,1) = (B(2,1) * A(1,1) + A(2,1)) / B(2,2)
     ELSE IF (N .GE. 2) THEN
        DO J = 1, N
-          C(1,J) = (A(1,J) + B(1,2) * A(2,J)) * B(1,1)
-          C(2,J) = (B(2,1) * A(1,J) + A(2,J)) * B(2,2)
+          C(1,J) = (A(1,J) + B(1,2) * A(2,J)) / B(1,1)
+          C(2,J) = (B(2,1) * A(1,J) + A(2,J)) / B(2,2)
        END DO
     ELSE ! should never happen
        RETURN
@@ -128,17 +128,17 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AC(B, A)
+  PURE SUBROUTINE AC(A, B)
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
 
     REAL(KIND=DWP) :: C(2,2)
     INTEGER :: I
 
     DO I = 1, 2
-       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) * B(1,1)
-       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) * B(2,2)
+       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) / B(1,1)
+       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) / B(2,2)
     END DO
     A = C
   END SUBROUTINE AC
@@ -383,19 +383,19 @@ CONTAINS
           ELSE ! should always happen
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
-          CU = D_ONE / SQRT(D_ONE + TU * TU)
-          ! SU = TU * CU
+          CU = SQRT(D_ONE + TU * TU) ! D_ONE /
+          ! SU = TU / CU
           TZ = Y * TU - X
           IF (ABS(TZ) .GE. D_ONE) THEN
              INFO = -8
              RETURN
           END IF
-          CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+          CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -9
              RETURN
           END IF
-          SZ = TZ * CZ
+          SZ = TZ / CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
              INFO = -10
@@ -411,12 +411,12 @@ CONTAINS
              INFO = -11
              RETURN
           END IF
-          CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+          CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
           IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
              INFO = -12
              RETURN
           END IF
-          SZ = TZ * CZ
+          SZ = TZ / CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
              INFO = -13
@@ -446,19 +446,19 @@ CONTAINS
           ELSE ! should always happen
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
-          CU = D_ONE / SQRT(D_ONE + TU * TU)
-          ! SU = TU * CU
+          CU = SQRT(D_ONE + TU * TU) ! D_ONE /
+          ! SU = TU / CU
           TZ = Y * TU - X
-          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
-          ! SZ = TZ * CZ
+          CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
+          ! SZ = TZ / CZ
        ELSE ! A(2,2) .EQ. 0
           INFO = 1
           ! TU = D_ZERO
           ! CU = D_ONE
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
-          CZ = D_ONE / SQRT(D_ONE + TZ * TZ)
-          ! SZ = TZ * CZ
+          CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
+          ! SZ = TZ / CZ
        END IF
        W(1,1) =  CZ
        W(2,1) = -TZ !-SZ
@@ -478,8 +478,8 @@ CONTAINS
        INFO = 0
     END IF
 
-    CALL AC(W, A)
-    CALL AC(W, Z)
+    CALL AC(A, W)
+    CALL AC(Z, W)
 
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
@@ -515,19 +515,19 @@ CONTAINS
        ELSE ! should always happen
           TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
        END IF
-       CU = D_ONE / SQRT(D_ONE + TU * TU)
-       ! SU = TU * CU
+       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
+       ! SU = TU / CU
        TZ = -(X * TU + Y)
        IF (ABS(TZ) .GE. D_ONE) THEN
           INFO = -15
           RETURN
        END IF
-       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -16
           RETURN
        END IF
-       SZ = TZ * CZ
+       SZ = TZ / CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
           INFO = -17
@@ -543,12 +543,12 @@ CONTAINS
           INFO = -18
           RETURN
        END IF
-       CZ = D_ONE / SQRT(D_ONE - TZ * TZ)
+       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
        IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
           INFO = -19
           RETURN
        END IF
-       SZ = TZ * CZ
+       SZ = TZ / CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
           INFO = -20
@@ -577,8 +577,8 @@ CONTAINS
     W(1,2) =  TZ ! SZ
     W(2,2) =  CZ
 
-    CALL AC(W, A)
-    CALL AC(W, Z)
+    CALL AC(A, W)
+    CALL AC(Z, W)
 
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
@@ -672,7 +672,7 @@ CONTAINS
     R = SIGN(R, A(1,1))
     ! S is tangent here, |S| <= 1
     S = A(2,1) / A(1,1)
-    C = D_ONE / SQRT(D_ONE + S * S)
+    C = SQRT(D_ONE + S * S) ! D_ONE /
     Q(1,1) =  C
     Q(2,1) = -S
     Q(1,2) =  S
