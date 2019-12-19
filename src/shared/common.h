@@ -27,7 +27,9 @@
 
 /* Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable */
 typedef long double extended;
-typedef long double _Complex xcomplex;
+
+typedef double complex dcomplex;
+typedef long double complex xcomplex;
 
 #ifndef FINT32
 typedef int64_t fint;
