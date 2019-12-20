@@ -114,13 +114,13 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
       *info = FINT_C(1);
       tz = -(A[1][0] / A[0][0]);
       if (fabsl(tz) >= 1.0L) {
-        *info = FINT_C(-11);
+        *info = FINT_C(-10);
         return;
       }
       cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
     }
     else {
-      *info = FINT_C(-14);
+      *info = FINT_C(-12);
       return;
     }
   }
@@ -181,7 +181,7 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
     cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
     tz = -fmal(x, tu, y);
     if (fabsl(tz) >= 1.0L) {
-      *info = FINT_C(-15);
+      *info = FINT_C(-13);
       return;
     }
     cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
@@ -190,13 +190,13 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
     *info = FINT_C(1);
     tz = -(A[0][1] / A[1][1]);
     if (fabsl(tz) >= 1.0L) {
-      *info = FINT_C(-18);
+      *info = FINT_C(-15);
       return;
     }
     cz = sqrtl(fmal(-tz, tz, 1.0L)); /* 1.0L / */
   }
   else {
-    *info = FINT_C(-21);
+    *info = FINT_C(-17);
     return;
   }
 

@@ -391,14 +391,10 @@ CONTAINS
              RETURN
           END IF
           CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-          IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-             INFO = -9
-             RETURN
-          END IF
           SZ = TZ / CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -10
+             INFO = -9
              RETURN
           END IF
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
@@ -408,23 +404,19 @@ CONTAINS
           ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           IF (ABS(TZ) .GE. D_ONE) THEN
-             INFO = -11
+             INFO = -10
              RETURN
           END IF
           CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-          IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-             INFO = -12
-             RETURN
-          END IF
           SZ = TZ / CZ
           SZ = SZ * SZ ! SZ^2
           IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -13
+             INFO = -11
              RETURN
           END IF
        ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
-          INFO = -14
+          INFO = -12
           RETURN
        END IF
        W(1,1) =  CZ
@@ -519,18 +511,14 @@ CONTAINS
        ! SU = TU / CU
        TZ = -(X * TU + Y)
        IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -15
+          INFO = -13
           RETURN
        END IF
        CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-          INFO = -16
-          RETURN
-       END IF
        SZ = TZ / CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -17
+          INFO = -14
           RETURN
        END IF
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
@@ -540,23 +528,19 @@ CONTAINS
        ! SU = D_ZERO
        TZ = -A(2,1) / A(2,2)
        IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -18
+          INFO = -15
           RETURN
        END IF
        CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       IF (.NOT. (CZ .LE. HUGE(CZ))) THEN
-          INFO = -19
-          RETURN
-       END IF
        SZ = TZ / CZ
        SZ = SZ * SZ ! SZ^2
        IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -20
+          INFO = -16
           RETURN
        END IF
     ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
        ! |TZ| .GE. 1
-       INFO = -21
+       INFO = -17
        RETURN
     END IF
 
