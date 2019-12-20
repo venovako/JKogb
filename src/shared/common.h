@@ -33,6 +33,16 @@ typedef long double extended;
 typedef double complex dcomplex;
 typedef long double complex xcomplex;
 
+#ifndef CMPLXF
+#define CMPLXF(r,i) ((float)(r) + I * (float)(i))
+#endif /* !CMPLXF */
+#ifndef CMPLX
+#define CMPLX(r,i) ((double)(r) + I * (double)(i))
+#endif /* !CMPLX */
+#ifndef CMPLXL
+#define CMPLXL(r,i) ((extended)(r) + I * (extended)(i))
+#endif /* !CMPLXL */
+
 #ifndef FINT32
 typedef int64_t fint;
 typedef uint64_t fnat;

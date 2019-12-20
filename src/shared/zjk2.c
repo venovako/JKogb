@@ -39,6 +39,7 @@ static inline xcomplex xxdiv(const xcomplex a, const xcomplex b)
 #endif /* ?NDEBUG */
 }
 
+#ifdef USE_EXTENDED
 void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 2][2], dcomplex Z[static 2][2], fint info[static 1])
 {
   *info = FINT_C(0);
@@ -65,3 +66,4 @@ void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 
   xcomplex U_[2][2] = { { CMPLXL(1.0L, 0.0L), CMPLXL(0.0L, 0.0L) }, { CMPLXL(0.0L, 0.0L), CMPLXL(1.0L, 0.0L) } };
   xcomplex Z_[2][2] = { { CMPLXL(1.0L, 0.0L), CMPLXL(0.0L, 0.0L) }, { CMPLXL(0.0L, 0.0L), CMPLXL(1.0L, 0.0L) } };
 }
+#endif /* USE_EXTENDED */
