@@ -188,8 +188,10 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
+#ifndef USE_PGI
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) &
     !$OMP& SCHEDULE(NONMONOTONIC:DYNAMIC,1) REDUCTION(+:IT)
+#endif
     DO I = 1, NN
        IP = P(I)
        IQ = Q(I)
@@ -199,7 +201,9 @@ CONTAINS
        DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
+#ifndef USE_PGI
     !$OMP END PARALLEL DO
+#endif
 
     IF (IT .EQ. 0) GOTO 1
     IF (IT .LT. NN) THEN
