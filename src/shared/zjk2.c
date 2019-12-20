@@ -143,17 +143,57 @@ static inline void xhsvd2d(xcomplex A[static 2][2], xcomplex U[static 2][2], fin
   A[1][0] = A[0][1] = x0;
 
   if (xisreal(A[0][0])) {
+    if (copysignl(1.0L, creall(A[0][0])) == -1.0L) {
+      U[0][0] = -U[0][0];
+      U[1][0] = -U[1][0];
+      A[0][0] = -A[0][0];
+    }
   }
   else if (xisimag(A[0][0])) {
+    if (cimagl(A[0][0]) < 0.0L) {
+      U[0][0] = CMPLXL(-cimagl(U[0][0]), creall(U[0][0]));
+      U[1][0] = CMPLXL(-cimagl(U[1][0]), creall(U[1][0]));
+      A[0][0] = CMPLXL(-cimagl(A[0][0]), creall(A[0][0]));
+    }
+    else {
+      U[0][0] = CMPLXL(cimagl(U[0][0]), -creall(U[0][0]));
+      U[1][0] = CMPLXL(cimagl(U[1][0]), -creall(U[1][0]));
+      A[0][0] = CMPLXL(cimagl(A[0][0]), -creall(A[0][0]));
+    }
   }
   else {
+    const extended w = cabsl(A[0][0]);
+    const xcomplex v = conjl(A[0][0] / w);
+    U[0][0] = xxmul(v, U[0][0]);
+    U[1][0] = xxmul(v, U[1][0]);
+    A[0][0] = CMPLXL(w, 0.0L);
   }
 
   if (xisreal(A[1][1])) {
+    if (copysignl(1.0L, creall(A[1][1])) == -1.0L) {
+      U[0][1] = -U[0][1];
+      U[1][1] = -U[1][1];
+      A[1][1] = -A[1][1];
+    }
   }
   else if (xisimag(A[1][1])) {
+    if (cimagl(A[1][1]) < 0.0L) {
+      U[0][1] = CMPLXL(-cimagl(U[0][1]), creall(U[0][1]));
+      U[1][1] = CMPLXL(-cimagl(U[1][1]), creall(U[1][1]));
+      A[1][1] = CMPLXL(-cimagl(A[1][1]), creall(A[1][1]));
+    }
+    else {
+      U[0][1] = CMPLXL(cimagl(U[0][1]), -creall(U[0][1]));
+      U[1][1] = CMPLXL(cimagl(U[1][1]), -creall(U[1][1]));
+      A[1][1] = CMPLXL(cimagl(A[1][1]), -creall(A[1][1]));
+    }
   }
   else {
+    const extended w = cabsl(A[1][1]);
+    const xcomplex v = conjl(A[1][1] / w);
+    U[0][1] = xxmul(v, U[0][1]);
+    U[1][1] = xxmul(v, U[1][1]);
+    A[1][1] = CMPLXL(w, 0.0L);
   }
 }
 
