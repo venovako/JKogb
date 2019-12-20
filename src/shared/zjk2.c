@@ -60,7 +60,7 @@ static inline void xassgn2(xcomplex A[static 2][2], const xcomplex B[static 2][2
   A[1][1] = B[1][1];
 }
 
-static inline void zassgn2(dcomplex A[static 2][2], const dcomplex B[static 2][2])
+static inline void zassgn2(dcomplex A[static 2][2], const xcomplex B[static 2][2])
 {
   A[0][0] = (dcomplex)(B[0][0]);
   A[0][1] = (dcomplex)(B[0][1]);
