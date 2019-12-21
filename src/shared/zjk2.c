@@ -199,12 +199,78 @@ static inline void xhsvd2d(xcomplex A[static 2][2], xcomplex U[static 2][2], fin
 
 static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
 {
-  *info = FINT_C(0);
+  extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
+  xcomplex y_ = (A[1][0] * creall(A[1][1])), z_ = x0;
+  const xcomplex x_ = (conjl(A[1][0] / creall(A[0][0])));
+  const extended x = cabsl(x_), y = (creall(A[1][1]) / creall(A[0][0]));
+
+  if (h) {
+    if (x == 1.0L) {
+      *info = ((y == 0.0L) ? FINT_C(-8) : FINT_C(-9));
+      return;
+    }
+    extended t2 = ((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
+    t2 /= fmal((y - x), (y + x), 1.0L);
+    tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+    cu = sqrtl(fmal(tu, tu, 1.0L));
+    y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
+    z_ = xqfma(y, y_, -x_);
+    tz = cabsl(z_);
+    cz = sqrtl(fmal(-tz, tz, 1.0L));
+  }
+  else {
+    extended t2 = -((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
+    t2 /= fmal((x - y), (x + y), 1.0L);
+    tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+    cu = sqrtl(fmal(tu, tu, 1.0L));
+    y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
+    z_ = xqfma(y, y_, -x_);
+    tz = cabsl(z_);
+    cz = sqrtl(fmal(tz, tz, 1.0L));
+  }
+
+  const xcomplex V[2][2] = { { CMPLXL(cu, 0.0L), y_ }, { -conjl(y_), CMPLXL(cu, 0.0L) } };
+  CA2(V, U);
+  CA2(V, A);
+
+  const xcomplex W[2][2] = { { CMPLXL(cz, 0.0L), (h ? z_ : -z_) }, { conjl(z_), CMPLXL(cz, 0.0L) } };
+  AC(A, W);
+  AC(Z, W);
+
+  xhsvd2d(A, U, info);
+  *info = FINT_C(1);
 }
 
 static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
 {
-  *info = FINT_C(0);
+  const xcomplex x_ = (A[0][1] / creall(A[1][1]));
+  const extended x = cabsl(x_), y = (creall(A[0][0]) / creall(A[1][1]));
+
+  if (x == 1.0L) {
+    *info = ((y == 0.0L) ? FINT_C(-8) : FINT_C(-9));
+    return;
+  }
+
+  xcomplex y_ = (conjl(A[0][1]) * creall(A[0][0]));
+  extended t2 = -((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
+  t2 /= fmal((y - x), (y + x), 1.0L);
+  const extended tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+  const extended cu = sqrtl(fmal(tu, tu, 1.0L));
+  y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
+  const xcomplex z_ = -xqfma(y, y_, x_);
+  const extended tz = cabsl(z_);
+  const extended cz = sqrtl(fmal(-tz, tz, 1.0L));
+
+  const xcomplex V[2][2] = { { CMPLXL(cu, 0.0L), y_ }, { -conjl(y_), CMPLXL(cu, 0.0L) } };
+  CA2(V, U);
+  CA2(V, A);
+
+  const xcomplex W[2][2] = { { CMPLXL(cz, 0.0L), z_ }, { conjl(z_), CMPLXL(cz, 0.0L) } };
+  AC(A, W);
+  AC(Z, W);
+
+  xhsvd2d(A, U, info);
+  *info = FINT_C(1);
 }
 
 static inline void xhsvd2g(const bool h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
