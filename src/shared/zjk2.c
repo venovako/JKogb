@@ -1,5 +1,5 @@
 #include "zjk2.h"
-
+#ifdef USE_EXTENDED
 #ifndef x0
 #define x0 CMPLXL(0.0L, 0.0L)
 #else /* x0 */
@@ -73,12 +73,6 @@ static inline void xswp(xcomplex a[static 1], xcomplex b[static 1])
   *b = t;
 }
 
-static inline void xassgn1(xcomplex A[static 2], const xcomplex B[static 2])
-{
-  A[0] = B[0];
-  A[1] = B[1];
-}
-
 static inline void xassgn2(xcomplex A[static 2][2], const xcomplex B[static 2][2])
 {
   A[0][0] = B[0][0];
@@ -96,6 +90,12 @@ static inline void zassgn2(dcomplex A[static 2][2], const xcomplex B[static 2][2
 }
 
 /* unused
+static inline void xassgn1(xcomplex A[static 2], const xcomplex B[static 2])
+{
+  A[0] = B[0];
+  A[1] = B[1];
+}
+
 static inline void CA1(const xcomplex B[static 2][2], xcomplex A[static 2])
 {
   const xcomplex C[2] =
@@ -423,7 +423,6 @@ static inline void xhsvd2_(xcomplex A[static 2][2], const fint J[static 2], xcom
     xhsvd2s((J[0] + J[1]), A, U, Z, info);
 }
 
-#ifdef USE_EXTENDED
 void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 2][2], dcomplex Z[static 2][2], fint info[static 1])
 {
   if (!zisfinite(A[0][0]))
@@ -467,4 +466,6 @@ void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 
     zassgn2(Z, (const xcomplex (*)[2])Z_);
   }
 }
+#undef x1
+#undef x0
 #endif /* USE_EXTENDED */

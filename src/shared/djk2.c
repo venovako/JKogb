@@ -1,5 +1,5 @@
 #include "djk2.h"
-
+#ifdef USE_EXTENDED
 static inline void qswp(extended a[static 1], extended b[static 1])
 {
   const extended t = *a;
@@ -319,7 +319,6 @@ static inline void qhsvd2_(extended A[static 2][2], const fint J[static 2], exte
     qhsvd2s((J[0] + J[1]), A, U, Z, info);
 }
 
-#ifdef USE_EXTENDED
 void dhsvd2_(double A[static 2][2], const fint J[static 2], double U[static 2][2], double Z[static 2][2], fint info[static 1])
 {
   if (!(fabs(A[0][0]) <= DBL_MAX))
