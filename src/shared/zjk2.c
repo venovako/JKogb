@@ -95,6 +95,7 @@ static inline void zassgn2(dcomplex A[static 2][2], const xcomplex B[static 2][2
   A[1][1] = (dcomplex)(B[1][1]);
 }
 
+/* unused
 static inline void CA1(const xcomplex B[static 2][2], xcomplex A[static 2])
 {
   const xcomplex C[2] =
@@ -104,6 +105,7 @@ static inline void CA1(const xcomplex B[static 2][2], xcomplex A[static 2])
     };
   xassgn1(A, C);
 }
+*/
 
 static inline void CA2(const xcomplex B[static 2][2], xcomplex A[static 2][2])
 {
@@ -201,7 +203,7 @@ static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[sta
 {
   extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   xcomplex y_ = (A[1][0] * creall(A[1][1])), z_ = x0;
-  const xcomplex x_ = (conjl(A[1][0] / creall(A[0][0])));
+  const xcomplex x_ = conjl(A[1][0] / creall(A[0][0]));
   const extended x = cabsl(x_), y = (creall(A[1][1]) / creall(A[0][0]));
 
   if (h) {
@@ -247,7 +249,7 @@ static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xco
   const extended x = cabsl(x_), y = (creall(A[0][0]) / creall(A[1][1]));
 
   if (x == 1.0L) {
-    *info = ((y == 0.0L) ? FINT_C(-8) : FINT_C(-9));
+    *info = ((y == 0.0L) ? FINT_C(-10) : FINT_C(-11));
     return;
   }
 
@@ -294,7 +296,7 @@ static inline void xhsvd2g(const bool h, xcomplex A[static 2][2], xcomplex U[sta
   else
     *info = FINT_C(0);
 
-  if (creall(r) < cimagl(r)) {
+  if (cabsl(A[0][0]) < cabsl(A[0][1])) {
     xswp(&(U[0][0]), &(U[0][1]));
     xswp(&(U[1][0]), &(U[1][1]));
     xswp(&(A[0][0]), &(A[0][1]));
