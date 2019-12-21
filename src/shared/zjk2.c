@@ -275,7 +275,123 @@ static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xco
 
 static inline void xhsvd2g(const bool h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
 {
-  *info = FINT_C(0);
+  xcomplex
+    r = CMPLXL(cabsl(A[0][0]), cabsl(A[0][1])),
+    s = CMPLXL(cabsl(A[1][0]), cabsl(A[1][1]));
+  extended
+    c = cabsl(r),
+    t = cabsl(s);
+
+  if (c < t) {
+    xswp(&(A[0][0]), &(A[1][0]));
+    xswp(&(A[0][1]), &(A[1][1]));
+    if (!h) {
+      xswp(&(Z[0][0]), &(Z[1][0]));
+      xswp(&(Z[0][1]), &(Z[1][1]));
+    }
+    *info = FINT_C(1);
+  }
+  else
+    *info = FINT_C(0);
+
+  if (creall(r) < cimagl(r)) {
+    xswp(&(U[0][0]), &(U[0][1]));
+    xswp(&(U[1][0]), &(U[1][1]));
+    xswp(&(A[0][0]), &(A[0][1]));
+    xswp(&(A[1][0]), &(A[1][1]));
+  }
+
+  s = conjl((xisreal(A[0][0])) ? (A[0][1] / creall(A[0][0])) : xxdiv(A[0][1], A[0][0]));
+  t = cabsl(s);
+  c = sqrtl(fmal(t, t, 1.0L));
+
+  const xcomplex Q[2][2] = { { c, -conjl(s) }, { s, c } };
+  CA2(Q, U);
+  CA2(Q, A);
+  A[0][1] = x0;
+
+  if (xisreal(A[0][0])) {
+    if (copysignl(1.0L, creall(A[0][0])) == -1.0L) {
+      U[0][0] = -U[0][0];
+      U[1][0] = -U[1][0];
+      A[0][0] = -A[0][0];
+      A[1][0] = -A[1][0];
+    }
+  }
+  else if (xisimag(A[0][0])) {
+    if (cimagl(A[0][0]) < 0.0L) {
+      U[0][0] = CMPLXL(-cimagl(U[0][0]), creall(U[0][0]));
+      U[1][0] = CMPLXL(-cimagl(U[1][0]), creall(U[1][0]));
+      A[0][0] = CMPLXL(-cimagl(A[0][0]), creall(A[0][0]));
+      A[1][0] = CMPLXL(-cimagl(A[1][0]), creall(A[1][0]));
+    }
+    else {
+      U[0][0] = CMPLXL(cimagl(U[0][0]), -creall(U[0][0]));
+      U[1][0] = CMPLXL(cimagl(U[1][0]), -creall(U[1][0]));
+      A[0][0] = CMPLXL(cimagl(A[0][0]), -creall(A[0][0]));
+      A[1][0] = CMPLXL(cimagl(A[1][0]), -creall(A[1][0]));
+    }
+  }
+  else {
+    r = A[0][0];
+    A[0][0] = CMPLXL(cabsl(r), 0.0L);
+    r = conjl(r / creall(A[0][0]));
+    U[0][0] = xxmul(r, U[0][0]);
+    U[1][0] = xxmul(r, U[1][0]);
+    A[1][0] = xxmul(r, A[1][0]);
+  }
+
+  if (xisreal(A[1][1])) {
+    if (copysignl(1.0L, creall(A[1][1])) == -1.0L) {
+      U[0][1] = -U[0][1];
+      U[1][1] = -U[1][1];
+      A[1][1] = -A[1][1];
+    }
+  }
+  else if (xisimag(A[1][1])) {
+    if (cimagl(A[1][1]) < 0.0L) {
+      U[0][1] = CMPLXL(-cimagl(U[0][1]), creall(U[0][1]));
+      U[1][1] = CMPLXL(-cimagl(U[1][1]), creall(U[1][1]));
+      A[1][1] = CMPLXL(-cimagl(A[1][1]), creall(A[1][1]));
+    }
+    else {
+      U[0][1] = CMPLXL(cimagl(U[0][1]), -creall(U[0][1]));
+      U[1][1] = CMPLXL(cimagl(U[1][1]), -creall(U[1][1]));
+      A[1][1] = CMPLXL(cimagl(A[1][1]), -creall(A[1][1]));
+    }
+  }
+  else {
+    r = A[1][1];
+    A[1][1] = CMPLXL(cabsl(r), 0.0L);
+    r = conjl(r / creall(A[1][1]));
+    U[0][1] = xxmul(r, U[0][1]);
+    U[1][1] = xxmul(r, U[1][1]);
+  }
+
+  if (A[1][0] == x0) {
+    if (h) {
+      if (*info == FINT_C(1)) {
+        xswp(&(U[0][0]), &(U[0][1]));
+        xswp(&(U[1][0]), &(U[1][1]));
+        xswp(&(A[0][0]), &(A[1][1]));
+      }
+      else
+        *info = FINT_C(1);
+    }
+    else
+      *info = FINT_C(1);
+  }
+  else if (h && (*info == FINT_C(1))) {
+    xswp(&(A[0][0]), &(A[1][0]));
+    xswp(&(A[0][1]), &(A[1][1]));
+    xswp(&(U[0][0]), &(U[0][1]));
+    xswp(&(U[1][0]), &(U[1][1]));
+    xswp(&(A[0][0]), &(A[0][1]));
+    xswp(&(A[1][0]), &(A[1][1]));
+    xhsvd2l(A, U, Z, info);
+  }
+  else
+    xhsvd2u(h, A, U, Z, info);
 }
 
 static inline void xhsvd2s(const fint h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
