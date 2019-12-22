@@ -23,14 +23,17 @@ else # !ANIMATE
 zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zstep.F90
 endif # ?ANIMATE
-zjk.exe: zjk.o zstep.o ztransf.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) zjk.o zstep.o ztransf.o ztypes.o -o$@ $(LDFLAGS)
+zjk.exe: zjk.o zstep.o ztransf.o xtransf.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) zjk.o zstep.o ztransf.o xtransf.o ztypes.o -o$@ $(LDFLAGS)
 
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
 
-ztest.exe: ztest.o ztransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) ztest.o ztransf.o -o$@ $(LDFLAGS)
+xtransf.o: xtransf.c xtransf.h ../shared/common.h $(MKFS)
+	$(CC) $(CFLAGS) -c xtransf.c
+
+ztest.exe: ztest.o ztransf.o xtransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)
+	$(FC) $(FFLAGS) ztest.o ztransf.o xtransf.o -o$@ $(LDFLAGS)
 
 ztest.o: ztest.F90 ztransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztest.F90

@@ -1,4 +1,4 @@
-#include "djk2.h"
+#include "qtransf.h"
 #ifdef USE_EXTENDED
 static inline void qswp(extended a[static 1], extended b[static 1])
 {

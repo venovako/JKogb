@@ -1,4 +1,4 @@
-#include "zjk2.h"
+#include "xtransf.h"
 #ifdef USE_EXTENDED
 #ifndef x0
 #define x0 CMPLXL(0.0L, 0.0L)
