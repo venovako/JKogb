@@ -14,7 +14,7 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_PGI -DUSE_X64 -DUSE_TSC -m64 -mp -Minfo #-Mnollvm
+CPUFLAGS=-DUSE_PGI -DUSE_X64 -DUSE_TSC -DOLD_OMP -m64 -mp -KPIC -Mframe -Meh_frame -Minfo -Mnollvm
 FORFLAGS=$(CPUFLAGS) -i8 -Mdclchk -Mlarge_arrays -Mrecursive -Mstack_arrays
 C11FLAGS=$(CPUFLAGS) -c11
 CC=pgcc
