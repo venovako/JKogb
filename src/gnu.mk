@@ -15,12 +15,12 @@ endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
 C11FLAGS=$(CPUFLAGS) -std=gnu17
 ifeq ($(ARCH),Darwin)
-FC=gfortran-9
-CC=gcc-9
-else # Linux
-FC=gfortran
-CC=gcc
-endif # ?Darwin
+ifndef GNU
+GNU=-9
+endif # !GNU
+endif # Darwin
+CC=gcc$(GNU)
+FC=gfortran$(GNU)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
 DBGFLAGS=-DNDEBUG -fopt-info-optimized-vec -pedantic -Wall -Wextra
