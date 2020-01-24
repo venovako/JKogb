@@ -331,7 +331,6 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    INFO = 0
     ! make the zeroes positive
     A(2,1) = D_ZERO
     A(1,2) = D_ZERO
@@ -349,6 +348,12 @@ CONTAINS
        U(2,2) = -U(2,2)
        A(2,2) = -A(2,2)
     END IF
+
+    IF (INFO .NE. 0) THEN
+       A(1,1) = SCALE(A(1,1), -INFO)
+       A(2,2) = SCALE(A(2,2), -INFO)
+       INFO = 0
+    END IF
   END SUBROUTINE DHSVD2D
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -361,12 +366,13 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, TU !, SU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, TZ, SZ ! trigonometric or hyperbolic
+    REAL(KIND=DWP) :: CU, TU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, TZ ! trigonometric or hyperbolic
 
     REAL(KIND=DWP) :: T2U, X, Y
+    LOGICAL :: A22Z
 
-    INFO = 0
+    A22Z = .TRUE.
 
     IF (H) THEN
        IF (A(2,2) .NE. D_ZERO) THEN
@@ -384,44 +390,30 @@ CONTAINS
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
           CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-          ! SU = TU / CU
           TZ = Y * TU - X
           IF (ABS(TZ) .GE. D_ONE) THEN
              INFO = -8
              RETURN
           END IF
           CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-          SZ = TZ / CZ
-          SZ = SZ * SZ ! SZ^2
-          IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -9
-             RETURN
-          END IF
+          A22Z = .FALSE.
        ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
-          INFO = 1
           ! TU = D_ZERO
           ! CU = D_ONE
-          ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           IF (ABS(TZ) .GE. D_ONE) THEN
              INFO = -10
              RETURN
           END IF
           CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-          SZ = TZ / CZ
-          SZ = SZ * SZ ! SZ^2
-          IF ((SZ + D_ONE) .EQ. SZ) THEN
-             INFO = -11
-             RETURN
-          END IF
        ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
           ! |TZ| .GE. 1
           INFO = -12
           RETURN
        END IF
        W(1,1) =  CZ
-       W(2,1) =  TZ ! SZ
-       W(1,2) =  TZ ! SZ
+       W(2,1) =  TZ
+       W(1,2) =  TZ
        W(2,2) =  CZ
     ELSE ! trigonometric
        IF (A(2,2) .NE. D_ZERO) THEN
@@ -439,39 +431,39 @@ CONTAINS
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
           END IF
           CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-          ! SU = TU / CU
           TZ = Y * TU - X
           CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
-          ! SZ = TZ / CZ
+          A22Z = .FALSE.
        ELSE ! A(2,2) .EQ. 0
-          INFO = 1
           ! TU = D_ZERO
           ! CU = D_ONE
-          ! SU = D_ZERO
           TZ = -A(1,2) / A(1,1)
           CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
-          ! SZ = TZ / CZ
        END IF
        W(1,1) =  CZ
-       W(2,1) = -TZ !-SZ
-       W(1,2) =  TZ ! SZ
+       W(2,1) = -TZ
+       W(1,2) =  TZ
        W(2,2) =  CZ
     END IF
 
-    IF (INFO .EQ. 0) THEN
+    IF (.NOT. A22Z) THEN
        V(1,1) =  CU
-       V(2,1) =  TU ! SU
-       V(1,2) = -TU !-SU
+       V(2,1) =  TU
+       V(1,2) = -TU
        V(2,2) =  CU
 
        CALL CA(V, 2, U)
        CALL CA(V, 2, A)
-    ELSE ! INFO .NE. 0
-       INFO = 0
     END IF
 
-    CALL AC(A, W)
     CALL AC(Z, W)
+
+    IF (H .AND. (INFO .NE. 0)) THEN
+       W(1,1) = SCALE(W(1,1), INFO)
+       W(2,2) = SCALE(W(2,2), INFO)
+       INFO = 0
+    END IF
+    CALL AC(A, W)
 
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
@@ -486,12 +478,13 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, TU !, SU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, TZ, SZ ! always hyperbolic
+    REAL(KIND=DWP) :: CU, TU ! always trigonometric
+    REAL(KIND=DWP) :: CZ, TZ ! always hyperbolic
 
     REAL(KIND=DWP) :: T2U, X, Y
+    LOGICAL :: A11Z
 
-    INFO = 0
+    A11Z = .TRUE.
 
     IF (A(1,1) .NE. D_ZERO) THEN
        X = A(1,1) / A(2,2) ! .GT. 0
@@ -508,61 +501,50 @@ CONTAINS
           TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
        END IF
        CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-       ! SU = TU / CU
        TZ = -(X * TU + Y)
        IF (ABS(TZ) .GE. D_ONE) THEN
           INFO = -13
           RETURN
        END IF
        CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       SZ = TZ / CZ
-       SZ = SZ * SZ ! SZ^2
-       IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -14
-          RETURN
-       END IF
+       A11Z = .FALSE.
     ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
-       INFO = 1
        ! TU = D_ZERO
        ! CU = D_ONE
-       ! SU = D_ZERO
        TZ = -A(2,1) / A(2,2)
        IF (ABS(TZ) .GE. D_ONE) THEN
           INFO = -15
           RETURN
        END IF
        CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       SZ = TZ / CZ
-       SZ = SZ * SZ ! SZ^2
-       IF ((SZ + D_ONE) .EQ. SZ) THEN
-          INFO = -16
-          RETURN
-       END IF
     ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
        ! |TZ| .GE. 1
        INFO = -17
        RETURN
     END IF
 
-    IF (INFO .EQ. 0) THEN
+    IF (.NOT. A11Z) THEN
        V(1,1) =  CU
-       V(2,1) =  TU ! SU
-       V(1,2) = -TU !-SU
+       V(2,1) =  TU
+       V(1,2) = -TU
        V(2,2) =  CU
 
        CALL CA(V, 2, U)
        CALL CA(V, 2, A)
-    ELSE ! INFO .NE. 0
-       INFO = 0
     END IF
 
     W(1,1) =  CZ
-    W(2,1) =  TZ ! SZ
-    W(1,2) =  TZ ! SZ
+    W(2,1) =  TZ
+    W(1,2) =  TZ
     W(2,2) =  CZ
-
-    CALL AC(A, W)
     CALL AC(Z, W)
+
+    IF (INFO .NE. 0) THEN
+       W(1,1) = SCALE(W(1,1), INFO)
+       W(2,2) = SCALE(W(2,2), INFO)
+       INFO = 0
+    END IF
+    CALL AC(A, W)
 
     CALL DHSVD2D(A, U, INFO)
     INFO = 1
@@ -578,6 +560,7 @@ CONTAINS
     INTEGER, INTENT(INOUT) :: INFO
 
     REAL(KIND=DWP) :: Q(2,2), C, S, R
+    LOGICAL :: P
 
     ! REAL(KIND=DWP), EXTERNAL :: DNRM2
     ! EXTERNAL :: DLARTG, DROT, DSWAP
@@ -608,10 +591,10 @@ CONTAINS
           Z(2,2) = S
        END IF
        ! record the swap
-       INFO = 1
+       P = .TRUE.
     ELSE ! no pivoting
        R = C
-       INFO = 0
+       P = .FALSE.
     END IF
     ! should never happen
     IF (.NOT. (R .LE. HUGE(R))) THEN
@@ -681,28 +664,27 @@ CONTAINS
 
     IF (A(1,2) .EQ. D_ZERO) THEN
        ! A diagonal
-       IF (H) THEN
-          IF (INFO .EQ. 1) THEN
-             ! swap the rows of U
-             ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
-             C = U(1,1)
-             S = U(1,2)
-             U(1,1) = U(2,1)
-             U(1,2) = U(2,2)
-             U(2,1) = C
-             U(2,2) = S
-             ! swap the diagonal elements of A
-             ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
-             C = A(1,1)
-             A(1,1) = A(2,2)
-             A(2,2) = C
-          ELSE ! mark the transform
-             INFO = 1
-          END IF
-       ELSE ! mark the transform
-          INFO = 1
+       IF (H .AND. P) THEN
+          ! swap the rows of U
+          ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
+          C = U(1,1)
+          S = U(1,2)
+          U(1,1) = U(2,1)
+          U(1,2) = U(2,2)
+          U(2,1) = C
+          U(2,2) = S
+          ! swap the diagonal elements of A
+          ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
+          C = A(1,1)
+          A(1,1) = A(2,2)
+          A(2,2) = C
        END IF
-    ELSE IF (H .AND. (INFO .EQ. 1)) THEN
+       IF (INFO .NE. 0) THEN
+          A(1,1) = SCALE(A(1,1), -INFO)
+          A(2,2) = SCALE(A(2,2), -INFO)
+       END IF
+       INFO = 1
+    ELSE IF (H .AND. P) THEN
        ! swap the columns of A
        ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
        C = A(1,1)
@@ -896,7 +878,7 @@ CONTAINS
        INFO = -6
        RETURN
     END SELECT
-    INFO = 0
+    INFO = S
 
     ! U = I
     U(1,1) = D_ONE
@@ -918,12 +900,6 @@ CONTAINS
        CALL DHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
     END IF
     IF (INFO .LT. 0) RETURN
-
-    ! scale back if necessary
-    IF (S .NE. 0) THEN
-       A(1,1) = SCALE(A(1,1), -S)
-       A(2,2) = SCALE(A(2,2), -S)
-    END IF
 
     CALL DHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE DHSVD2
