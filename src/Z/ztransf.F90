@@ -557,7 +557,6 @@ CONTAINS
     COMPLEX(KIND=DWP) :: V
     REAL(KIND=DWP) :: W
 
-    INFO = 0
     A(2,1) = Z_ZERO
     A(1,2) = Z_ZERO
 
@@ -623,6 +622,12 @@ CONTAINS
        U(2,1) = ZZMUL(V, U(2,1))
        U(2,2) = ZZMUL(V, U(2,2))
        A(2,2) = W
+    END IF
+
+    IF (INFO .NE. 0) THEN
+       A(1,1) = SCALE(REAL(A(1,1)), -INFO)
+       A(2,2) = SCALE(REAL(A(2,2)), -INFO)
+       INFO = 0
     END IF
   END SUBROUTINE ZHSVD2D
 
@@ -710,8 +715,14 @@ CONTAINS
     CALL CA(V, 2, U(1,1), U(2,1), 2)
     CALL CA(V, 2, A(1,1), A(2,1), 2)
 
-    CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
+
+    IF (H .AND. (INFO .NE. 0)) THEN
+       W(1,1) = SCALE(REAL(W(1,1)), INFO)
+       W(2,2) = SCALE(REAL(W(2,2)), INFO)
+       INFO = 0
+    END IF
+    CALL AC(W, 2, A(1,1), A(1,2))
 
     CALL ZHSVD2D(A, U, INFO)
     INFO = 1
@@ -769,8 +780,14 @@ CONTAINS
     CALL CA(V, 2, U(1,1), U(2,1), 2)
     CALL CA(V, 2, A(1,1), A(2,1), 2)
 
-    CALL AC(W, 2, A(1,1), A(1,2))
     CALL AC(W, 2, Z(1,1), Z(1,2))
+
+    IF (INFO .NE. 0) THEN
+       W(1,1) = SCALE(REAL(W(1,1)), INFO)
+       W(2,2) = SCALE(REAL(W(2,2)), INFO)
+       INFO = 0
+    END IF
+    CALL AC(W, 2, A(1,1), A(1,2))
 
     CALL ZHSVD2D(A, U, INFO)
     INFO = 1
@@ -787,6 +804,7 @@ CONTAINS
 
     REAL(KIND=DWP) :: C, T
     COMPLEX(KIND=DWP) :: Q(2,2), R, S
+    LOGICAL :: P
 
     ! REAL(KIND=DWP), EXTERNAL :: DZNRM2
     ! EXTERNAL :: ZLARTG, ZROT, ZSWAP
@@ -818,9 +836,9 @@ CONTAINS
           Z(2,2) = S
        END IF
        ! record the swap
-       INFO = 1
+       P = .TRUE.
     ELSE ! no pivoting
-       INFO = 0
+       P = .FALSE.
     END IF
 
     ! row sorting
@@ -952,28 +970,27 @@ CONTAINS
 
     IF (A(1,2) .EQ. Z_ZERO) THEN
        ! A diagonal
-       IF (H) THEN
-          IF (INFO .EQ. 1) THEN
-             ! swap the rows of U
-             ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
-             R = U(1,1)
-             S = U(1,2)
-             U(1,1) = U(2,1)
-             U(1,2) = U(2,2)
-             U(2,1) = R
-             U(2,2) = S
-             ! swap the diagonal elements of A
-             ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
-             R = A(1,1)
-             A(1,1) = A(2,2)
-             A(2,2) = R
-          ELSE ! mark the transform
-             INFO = 1
-          END IF
-       ELSE ! mark the transform
-          INFO = 1
+       IF (H .AND. P) THEN
+          ! swap the rows of U
+          ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
+          R = U(1,1)
+          S = U(1,2)
+          U(1,1) = U(2,1)
+          U(1,2) = U(2,2)
+          U(2,1) = R
+          U(2,2) = S
+          ! swap the diagonal elements of A
+          ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
+          R = A(1,1)
+          A(1,1) = A(2,2)
+          A(2,2) = R
        END IF
-    ELSE IF (H .AND. (INFO .EQ. 1)) THEN
+       IF (INFO .NE. 0) THEN
+          A(1,1) = SCALE(REAL(A(1,1)), -INFO)
+          A(2,2) = SCALE(REAL(A(2,2)), -INFO)
+       END IF
+       INFO = 1
+    ELSE IF (H .AND. P) THEN
        ! swap the columns of A
        ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        R = A(1,1)
@@ -1203,7 +1220,6 @@ CONTAINS
        INFO = -6
        RETURN
     END SELECT
-    INFO = 0
 
     ! scale A
     IF (S .NE. 0) THEN
@@ -1215,6 +1231,7 @@ CONTAINS
     ELSE ! S .EQ. 0
        S = K
     END IF
+    INFO = S
 
     ! U = I
     U(1,1) = Z_ONE
@@ -1236,13 +1253,6 @@ CONTAINS
        CALL ZHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
     END IF
     IF (INFO .LT. 0) RETURN
-
-    ! scale back if necessary
-    IF (S .NE. 0) THEN
-       I = -S
-       A(1,1) = SCALE(REAL(A(1,1)), I)
-       A(2,2) = SCALE(REAL(A(2,2)), I)
-    END IF
 
     CALL ZHSVD2S((J(1) + J(2)), A, U, Z, INFO)
   END SUBROUTINE ZHSVD2
