@@ -202,7 +202,12 @@ CONTAINS
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
        DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
-       IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
+       IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
+          ! -\infty removed
+          DZ(I)%W = QUIET_NAN(I)
+       ELSE IF (DZ(I)%W .EQ. DZ(I)%W) THEN
+          IT = IT + 1
+       END IF
     END DO
     !$OMP END PARALLEL DO
 
