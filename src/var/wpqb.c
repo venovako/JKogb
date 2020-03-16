@@ -47,7 +47,30 @@ int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q, const extended 
 
 int wpqb_print(FILE *const f, wpqb *const a)
 {
-  return (f ? (a ? fprintf(f, "%# -30.21LE,%5hu,%5hu,%5hu", a->w, a->i.p, a->i.q, a->i.b) : -2) : -1);
+  if (!f)
+    return -1;
+  if (!a)
+    return -2;
+  char s[31] = { '\0' };
+  if (sprintf(s, "%# -30.21LE", a->w) <= 0)
+    return -3;
+  char *d = s + 30;
+  for (--d; isblank(*d); --d)
+    *d = '\0';
+  char *e = strrchr(s, 'E');
+  if (e) {
+    e += 2;
+    const int l = (int)(strchr(e, '\0') - e);
+    if (l < 4) {
+      d = s + 30;
+      e += l;
+      for (int i = 0; i < l; ++i)
+        *--d = *--e;
+      for (--d; isdigit(*d); --d)
+        *d = '0';
+    }
+  }
+  return fprintf(f, "%s,%5hu,%5hu,%5hu", s, a->i.p, a->i.q, a->i.b);
 }
 
 int wpqb_dump(FILE *const f, wpqb *const a, const uint32_t n_a)
@@ -112,16 +135,19 @@ int wpqb_sort(wpqb *const a, const uint32_t n_a)
   return 0;
 }
 
-int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
+#ifdef USE_OLD_NCP
+int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
 {
+  if (!n)
+    return 0;
   if (!n_s)
     return 0;
   if (!s)
-    return -3;
+    return -4;
   if (!n_a)
     return 0;
   if (!a)
-    return -1;
+    return -2;
 
   uint16_t n_s_ = UINT16_C(0);
   uint32_t j = UINT32_C(0);
@@ -134,12 +160,12 @@ int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_
         ++j;
         continue;
       }
-      const extended ap = a[j].i.p;
-      const extended aq = a[j].i.q;
+      const uint16_t ap = a[j].i.p;
+      const uint16_t aq = a[j].i.q;
       for (uint16_t k = i; k; ) {
         --k;
-        const extended bp = a[s[k]].i.p;
-        const extended bq = a[s[k]].i.q;
+        const uint16_t bp = a[s[k]].i.p;
+        const uint16_t bq = a[s[k]].i.q;
         if ((ap == bp) || (ap == bq) || (aq == bp) || (aq == bq)) {
           c = true;
           break;
@@ -155,10 +181,10 @@ int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_
   }
 
   if (w) {
-    uint16_t p = UINT16_C(0), n = n_s_;
+    uint16_t r = UINT16_C(0), n = n_s_;
     for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
       if (a[s[i]].w > 0.0L)
-        p = i + UINT16_C(1);
+        r = i + UINT16_C(1);
       else if (a[s[i]].w < 0.0L) {
         n = i;
         break;
@@ -166,7 +192,7 @@ int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_
     }
     w[0] =  0.0L;
     w[1] = -0.0L;
-    for (uint16_t i = p; i; )
+    for (uint16_t i = r; i; )
       w[0] += a[s[--i]].w;
     for (uint16_t i = n; i < n_s_; ++i)
       w[1] += a[s[i]].w;
@@ -174,3 +200,56 @@ int wpqb_ncp(wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_
 
   return (int)n_s_;
 }
+#else /* !USE_OLD_NCP */
+int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
+{
+  if (!n)
+    return 0;
+  if (!n_s)
+    return 0;
+  if (!s)
+    return -4;
+  if (!n_a)
+    return 0;
+  if (!a)
+    return -2;
+
+  bool p[n], q[n];
+  (void)memset(p, 0, n * sizeof(bool));
+  (void)memset(q, 0, n * sizeof(bool));
+
+  uint16_t n_s_ = UINT16_C(0);
+  uint32_t j = UINT32_C(0);
+  for (uint16_t i = UINT16_C(0); i < n_s; ) {
+    s[i] = j;
+    n_s_ = ++i;
+    p[a[j].i.p] = true;
+    q[a[j].i.q] = true;
+    for (++j; j < n_a; ++j)
+      if ((a[j].w == a[j].w) && !(p[a[j].i.p]) && !(q[a[j].i.q]))
+        break;
+    if (j >= n_a)
+      break;
+  }
+
+  if (w) {
+    uint16_t r = UINT16_C(0), n = n_s_;
+    for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
+      if (a[s[i]].w > 0.0L)
+        r = i + UINT16_C(1);
+      else if (a[s[i]].w < 0.0L) {
+        n = i;
+        break;
+      }
+    }
+    w[0] =  0.0L;
+    w[1] = -0.0L;
+    for (uint16_t i = r; i; )
+      w[0] += a[s[--i]].w;
+    for (uint16_t i = n; i < n_s_; ++i)
+      w[1] += a[s[i]].w;
+  }
+
+  return (int)n_s_;
+}
+#endif /* ?USE_OLD_NCP */
