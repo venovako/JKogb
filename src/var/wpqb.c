@@ -96,8 +96,7 @@ int wpqb_sort(wpqb *const a, const uint32_t n_a)
   return 0;
 }
 
-#ifdef USE_OLD_NCP
-int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
+int wpqb_ncp0(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
 {
   if (!n)
     return 0;
@@ -142,6 +141,7 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
   }
 
   if (w) {
+#ifdef HSVD
     uint16_t r = UINT16_C(0), m = n_s_;
     for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
       if (a[s[i]].w > 0.0L)
@@ -157,12 +157,17 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
       w[0] += a[s[--i]].w;
     for (uint16_t i = m; i < n_s_; ++i)
       w[1] += a[s[i]].w;
+#else /* SVD */
+    *w = 0.0L;
+    for (uint16_t i = n_s_; i; )
+      *w += a[s[--i]].w;
+#endif /* ?HSVD */
   }
 
   return (int)n_s_;
 }
-#else /* !USE_OLD_NCP */
-int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
+
+int wpqb_ncp1(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
 {
   if (!n)
     return 0;
@@ -193,6 +198,7 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
   }
 
   if (w) {
+#ifdef HSVD
     uint16_t r = UINT16_C(0), m = n_s_;
     for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
       if (a[s[i]].w > 0.0L)
@@ -208,9 +214,13 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
       w[0] += a[s[--i]].w;
     for (uint16_t i = m; i < n_s_; ++i)
       w[1] += a[s[i]].w;
+#else /* SVD */
+    *w = 0.0L;
+    for (uint16_t i = n_s_; i; )
+      *w += a[s[--i]].w;
+#endif /* ?HSVD */
   }
 
   return (int)n_s_;
 }
-#endif /* ?USE_OLD_NCP */
 #endif /* USE_EXTENDED */
