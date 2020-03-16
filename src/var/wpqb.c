@@ -2,7 +2,7 @@
 
 wpqb *wpqb_alloc(const uint32_t n_a)
 {
-  return (n_a ? aligned_alloc((size_t)16, n_a * sizeof(wpqb)) : NULL);
+  return (n_a ? aligned_alloc((size_t)EXTENDED_ALIGN_B, n_a * sizeof(wpqb)) : NULL);
 }
 
 int wpqb_free(wpqb *const a)

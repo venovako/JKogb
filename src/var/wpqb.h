@@ -4,8 +4,8 @@
 #include "common.h"
 
 typedef union {
-  alignas(16) extended w;
-  alignas(16) struct {
+  alignas(EXTENDED_ALIGN_B) extended w;
+  alignas(EXTENDED_ALIGN_B) struct {
     uint8_t a[10];
     /* p, q, b are stored in the highest, unused 2+2+2=6 bytes of w */
     uint16_t p, q, b;

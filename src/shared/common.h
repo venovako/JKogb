@@ -30,6 +30,12 @@
 /* Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable */
 typedef long double extended;
 
+#ifndef EXTENDED_ALIGN_B
+#define EXTENDED_ALIGN_B ((alignof(extended) <= 16) ? 16 : alignof(extended))
+#else /* EXTENDED_ALIGN_B */
+#error EXTENDED_ALIGN_B already defined
+#endif /* ?EXTENDED_ALIGN_B */
+
 typedef double complex dcomplex;
 typedef long double complex xcomplex;
 
