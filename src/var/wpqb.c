@@ -1,66 +1,31 @@
 #include "wpqb.h"
-
+#ifdef USE_EXTENDED
 wpqb *wpqb_alloc(const uint32_t n_a)
 {
-  return (n_a ? aligned_alloc((size_t)EXTENDED_ALIGN_B, n_a * sizeof(wpqb)) : NULL);
-}
-
-int wpqb_free(wpqb *const a)
-{
-  if (a) {
-    free(a);
-    return 0;
+  wpqb *p = (wpqb*)NULL;
+  if (n_a) {
+    const size_t s = n_a * sizeof(wpqb);
+    p = (wpqb*)aligned_alloc((size_t)EXTENDED_ALIGN_B, s);
+#ifndef NDEBUG
+    if (p)
+      (void)memset(p, 0, s);
+#endif /* !NDEBUG */
   }
-  return -1;
+  return p;
 }
 
-int wpqb_init(wpqb *const a, const uint16_t p, const uint16_t q, const extended *const w)
+int wpqb_print(FILE f[static 1], wpqb a[static 1])
 {
-  if (a) {
-    if (p >= q)
-      return -2;
-    a->i.p = p;
-    a->i.q = q;
-    a->i.b = (q - p);
-    if (w)
-      a->w = *w;
-    else {
-      union { uint16_t us; struct { uint8_t lo, hi; } lh; } x;
-      x.us = a->i.p;
-      a->i.a[0] = x.lh.lo;
-      a->i.a[1] = x.lh.hi;
-      x.us = a->i.q;
-      a->i.a[2] = x.lh.lo;
-      a->i.a[3] = x.lh.hi;
-      x.us = a->i.b;
-      a->i.a[4] = x.lh.lo;
-      a->i.a[5] = x.lh.hi;
-      a->i.a[6] = 0x00u;
-      a->i.a[7] = 0xC0u;
-      a->i.a[8] = 0xFFu;
-      a->i.a[9] = 0x7Fu;
-    }
-    return 0;
-  }
-  return -1;
-}
-
-int wpqb_print(FILE *const f, wpqb *const a)
-{
-  if (!f)
-    return -1;
-  if (!a)
-    return -2;
   char s[31] = { '\0' };
-  if (sprintf(s, "%# -30.21LE", a->w) <= 0)
-    return -3;
+  int l = sprintf(s, "%# -30.21LE", a->w);
+  assert(l > 0);
   char *d = s + 30;
   for (--d; isblank(*d); --d)
     *d = '\0';
   char *e = strrchr(s, 'E');
   if (e) {
     e += 2;
-    const int l = (int)(strchr(e, '\0') - e);
+    l = (int)(strchr(e, '\0') - e);
     if (l < 4) {
       d = s + 30;
       e += l;
@@ -73,31 +38,27 @@ int wpqb_print(FILE *const f, wpqb *const a)
   return fprintf(f, "%s,%5hu,%5hu,%5hu", s, a->i.p, a->i.q, a->i.b);
 }
 
-int wpqb_dump(FILE *const f, wpqb *const a, const uint32_t n_a)
+int wpqb_dump(FILE f[static 1], wpqb *const a, const uint32_t n_a)
 {
   if (!n_a)
     return 0;
   if (!a)
-    return -2;
-  if (!f)
-    return -1;
+    return -(int)(((n_a + 1u) << 1) + 1u);
 
   if (16 != fprintf(f, "\"w\",\"p\",\"q\",\"b\"\n"))
-    return 1;
-  for (uint32_t i = UINT32_C(0); i < n_a; ++i) {
+    return -1;
+  for (uint32_t i = 0u; i < n_a; ++i) {
     if (48 != wpqb_print(f, (a + i)))
-      return (int)((i + UINT32_C(1)) << 1);
+      return -(int)((i + 1u) << 1);
     if (1 != fprintf(f, "\n"))
-      return (int)(((i + UINT32_C(1)) << 1) + UINT32_C(1));
+      return -(int)(((i + 1u) << 1) + 1u);
   }
 
-  return (fflush(f) ? (int)(n_a << 1) : 0);
+  return (fflush(f) ? -(int)((n_a + 1u) << 1) : (49 * (int)n_a + 16));
 }
 
-int wpqb_cmp(const wpqb *const a, const wpqb *const b)
+int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
 {
-  assert(a);
-  assert(b);
   if (a == b)
     return 0;
   if (a->w < b->w)
@@ -150,7 +111,7 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
     return -2;
 
   uint16_t n_s_ = UINT16_C(0);
-  uint32_t j = UINT32_C(0);
+  uint32_t j = 0u;
   for (uint16_t i = UINT16_C(0); i < n_s; ) {
     s[i] = j;
     n_s_ = ++i;
@@ -181,12 +142,12 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
   }
 
   if (w) {
-    uint16_t r = UINT16_C(0), n = n_s_;
+    uint16_t r = UINT16_C(0), m = n_s_;
     for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
       if (a[s[i]].w > 0.0L)
         r = i + UINT16_C(1);
       else if (a[s[i]].w < 0.0L) {
-        n = i;
+        m = i;
         break;
       }
     }
@@ -194,7 +155,7 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
     w[1] = -0.0L;
     for (uint16_t i = r; i; )
       w[0] += a[s[--i]].w;
-    for (uint16_t i = n; i < n_s_; ++i)
+    for (uint16_t i = m; i < n_s_; ++i)
       w[1] += a[s[i]].w;
   }
 
@@ -219,12 +180,11 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
   (void)memset(q, 0, n * sizeof(bool));
 
   uint16_t n_s_ = UINT16_C(0);
-  uint32_t j = UINT32_C(0);
+  uint32_t j = 0u;
   for (uint16_t i = UINT16_C(0); i < n_s; ) {
     s[i] = j;
     n_s_ = ++i;
-    p[a[j].i.p] = true;
-    q[a[j].i.q] = true;
+    q[a[j].i.q] = p[a[j].i.p] = true;
     for (++j; j < n_a; ++j)
       if ((a[j].w == a[j].w) && !(p[a[j].i.p]) && !(q[a[j].i.q]))
         break;
@@ -233,12 +193,12 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
   }
 
   if (w) {
-    uint16_t r = UINT16_C(0), n = n_s_;
+    uint16_t r = UINT16_C(0), m = n_s_;
     for (uint16_t i = UINT16_C(0); i < n_s_; ++i) {
       if (a[s[i]].w > 0.0L)
         r = i + UINT16_C(1);
       else if (a[s[i]].w < 0.0L) {
-        n = i;
+        m = i;
         break;
       }
     }
@@ -246,10 +206,11 @@ int wpqb_ncp(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *cons
     w[1] = -0.0L;
     for (uint16_t i = r; i; )
       w[0] += a[s[--i]].w;
-    for (uint16_t i = n; i < n_s_; ++i)
+    for (uint16_t i = m; i < n_s_; ++i)
       w[1] += a[s[i]].w;
   }
 
   return (int)n_s_;
 }
 #endif /* ?USE_OLD_NCP */
+#endif /* USE_EXTENDED */
