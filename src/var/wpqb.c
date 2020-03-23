@@ -85,15 +85,32 @@ int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
   return -5;
 }
 
-int wpqb_sort(wpqb *const a, const uint32_t n_a)
+uint32_t wpqb_sort(wpqb *const a, const uint32_t n_a)
 {
-  if (n_a) {
-    if (a)
-      qsort(a, (size_t)n_a, sizeof(*a), (int (*)(const void*, const void*))wpqb_cmp);
-    else /* NULL a invalid here */
-      return -1;
+  if (!n_a)
+    return 0u;
+  if (!a)
+    return (n_a + 1u);
+  /* ii: index of the last non-NaN */
+  uint32_t ii = n_a - 1u;
+  while (!(a[ii].w == a[ii].w)) {
+    if (ii)
+      --ii;
+    else
+      return 0u;
   }
-  return 0;
+  uint32_t nn = ii + 1u;
+  for (uint32_t i = 0u; i < ii; ++i) {
+    if (!(a[i].w == a[i].w)) {
+      const wpqb t = a[i];
+      a[i] = a[ii];
+      a[ii] = t;
+      --nn;
+      for (--ii; !(a[ii].w == a[ii].w); --ii) /**/;
+    }
+  }
+  qsort(a, (size_t)nn, sizeof(*a), (int (*)(const void*, const void*))wpqb_cmp);
+  return nn;
 }
 
 int wpqb_ncp0(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w)
