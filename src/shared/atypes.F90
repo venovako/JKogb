@@ -271,7 +271,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP1(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP1(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -280,6 +280,12 @@ CONTAINS
     INTEGER :: I, J, K, AP, AQ, BP, BQ
 
     SL = 0
+#ifndef NDEBUG
+    DO I = 1, N_2
+       STEP(I) = 0
+    END DO
+#endif
+
     IF (NT .LE. 1) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
@@ -335,16 +341,22 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    LOGICAL :: P(N), Q(N)
+    LOGICAL, TARGET :: P(N), Q(N)
     INTEGER :: I, J
 
     SL = 0
+#ifndef NDEBUG
+    DO I = 1, N_2
+       STEP(I) = 0
+    END DO
+#endif
+
     IF (NT .NE. 1) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
@@ -373,8 +385,24 @@ CONTAINS
 
     DO I = 1, N_2
        STEP(I) = J
-       P(DZ(J)%P) = .TRUE.
-       Q(DZ(J)%Q) = .TRUE.
+#ifndef NDEBUG
+       IF (P(DZ(J)%P)) THEN
+          INFO = -5
+          RETURN
+       ELSE
+#endif
+          P(DZ(J)%P) = .TRUE.
+#ifndef NDEBUG
+       END IF
+       IF (Q(DZ(J)%Q) THEN
+          INFO = -5
+          RETURN
+       ELSE
+#endif
+          Q(DZ(J)%Q) = .TRUE.
+#ifndef NDEBUG
+       END IF
+#endif
        J = J + 1
        DO WHILE (J .LE. NN)
           IF ((DZ(J)%W .EQ. DZ(J)%W) .AND. (.NOT. P(DZ(J)%P)) .AND. (.NOT. Q(DZ(J)%Q))) EXIT
@@ -389,16 +417,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER :: STP(N_2,NT), I, J, K, L, T
+    INTEGER, TARGET :: STP(N_2,NT)
+    INTEGER :: I, J, K, L, T
     REAL(KIND=DWP) :: W1, WL
 
     SL = 0
+#ifndef NDEBUG
+    DO I = 1, N_2
+       STEP(I) = 0
+    END DO
+#endif
+
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
@@ -421,12 +456,15 @@ CONTAINS
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3
 
-    W1 = QUIET_NAN(1)
+    W1 = QUIET_NAN(N_2)
     J = 0
     !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,L,T,WL) SHARED(N,NN,NM,DZ,N_2,SL,STEP,STP,J,W1)
     DO K = 1, NN
        T = INT(OMP_GET_THREAD_NUM()) + 1
        CALL AW_NCP2(1, N, NN, NM, DZ, N_2, L, STP(:,T), I)
+#ifndef NDEBUG
+       IF (I .LT. 0) STOP
+#endif
        WL = D_ZERO
        DO I = L, 1, -1
           WL = WL + DZ(STP(I,T))%W
@@ -449,7 +487,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP4(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP4(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -459,6 +497,12 @@ CONTAINS
     LOGICAL :: C
 
     SL = 0
+#ifndef NDEBUG
+    DO I = 1, N_2
+       STEP(I) = 0
+    END DO
+#endif
+
     IF (NT .NE. 1) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
@@ -516,7 +560,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP5(NT, NN, N, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP5(NT, NN, N, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -527,6 +571,12 @@ CONTAINS
     REAL(KIND=DWP) :: W1, WL
 
     SL = 0
+#ifndef NDEBUG
+    DO I = 1, N_2
+       STEP(I) = 0
+    END DO
+#endif
+
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
