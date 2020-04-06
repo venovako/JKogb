@@ -27,7 +27,7 @@ DBGFLAGS=-DNDEBUG -fopt-info-optimized-vec -pedantic -Wall -Wextra
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
 endif # Darwin
-OPTFFLAGS=$(OPTFLAGS) 
+OPTFFLAGS=$(OPTFLAGS)
 OPTCFLAGS=$(OPTFLAGS)
 DBGFFLAGS=$(DBGFLAGS) -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 DBGCFLAGS=$(DBGFLAGS)

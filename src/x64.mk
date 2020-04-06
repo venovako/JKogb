@@ -8,7 +8,7 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
-CC=icc -std=c11
+CC=icc -std=c18
 FC=ifort
 CXX=icpc -std=c++17
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -DUSE_TSC -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
