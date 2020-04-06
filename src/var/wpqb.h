@@ -1,6 +1,5 @@
 #ifndef WPQB_H
 #define WPQB_H
-#ifdef USE_EXTENDED
 #include "common.h"
 
 typedef union {
@@ -28,5 +27,4 @@ extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);
 extern uint32_t wpqb_sort(wpqb *const a, const uint32_t n_a);
 extern int wpqb_ncp0(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w);
 extern int wpqb_ncp1(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *const s, const uint16_t n_s, extended *const w);
-#endif /* USE_EXTENDED */
 #endif /* !WPQB_H */

@@ -231,7 +231,7 @@ CONTAINS
     END IF
 #endif
 
-    CALL R%NCP(NT, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+    CALL R%NCP(NT, N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
     IF (II .LT. 0) THEN
        INFO = -13
        RETURN

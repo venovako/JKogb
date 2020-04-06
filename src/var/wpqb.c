@@ -1,5 +1,5 @@
 #include "wpqb.h"
-#ifdef USE_EXTENDED
+
 wpqb *wpqb_alloc(const uint32_t n_a)
 {
   wpqb *p = (wpqb*)NULL;
@@ -240,4 +240,3 @@ int wpqb_ncp1(const uint16_t n, wpqb *const a, const uint32_t n_a, uint16_t *con
 
   return (int)n_s_;
 }
-#endif /* USE_EXTENDED */
