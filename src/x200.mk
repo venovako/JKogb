@@ -16,7 +16,7 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-cxxlib
-C11FLAGS=$(CPUFLAGS)
+C18FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost
 OPTFFLAGS=$(OPTFLAGS)
@@ -48,4 +48,4 @@ LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_inte
 endif # ANIMATE
 LDFLAGS += -lpthread -lm -ldl -lmemkind
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
-CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUCFLAGS)
+CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
