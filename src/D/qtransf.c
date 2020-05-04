@@ -101,7 +101,7 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
         y = (A[1][1] / A[0][0]);
       extended t2 = ((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
       t2 /= fmal((y - x), (y + x), 1.0L);
-      tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+      tu = (!(fabsl(t2) < TWOF) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
       cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
       tz = fmal(y, tu, -x);
       if (fabsl(tz) >= 1.0L) {
@@ -131,7 +131,7 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
         y = (A[1][1] / A[0][0]);
       extended t2 = -((fabsl(x) <= y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
       t2 /= fmal((x - y), (x + y), 1.0L);
-      tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+      tu = (!(fabsl(t2) < TWOF) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
       cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
       tz = fmal(y, tu, -x);
       cz = sqrtl(fmal(tz, tz, 1.0L)); /* 1.0L / */
@@ -177,7 +177,7 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
       y = (A[0][1] / A[1][1]);
     extended t2 = -((fabsl(y) <= x) ? (scalbnl(y, 1) * x) : (scalbnl(x, 1) * y));
     t2 /= fmal((x - y), (x + y), 1.0L);
-    tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
+    tu = (!(fabsl(t2) < TWOF) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
     cu = sqrtl(fmal(tu, tu, 1.0L)); /* 1.0L / */
     tz = -fmal(x, tu, y);
     if (fabsl(tz) >= 1.0L) {

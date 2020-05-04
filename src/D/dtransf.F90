@@ -384,7 +384,7 @@ CONTAINS
              T2U = SCALE(Y, 1) * X
           END IF
           T2U = T2U / (D_ONE + (Y - X) * (Y + X))
-          IF (.NOT. (ABS(T2U) .LT. SCALE(D_ONE, 54))) THEN
+          IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! |T2U| sufficiently small
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
@@ -425,7 +425,7 @@ CONTAINS
              T2U = -SCALE(Y, 1) * X
           END IF
           T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-          IF (.NOT. (ABS(T2U) .LT. SCALE(D_ONE, 54))) THEN
+          IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
              TU = SIGN(D_ONE, T2U)
           ELSE ! |T2U| sufficiently small
              TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
@@ -495,7 +495,7 @@ CONTAINS
           T2U = -SCALE(X, 1) * Y
        END IF
        T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-       IF (.NOT. (ABS(T2U) .LT. SCALE(D_ONE, 54))) THEN
+       IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
           TU = SIGN(D_ONE, T2U)
        ELSE ! |T2U| sufficiently small
           TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))

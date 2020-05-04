@@ -77,4 +77,10 @@ typedef uint32_t fnat;
 #endif /* ?FNAT_C */
 #endif /* ?FINT32 */
 
+#ifndef TWOF
+#define TWOF (double)(1ull << (LDBL_MANT_DIG + 1))
+#else /* TWOF */
+#error TWOF already defined
+#endif /* ?TWOF */
+
 #endif /* !COMMON_H */

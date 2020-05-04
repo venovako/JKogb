@@ -8,10 +8,13 @@ MODULE PARAMS
   USE VN_TYPES_F
   IMPLICIT NONE
 
+#include "vn_params.F90"
+
   ! Max file name length.
   INTEGER, PARAMETER :: FNL = 252
 
-#include "vn_params.F90"
+  ! 2^54; TODO: FIXME for DWP <> KIND(DOUBLE PRECISION)
+  REAL(KIND=DWP), PARAMETER :: TWOF = SCALE(D_ONE, 54)
 
 CONTAINS
 END MODULE PARAMS

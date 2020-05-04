@@ -663,7 +663,7 @@ CONTAINS
        ELSE ! X .GE. Y
           T2 = (SCALE(Y, 1) * X) / T2
        END IF
-       IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+       IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
           T2 = SIGN(D_ONE, T2)
        ELSE ! |T2| sufficiently small
           TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
@@ -696,7 +696,7 @@ CONTAINS
        ELSE ! X .GE. Y
           T2 = -(SCALE(Y, 1) * X) / T2
        END IF
-       IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+       IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
           TU = SIGN(D_ONE, T2)
        ELSE ! |T2| sufficiently small
           TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
@@ -766,7 +766,7 @@ CONTAINS
     ELSE ! X .GE. Y
        T2 = -(SCALE(Y, 1) * X) / T2
     END IF
-    IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+    IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
        TU = SIGN(D_ONE, T2)
     ELSE ! |T2| sufficiently small
        TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
