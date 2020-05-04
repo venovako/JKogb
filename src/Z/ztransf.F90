@@ -663,7 +663,11 @@ CONTAINS
        ELSE ! X .GE. Y
           T2 = (SCALE(Y, 1) * X) / T2
        END IF
-       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+          T2 = SIGN(D_ONE, T2)
+       ELSE ! |T2| sufficiently small
+          TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       END IF
        CU = SQRT(D_ONE + TU * TU) ! D_ONE /
        IF (Y_ .EQ. Z_ZERO) THEN
           Y_ = TU
@@ -692,7 +696,11 @@ CONTAINS
        ELSE ! X .GE. Y
           T2 = -(SCALE(Y, 1) * X) / T2
        END IF
-       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+          TU = SIGN(D_ONE, T2)
+       ELSE ! |T2| sufficiently small
+          TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+       END IF
        CU = SQRT(D_ONE + TU * TU) ! D_ONE /
        IF (Y_ .EQ. Z_ZERO) THEN
           Y_ = TU
@@ -758,7 +766,11 @@ CONTAINS
     ELSE ! X .GE. Y
        T2 = -(SCALE(Y, 1) * X) / T2
     END IF
-    TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+    IF (.NOT. (ABS(T2) .LT. SCALE(D_ONE, 54))) THEN
+       TU = SIGN(D_ONE, T2)
+    ELSE ! |T2| sufficiently small
+       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
+    END IF
     CU = SQRT(D_ONE + TU * TU) ! D_ONE /
     IF (Y_ .EQ. Z_ZERO) THEN
        Y_ = TU

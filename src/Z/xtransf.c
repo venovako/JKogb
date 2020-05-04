@@ -213,7 +213,7 @@ static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[sta
     }
     extended t2 = ((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
     t2 /= fmal((y - x), (y + x), 1.0L);
-    tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+    tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
     cu = sqrtl(fmal(tu, tu, 1.0L));
     y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
     z_ = xqfma(y, y_, -x_);
@@ -223,7 +223,7 @@ static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[sta
   else {
     extended t2 = -((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
     t2 /= fmal((x - y), (x + y), 1.0L);
-    tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+    tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
     cu = sqrtl(fmal(tu, tu, 1.0L));
     y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
     z_ = xqfma(y, y_, -x_);
@@ -256,7 +256,7 @@ static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xco
   xcomplex y_ = (conjl(A[0][1]) * creall(A[0][0]));
   extended t2 = -((x < y) ? (scalbnl(x, 1) * y) : (scalbnl(y, 1) * x));
   t2 /= fmal((y - x), (y + x), 1.0L);
-  const extended tu = (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L))));
+  const extended tu = (!(fabsl(t2) < scalbnl(1.0, (LDBL_MANT_DIG + 1))) ? copysignl(1.0L, t2) : (t2 / (1.0L + sqrtl(fmal(t2, t2, 1.0L)))));
   const extended cu = sqrtl(fmal(tu, tu, 1.0L));
   y_ = ((y_ == x0) ? CMPLXL(tu, 0.0L) : ((conjl(y_) / cabsl(y_)) * tu));
   const xcomplex z_ = -xqfma(y, y_, x_);
