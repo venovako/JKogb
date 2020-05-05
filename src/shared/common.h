@@ -77,8 +77,9 @@ typedef uint32_t fnat;
 #endif /* ?FNAT_C */
 #endif /* ?FINT32 */
 
+// sqrtl(LDBL_MAX)
 #ifndef TWOF
-#define TWOF (double)(1ull << (LDBL_MANT_DIG + 1))
+#define TWOF 1.090748135619415929404E+2466L
 #else /* TWOF */
 #error TWOF already defined
 #endif /* ?TWOF */
