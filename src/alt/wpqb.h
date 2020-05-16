@@ -41,8 +41,8 @@ static inline int wpqb_invalid(const wpqb a[static 1])
 }
 
 extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);
-extern uint32_t wpqb_clean(wpqb *const a, const uint32_t n_a);
-
-extern void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, const uint32_t f, const uint16_t n_s, uint32_t *const restrict s, wpqb_info *const restrict w);
-extern void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, const uint32_t f, const uint16_t n_s, uint32_t *const restrict s, wpqb_info *const restrict w);
+extern uint32_t wpqb_clean(const uint32_t n_a, wpqb a[static 1]);
+extern void wpqb_sort0(const uint32_t n_a, wpqb a[static 1]);
+extern void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint32_t f, const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1]);
+extern void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint32_t f, const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1]);
 #endif /* !WPQB_H */

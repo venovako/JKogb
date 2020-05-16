@@ -2,8 +2,6 @@
 
 int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
 {
-  assert(a);
-  assert(b);
   if (a == b)
     return 0;
   if (a->w < b->w)
@@ -30,12 +28,11 @@ int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
   return -5;
 }
 
-uint32_t wpqb_clean(wpqb *const a, const uint32_t n_a)
+uint32_t wpqb_clean(const uint32_t n_a, wpqb a[static 1])
 {
   if (!n_a)
     return 0u;
-  if (!a)
-    return (n_a + 1u);
+
   // ii: index of the last non-invalid
   uint32_t ii = n_a - 1u;
   while (wpqb_invalid(a + ii)) {
@@ -57,9 +54,13 @@ uint32_t wpqb_clean(wpqb *const a, const uint32_t n_a)
   return nn;
 }
 
-void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, const uint32_t f, const uint16_t n_s, uint32_t *const restrict s, wpqb_info *const restrict w)
+void wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
 {
-  assert(w);
+  qsort(a, n_a, sizeof(wpqb), (int (*)(const void*, const void*))wpqb_cmp);
+}
+
+void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint32_t f, const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
+{
   for (unsigned i = 0u; i < 10u; ++i)
     (w->i.a)[i] = UINT8_C(0xFF);
   w->i.s = UINT16_C(0);
@@ -73,8 +74,6 @@ void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, con
     return;
   if (f >= n_a)
     return;
-  assert(a);
-  assert(s);
 
   bool p[n];
   for (uint16_t i = UINT16_C(0); i < n; ++i)
@@ -88,9 +87,8 @@ void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, con
   ns = ((ns <= n_a) ? ns : (uint16_t)n_a);
   ns = ((ns <= n_s) ? ns : n_s);
 
-  w->w = 0.0L;
   for (uint32_t j = f, k; w->i.s < ns; j = k) {
-    w->w += a[s[(w->i.s)++] = j].w;
+    s[w->i.s++] = j;
     q[a[j].i.q] = p[a[j].i.p] = true;
     for (k = j + 1u; k < n_a; ++k)
       if (!(p[a[k].i.p] || q[a[k].i.q]))
@@ -98,9 +96,13 @@ void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, con
     if (k >= n_a)
       break;
   }
+
+  w->w = 0.0L;
+  for (uint16_t i = w->i.s; i; )
+    w->w += a[s[--i]].w;
 }
 
-static void wpqb_update(uint32_t *const restrict s, const uint32_t *const restrict my_s, wpqb_info *const restrict w, const wpqb_info *const restrict my_w)
+static void wpqb_update(uint32_t s[static 1], const uint32_t my_s[static 1], wpqb_info w[static 1], const wpqb_info my_w[static 1])
 {
   if (!(my_w->w <= w->w)) {
     for (uint16_t i = UINT16_C(0); i < my_w->i.s; ++i)
@@ -109,7 +111,7 @@ static void wpqb_update(uint32_t *const restrict s, const uint32_t *const restri
   }
 }
 
-static void wpqb_ncp(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, const uint32_t f, const uint16_t n_s, uint32_t *const restrict s, wpqb_info *const restrict w)
+static void wpqb_ncpt(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint32_t f, const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
   wpqb_info my_w;
   uint32_t *const my_s = (uint32_t*)alloca(n_s * sizeof(uint32_t));
@@ -119,9 +121,8 @@ static void wpqb_ncp(const uint16_t n, const uint32_t n_a, wpqb *const restrict 
   wpqb_update(s, my_s, w, &my_w);
 }
 
-void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, const uint32_t f, const uint16_t n_s, uint32_t *const restrict s, wpqb_info *const restrict w)
+void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint32_t f, const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
-  assert(w);
   for (unsigned i = 0u; i < 10u; ++i)
     (w->i.a)[i] = UINT8_C(0xFF);
   w->i.s = UINT16_C(0);
@@ -135,11 +136,9 @@ void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb *const restrict a, con
     return;
   if (f >= n_a)
     return;
-  assert(a);
-  assert(s);
 
   const uint32_t na = n_a - f;
 #pragma omp parallel for default(none) shared(f,na,n,n_a,a,n_s,s,w) schedule(dynamic,1)
   for (uint32_t i = f; i < na; ++i)
-    wpqb_ncp(n, n_a, a, i, n_s, s, w);
+    wpqb_ncpt(n, n_a, a, i, n_s, s, w);
 }
