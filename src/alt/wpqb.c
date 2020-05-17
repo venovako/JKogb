@@ -117,8 +117,7 @@ static void wpqb_ncpt(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
   my_w.i.s = UINT16_C(0);
   my_w.i.f = f;
 
-  uint32_t *const my_s = (uint32_t*)alloca(n_s * sizeof(uint32_t));
-  assert(my_s);
+  uint32_t my_s[n_s];
   wpqb_ncp0(n, n_a, a, n_s, my_s, &my_w);
 #pragma omp critical
   wpqb_update(s, my_s, w, &my_w);
@@ -138,7 +137,11 @@ void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uin
   if (!n_a)
     return;
 
-#pragma omp parallel for default(none) shared(na,n,n_a,a,n_s,s,w) schedule(dynamic,1)
+#ifdef OLD_OMP
+#pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(dynamic,1)
+#else /* !OLD_OMP */
+#pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(nonmonotonic:dynamic,1)
+#endif /* ?OLD_OMP */
   for (uint32_t i = 0u; i < n_a; ++i)
     wpqb_ncpt(n, n_a - i, a + i, i, n_s, s, w);
 }
