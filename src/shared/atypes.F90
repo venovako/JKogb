@@ -339,14 +339,15 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
   RECURSIVE SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER :: I, J, K, AP, AQ, BP, BQ
-    LOGICAL :: C
+    LOGICAL, TARGET :: R(N)
+    INTEGER :: I, J
 
     SL = 0
 #ifndef NDEBUG
@@ -375,31 +376,33 @@ CONTAINS
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
 
+    R = .FALSE.
     J = 1
+
     DO I = 1, N_2
        STEP(I) = J
+#ifndef NDEBUG
+       IF (R(DZ(J)%P)) THEN
+          INFO = -5
+          RETURN
+       ELSE
+#endif
+          R(DZ(J)%P) = .TRUE.
+#ifndef NDEBUG
+       END IF
+       IF (R(DZ(J)%Q) THEN
+          INFO = -5
+          RETURN
+       ELSE
+#endif
+          R(DZ(J)%Q) = .TRUE.
+#ifndef NDEBUG
+       END IF
+#endif
        J = J + 1
        DO WHILE (J .LE. NN)
-          C = .NOT. (DZ(J)%W .EQ. DZ(J)%W)
-          IF (C) THEN
-             J = J + 1
-             CYCLE
-          END IF
-          AP = DZ(J)%P
-          AQ = DZ(J)%Q
-          DO K = I, 1, -1
-             BP = DZ(STEP(K))%P
-             BQ = DZ(STEP(K))%Q
-             IF ((AP .EQ. BP) .OR. (AP .EQ. BQ) .OR. (AQ .EQ. BP) .OR. (AQ .EQ. BQ)) THEN
-                C = .TRUE.
-                EXIT
-             END IF
-          END DO
-          IF (C) THEN
-             J = J + 1
-          ELSE
-             EXIT
-          END IF
+          IF ((DZ(J)%W .EQ. DZ(J)%W) .AND. (.NOT. R(DZ(J)%P)) .AND. (.NOT. R(DZ(J)%Q))) EXIT
+          J = J + 1
        END DO
        SL = I
        IF (J .GT. NN) EXIT
@@ -410,16 +413,46 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP3(NT, NN, N, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCPT(W, J, N, NN, NM, DZ, N_2, SL, STEP)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(INOUT) :: W
+    INTEGER, INTENT(IN) :: J, N, NN, NM, N_2
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
+    INTEGER, INTENT(INOUT) :: SL, STEP(N_2)
+
+    INTEGER, TARGET :: STP(N_2)
+    REAL(KIND=DWP) :: MYW
+    INTEGER :: I, MYSL
+
+    CALL AW_NCP2(1, N, NN, NM, DZ, N_2, MYSL, STP, I)
+    IF (I .LT. 0) RETURN
+
+    MYW = D_ZERO
+    DO I = MYSL, 1, -1
+       MYW = MYW + DZ(STP(I))%W
+    END DO
+
+    !$OMP CRITICAL
+    IF (.NOT. (MYW .LE. W)) THEN
+       SL = MYSL
+       DO I = 1, SL
+          STEP(I) = STP(I) + J
+       END DO
+       W = MYW
+    END IF
+    !$OMP END CRITICAL
+  END SUBROUTINE AW_NCPT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  RECURSIVE SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER, TARGET :: STP(N_2)
-    INTEGER :: I, J, K, L, M, AP, AQ, BP, BQ
-    LOGICAL :: C
-    REAL(KIND=DWP) :: W1, WL
+    REAL(KIND=DWP) :: W
+    INTEGER :: I, J
 
     SL = 0
 #ifndef NDEBUG
@@ -448,92 +481,15 @@ CONTAINS
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3
 
-    J = 1
-    DO I = 1, N_2
-       STEP(I) = J
-       J = J + 1
-       DO WHILE (J .LE. NN)
-          C = .NOT. (DZ(J)%W .EQ. DZ(J)%W)
-          IF (C) THEN
-             J = J + 1
-             CYCLE
-          END IF
-          AP = DZ(J)%P
-          AQ = DZ(J)%Q
-          DO K = I, 1, -1
-             BP = DZ(STEP(K))%P
-             BQ = DZ(STEP(K))%Q
-             IF ((AP .EQ. BP) .OR. (AP .EQ. BQ) .OR. (AQ .EQ. BP) .OR. (AQ .EQ. BQ)) THEN
-                C = .TRUE.
-                EXIT
-             END IF
-          END DO
-          IF (C) THEN
-             J = J + 1
-          ELSE
-             EXIT
-          END IF
-       END DO
-       SL = I
-       IF (J .GT. NN) EXIT
-    END DO
-    IF (SL .EQ. 0) RETURN
-    W1 = D_ZERO
-    DO I = SL, 1, -1
-       W1 = W1 + DZ(STEP(I))%W
-    END DO
-
+    W = QUIET_NAN(N_2)
 #ifdef OLD_OMP
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,J,K,L,M,AP,AQ,BP,BQ,C,WL,STP) SHARED(NN,N_2,SL,DZ,STEP,W1) &
-    !$OMP& SCHEDULE(DYNAMIC,1)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I,J) SHARED(W,N,NN,NM,DZ,N_2,SL,STEP) SCHEDULE(DYNAMIC,1)
 #else
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,J,K,L,M,AP,AQ,BP,BQ,C,WL,STP) SHARED(NN,N_2,SL,DZ,STEP,W1) &
-    !$OMP& SCHEDULE(NONMONOTONIC:DYNAMIC,1)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I,J) SHARED(W,N,NN,NM,DZ,N_2,SL,STEP) SCHEDULE(NONMONOTONIC:DYNAMIC,1)
 #endif
-    DO L = 2, NN
-       M = 0
-       J = L
-       DO I = 1, N_2
-          STP(I) = J
-          J = J + 1
-          DO WHILE (J .LE. NN)
-             C = .NOT. (DZ(J)%W .EQ. DZ(J)%W)
-             IF (C) THEN
-                J = J + 1
-                CYCLE
-             END IF
-             AP = DZ(J)%P
-             AQ = DZ(J)%Q
-             DO K = I, 1, -1
-                BP = DZ(STP(K))%P
-                BQ = DZ(STP(K))%Q
-                IF ((AP .EQ. BP) .OR. (AP .EQ. BQ) .OR. (AQ .EQ. BP) .OR. (AQ .EQ. BQ)) THEN
-                   C = .TRUE.
-                   EXIT
-                END IF
-             END DO
-             IF (C) THEN
-                J = J + 1
-             ELSE
-                EXIT
-             END IF
-          END DO
-          M = I
-          IF (J .GT. NN) EXIT
-       END DO
-       WL = D_ZERO
-       DO I = M, 1, -1
-          WL = WL + DZ(STP(I))%W
-       END DO
-       !$OMP CRITICAL
-       IF (.NOT. (WL .LE. W1)) THEN
-          SL = M
-          DO I = 1, SL
-             STEP(I) = STP(I)
-          END DO
-          W1 = WL
-       END IF
-       !$OMP END CRITICAL
+    DO I = 1, NN
+       J = I - 1
+       CALL AW_NCPT(W, J, N, NN - J, NM - J, DZ(I), N_2, SL, STEP)
     END DO
     !$OMP END PARALLEL DO
 

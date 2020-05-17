@@ -8,7 +8,6 @@
 #include <math.h>
 #endif /* __ICC */
 
-#include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
