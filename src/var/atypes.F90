@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP4(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -16,7 +16,7 @@
     END DO
 #endif
 
-    IF (NT .NE. 1) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
        INFO = -2
@@ -26,22 +26,26 @@
        INFO = -4
     ELSE IF (N_2 .LT. 0) THEN
        INFO = -6
-    ELSE IF (N_2 .GT. MIN(N,NN)) THEN
-       INFO = -6
     ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_SYS_US()
-    IF (N .EQ. 0) GOTO 4
-    IF (NN .EQ. 0) GOTO 4
-    IF (N_2 .EQ. 0) GOTO 4
+    IF (N .EQ. 0) GOTO 2
+    IF (NN .EQ. 0) GOTO 2
+    IF (N_2 .EQ. 0) GOTO 2
 
-    P = .FALSE.
-    Q = .FALSE.
+    !DIR$ VECTOR ALWAYS
+    DO I = 1, N
+       P(I) = .FALSE.
+    END DO
+    !DIR$ VECTOR ALWAYS
+    DO I = 1, N
+       Q(I) = .FALSE.
+    END DO
+
     J = 1
-
     DO I = 1, N_2
        STEP(I) = J
 #ifndef NDEBUG
@@ -71,20 +75,51 @@
        IF (J .GT. NN) EXIT
     END DO
 
-4   INFO = GET_SYS_US() - INFO
-  END SUBROUTINE AW_NCP4
+2   INFO = GET_SYS_US() - INFO
+  END SUBROUTINE AW_NCP2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP5(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  RECURSIVE SUBROUTINE AW_NCPT(W, N, NN, NM, DZ, N_2, SL, STEP)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(INOUT) :: W
+    INTEGER, INTENT(IN) :: N, NN, NM, N_2
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
+    INTEGER, INTENT(INOUT) :: SL, STEP(N_2)
+
+    INTEGER, TARGET :: STP(N_2)
+    REAL(KIND=DWP) :: MYW
+    INTEGER :: I, MYSL
+
+    CALL AW_NCP2(1, N, NN, NM, DZ, N_2, MYSL, STP, I)
+    IF (I .LT. 0) RETURN
+
+    MYW = D_ZERO
+    DO I = SL, 1, -1
+       MYW = MYW + DZ(STP(I))%W
+    END DO
+
+    !$OMP CRITICAL
+    IF (.NOT. (MYW .LE. W)) THEN
+       SL = MYSL
+       DO I = 1, SL
+          STEP(I) = STP(I)
+       END DO
+       W = MYW
+    END IF
+    !$OMP END CRITICAL
+  END SUBROUTINE AW_NCPT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  RECURSIVE SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER, TARGET :: STP(N_2,NT)
-    INTEGER :: I, J, K, L, T
-    REAL(KIND=DWP) :: W1, WL
+    REAL(KIND=DWP) :: W
+    INTEGER :: I
 
     SL = 0
 #ifndef NDEBUG
@@ -103,45 +138,24 @@
        INFO = -4
     ELSE IF (N_2 .LT. 0) THEN
        INFO = -6
-    ELSE IF (N_2 .GT. MIN(N,NN)) THEN
-       INFO = -6
     ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
 
     INFO = GET_SYS_US()
-    IF (N .EQ. 0) GOTO 5
-    IF (NN .EQ. 0) GOTO 5
-    IF (N_2 .EQ. 0) GOTO 5
+    IF (N .EQ. 0) GOTO 3
+    IF (NN .EQ. 0) GOTO 3
+    IF (N_2 .EQ. 0) GOTO 3
 
-    W1 = QUIET_NAN(N_2)
-    J = 0
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,K,L,T,WL) SHARED(N,NN,NM,DZ,N_2,SL,STEP,STP,J,W1)
-    DO K = 1, NN
-       T = INT(OMP_GET_THREAD_NUM()) + 1
-       CALL AW_NCP2(1, N, NN, NM, DZ, N_2, L, STP(:,T), I)
-#ifndef NDEBUG
-       IF (I .LT. 0) STOP
-#endif
-       WL = D_ZERO
-       DO I = L, 1, -1
-          WL = WL + DZ(STP(I,T))%W
-       END DO
-       !$OMP CRITICAL
-       IF (.NOT. (WL .LE. W1)) THEN
-          SL = L
-          DO I = 1, SL
-             STEP(I) = STP(I,T)
-          END DO
-          J = K
-          W1 = WL
-       END IF
-       !$OMP END CRITICAL
+    W = QUIET_NAN(N_2)
+    !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I) SHARED(W,N,NN,NM,DZ,N_2,SL,STEP)
+    DO I = 1, NN
+       CALL AW_NCPT(W, N, NN - I + 1, NM - I + 1, DZ(I), N_2, SL, STEP)
     END DO
     !$OMP END PARALLEL DO
 
-5   INFO = GET_SYS_US() - INFO
-  END SUBROUTINE AW_NCP5
+3   INFO = GET_SYS_US() - INFO
+  END SUBROUTINE AW_NCP3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

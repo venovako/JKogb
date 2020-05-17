@@ -286,7 +286,7 @@ CONTAINS
     END DO
 #endif
 
-    IF (NT .LE. 1) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
        INFO = -2
@@ -295,8 +295,6 @@ CONTAINS
     ELSE IF (NM .LT. NN) THEN
        INFO = -4
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
-    ELSE IF (N_2 .GT. MIN(N,NN)) THEN
        INFO = -6
     ELSE ! all OK
        INFO = 0
@@ -357,7 +355,7 @@ CONTAINS
     END DO
 #endif
 
-    IF (NT .NE. 1) THEN
+    IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (N .LT. 0) THEN
        INFO = -2
@@ -366,8 +364,6 @@ CONTAINS
     ELSE IF (NM .LT. NN) THEN
        INFO = -4
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
-    ELSE IF (N_2 .GT. MIN(N,NN)) THEN
        INFO = -6
     ELSE ! all OK
        INFO = 0
@@ -420,7 +416,8 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER :: I, J, K, L, M, AP, AQ, BP, BQ, STP(N_2)
+    INTEGER, TARGET :: STP(N_2)
+    INTEGER :: I, J, K, L, M, AP, AQ, BP, BQ
     LOGICAL :: C
     REAL(KIND=DWP) :: W1, WL
 
@@ -440,8 +437,6 @@ CONTAINS
     ELSE IF (NM .LT. NN) THEN
        INFO = -4
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
-    ELSE IF (N_2 .GT. MIN(N,NN)) THEN
        INFO = -6
     ELSE ! all OK
        INFO = 0
@@ -525,7 +520,7 @@ CONTAINS
           WL = WL + DZ(STP(I))%W
        END DO
        !$OMP CRITICAL
-       IF (WL .GT. W1) THEN
+       IF (.NOT. (WL .LE. W1)) THEN
           SL = M
           DO I = 1, SL
              STEP(I) = STP(I)
