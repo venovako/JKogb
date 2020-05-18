@@ -427,20 +427,22 @@ CONTAINS
     CALL AW_NCP2(1, N, NN, NM, DZ, N_2, MYSL, STP, I)
     IF (I .LT. 0) RETURN
 
-    MYW = D_ZERO
-    DO I = MYSL, 1, -1
-       MYW = MYW + DZ(STP(I))%W
-    END DO
-
-    !$OMP CRITICAL
-    IF (.NOT. (MYW .LE. W)) THEN
-       SL = MYSL
-       DO I = 1, SL
-          STEP(I) = STP(I) + J
+    IF (MYSL .GE. 1) THEN
+       MYW = D_ZERO
+       DO I = MYSL, 1, -1
+          MYW = MYW + DZ(STP(I))%W
        END DO
-       W = MYW
+
+       !$OMP CRITICAL
+       IF (.NOT. (MYW .LE. W)) THEN
+          SL = MYSL
+          DO I = 1, SL
+             STEP(I) = STP(I) + J
+          END DO
+          W = MYW
+       END IF
+       !$OMP END CRITICAL
     END IF
-    !$OMP END CRITICAL
   END SUBROUTINE AW_NCPT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
