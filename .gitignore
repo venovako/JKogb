@@ -38,6 +38,7 @@ data
 *.J
 
 # Output
+?lo/
 *.LY
 *.YU
 *.SY
