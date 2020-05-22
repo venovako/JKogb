@@ -25,44 +25,48 @@ int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
   }
   if (b->w == b->w)
     return 5;
-  return -5;
+  if (a->w == a->w)
+    return -5;
+  // both weights are NaN
+  if (a->i.b < b->i.b)
+    return 2;
+  if (a->i.b > b->i.b)
+    return -2;
+  if (a->i.p < b->i.p)
+    return 3;
+  if (a->i.p > b->i.p)
+    return -3;
+  if (a->i.q < b->i.q)
+    return 4;
+  if (a->i.q > b->i.q)
+    return -4;
+  return 0;
 }
 
-uint32_t wpqb_clean(const uint32_t n_a, wpqb a[static 1])
-{
-  if (!n_a)
-    return 0u;
-
-  // ii: index of the last non-invalid
-  uint32_t ii = n_a - 1u;
-  while (wpqb_invalid(a + ii)) {
-    if (ii)
-      --ii;
-    else
-      return 0u;
-  }
-  uint32_t nn = ii + 1u;
-  for (uint32_t i = 0u; i < ii; ++i) {
-    if (wpqb_invalid(a + i)) {
-      const wpqb t = a[i];
-      a[i] = a[ii];
-      a[ii] = t;
-      --nn;
-      for (--ii; !(a[ii].w == a[ii].w); --ii) /**/;
-    }
-  }
-  return nn;
-}
-
-void wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
+uint32_t wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
 {
   qsort(a, n_a, sizeof(wpqb), (int (*)(const void*, const void*))wpqb_cmp);
+  for (uint32_t i = n_a; i; )
+    if (a[--i].w >= -LDBL_MAX)
+      return (i + 1u);
+  return 0u;
 }
 
-void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
+uint32_t wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 {
   // TODO: parallel sort
-  wpqb_sort0(n_a, a);
+  return wpqb_sort0(n_a, a);
+}
+
+uint32_t wpqb_sort(const uint32_t n_a, wpqb a[static 1])
+{
+  return
+#ifdef _OPENMP
+    wpqb_sort1(n_a, a)
+#else /* !_OPENMP */
+    wpqb_sort0(n_a, a)
+#endif /* ?_OPENMP */
+    ;
 }
 
 void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
@@ -152,16 +156,22 @@ void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uin
     wpqb_ncpt(n, n_a - i, a + i, i, n_s, s, w);
 }
 
+void wpqb_ncp(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
+{
+#ifdef _OPENMP
+  wpqb_ncp1(n, n_a, a, n_s, s, w);
+#else /* !_OPENMP */
+  wpqb_ncp0(n, n_a, a, n_s, s, w);
+#endif /* ?_OPENMP */
+}
+
 void wpqb_run0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
   for (unsigned i = 0u; i < 10u; ++i)
     (w->i.a)[i] = UINT8_C(0xFF);
   w->i.s = UINT16_C(0);
-
-  if (!(w->i.f = wpqb_clean(n_a, a)))
+  if (!(w->i.f = wpqb_sort0(n_a, a)))
     return;
-
-  wpqb_sort0(w->i.f, a);
   wpqb_ncp0(n, w->i.f, a, n_s, s, w);
 }
 
@@ -170,12 +180,18 @@ void wpqb_run1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uin
   for (unsigned i = 0u; i < 10u; ++i)
     (w->i.a)[i] = UINT8_C(0xFF);
   w->i.s = UINT16_C(0);
-
-  if (!(w->i.f = wpqb_clean(n_a, a)))
+  if (!(w->i.f = wpqb_sort1(n_a, a)))
     return;
-
-  wpqb_sort1(w->i.f, a);
   wpqb_ncp1(n, w->i.f, a, n_s, s, w);
+}
+
+void wpqb_run(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
+{
+#ifdef _OPENMP
+  wpqb_run1(n, n_a, a, n_s, s, w);
+#else /* !_OPENMP */
+  wpqb_run0(n, n_a, a, n_s, s, w);
+#endif /* ?_OPENMP */
 }
 
 #ifndef NDEBUG
@@ -211,16 +227,21 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
 
   wpqb_info w;
-  if (r & 1u)
-    wpqb_run1(n, n_a, a, n_s, s, &w);
-  else
-    wpqb_run0(n, n_a, a, n_s, s, &w);
+  ((r & 1u) ? wpqb_run1 : wpqb_run0)(n, n_a, a, n_s, s, &w);
 
+#ifdef _WIN32
+  (void)fprintf(stdout, "w=%# .17e\n", (double)(w.w));
+#else /* !_WIN32 */
   (void)fprintf(stdout, "w=%# .21Le\n", w.w);
+#endif /* ?_WIN32 */
   (void)fprintf(stdout, "s=%hu\n", w.i.s);
   (void)fprintf(stdout, "f=%u\n", w.i.f);
   for (i = 0u; i < w.i.s; ++i)
+#ifdef _WIN32
+    (void)fprintf(stdout, "%u=(%# .17e,%hu,%hu,%hu)\n", i, (double)(a[s[i]].w), a[s[i]].i.p, a[s[i]].i.q, a[s[i]].i.b);
+#else /* !_WIN32 */
     (void)fprintf(stdout, "%u=(%# .21Le,%hu,%hu,%hu)\n", i, a[s[i]].w, a[s[i]].i.p, a[s[i]].i.q, a[s[i]].i.b);
+#endif /* ?_WIN32 */
 
   free(s);
   free(a);

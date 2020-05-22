@@ -1,6 +1,12 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#ifdef _WIN32
+#ifndef OLD_OMP
+#define OLD_OMP
+#endif /* !OLD_OMP */
+#endif /* _WIN32 */
+
 #ifdef __ICC
 #include <mathimf.h>
 #else /* !__ICC */
@@ -15,7 +21,6 @@
 #include <float.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -23,9 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-typedef double complex dcomplex;
-typedef long double complex xcomplex;
 
 #ifndef CMPLXF
 #define CMPLXF(r,i) ((float)(r) + I * (float)(i))
