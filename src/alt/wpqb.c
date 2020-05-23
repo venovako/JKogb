@@ -54,8 +54,30 @@ uint32_t wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
 
 uint32_t wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 {
-  // TODO: parallel sort
-  return wpqb_sort0(n_a, a);
+  if (!n_a)
+    return 0u;
+  const uint32_t na = (n_a - 1u);
+
+  for (uint32_t swps = ~0u, s = 0u, oe = 0u; swps; (oe ^= 1u), (swps = s), (s = 0u)) {
+    // odd-even sort
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(oe,na,a) reduction(+:s)
+#endif /* _OPENMP */
+    for (uint32_t i = oe; i < na; i += 2u) {
+      const uint32_t j = (i + 1u);
+      if (wpqb_cmp((a + i), (a + j)) > 0) {
+        const wpqb t = a[i];
+        a[i] = a[j];
+        a[j] = t;
+        ++s;
+      }
+    }
+  }
+
+  for (uint32_t i = n_a; i; )
+    if (a[--i].w >= -LDBL_MAX)
+      return (i + 1u);
+  return 0u;
 }
 
 uint32_t wpqb_sort(const uint32_t n_a, wpqb a[static 1])
