@@ -38,7 +38,8 @@ data
 *.J
 
 # Output
-?lo/
+dlo/
+zlo/
 *.LY
 *.YU
 *.SY
