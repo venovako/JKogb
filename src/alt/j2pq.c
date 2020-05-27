@@ -1,6 +1,6 @@
 #include "j2pq.h"
 
-void pq_init(pq o[static 1], const uint16_t n, const int j[static 1])
+void pq_init(pq o[static 1], const uint16_t n, const int *const j)
 {
   o->n_t = 0u;
   o->p = (uint16_t*)NULL;
@@ -14,21 +14,31 @@ void pq_init(pq o[static 1], const uint16_t n, const int j[static 1])
   o->p = x;
   o->q = x + o->n_a;
 
-  const uint16_t n_1 = n - UINT16_C(1);
-  uint32_t ih = o->n_a;
-
   // row-cyclic pass
-  for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
-    for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
-      if (j[r] == j[c]) {
+  const uint16_t n_1 = n - UINT16_C(1);
+  if (j) {
+    uint32_t ih = o->n_a;
+    for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
+      for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
+        if (j[r] == j[c]) {
+          (o->p)[o->n_t] = r;
+          (o->q)[o->n_t] = c;
+          ++(o->n_t);
+        }
+        else {
+          --ih;
+          (o->p)[ih] = r;
+          (o->q)[ih] = c;
+        }
+      }
+    }
+  }
+  else {
+    for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
+      for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
         (o->p)[o->n_t] = r;
         (o->q)[o->n_t] = c;
         ++(o->n_t);
-      }
-      else {
-        --ih;
-        (o->p)[ih] = r;
-        (o->q)[ih] = c;
       }
     }
   }

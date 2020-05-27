@@ -7,6 +7,6 @@ typedef struct {
   uint16_t *p, *q;
 } pq;
 
-extern void pq_init(pq o[static 1], const uint16_t n, const int j[static 1]);
+extern void pq_init(pq o[static 1], const uint16_t n, const int *const j);
 extern void pq_free(pq o[static 1]);
 #endif /* !J2PQ_H */
