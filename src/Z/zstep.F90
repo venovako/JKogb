@@ -104,13 +104,10 @@ CONTAINS
     IF (ID_TRU .EQ. 0) ID_TRU = 1
     SELECT CASE (ID_TRU)
     CASE (1)
-       R%PQI => PQI1
        R%TRU => TRU1
     CASE (2)
-       R%PQI => PQI2
        R%TRU => TRU2
     CASE DEFAULT
-       R%PQI => NULL()
        R%TRU => NULL()
        INFO = -4
     END SELECT

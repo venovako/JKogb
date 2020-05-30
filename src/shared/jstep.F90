@@ -6,46 +6,6 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! column-cyclic
-  PURE INTEGER FUNCTION PQI1(N, P, Q)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, P, Q
-
-    IF (N .LT. 2) THEN
-       PQI1 = -1
-    ELSE IF ((P .LT. 1) .OR. (P .GT. N)) THEN
-       PQI1 = -2
-    ELSE IF ((Q .LT. 2) .OR. (Q .GT. N)) THEN
-       PQI1 = -3
-    ELSE IF (P .GE. Q) THEN
-       PQI1 = 0
-    ELSE ! all OK
-       PQI1 = ((Q - 2) * (Q - 1)) / 2 + P
-    END IF
-  END FUNCTION PQI1
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  ! row-cyclic
-  PURE INTEGER FUNCTION PQI2(N, P, Q)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, P, Q
-
-    IF (N .LT. 2) THEN
-       PQI2 = -1
-    ELSE IF ((P .LT. 1) .OR. (P .GT. N)) THEN
-       PQI2 = -2
-    ELSE IF ((Q .LT. 2) .OR. (Q .GT. N)) THEN
-       PQI2 = -3
-    ELSE IF (P .GE. Q) THEN
-       PQI2 = 0
-    ELSE ! all OK
-       PQI2 = (2 * N - P) * (P - 1) + (Q - P)
-    END IF
-  END FUNCTION PQI2
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  ! column-cyclic
   PURE SUBROUTINE TRU1(N, P, Q, NN, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN
