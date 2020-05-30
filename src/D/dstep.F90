@@ -142,9 +142,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), NM, N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), NM, TT, N_2
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(DPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
@@ -172,8 +172,12 @@ CONTAINS
        INFO = -7
     ELSE IF (NM .LT. NN) THEN
        INFO = -11
-    ELSE IF (N_2 .LT. 0) THEN
+    ELSE IF (TT .LT. 0) THEN
        INFO = -13
+    ELSE IF (TT .GT. NN) THEN
+       INFO = -13
+    ELSE IF (N_2 .LT. 0) THEN
+       INFO = -14
     ELSE ! all OK
        INFO = 0
     END IF
@@ -185,14 +189,8 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-#ifdef OLD_OMP
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) &
-    !$OMP& SCHEDULE(DYNAMIC,1) REDUCTION(+:IT)
-#else
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,N,A,LDA,J,P,Q,R,DZ) &
-    !$OMP& SCHEDULE(NONMONOTONIC:DYNAMIC,1) REDUCTION(+:IT)
-#endif
-    DO I = 1, NN
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
+    DO I = 1, TT
        IP = P(I)
        IQ = Q(I)
        DZ(I)%P = IP
@@ -208,6 +206,42 @@ CONTAINS
     END DO
     !$OMP END PARALLEL DO
 
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
+    DO I = 1, TT
+       IP = P(I)
+       IQ = Q(I)
+       DZ(I)%P = IP
+       DZ(I)%Q = IQ
+       DZ(I)%B = IQ - IP
+       DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
+       IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
+          ! -\infty removed
+          DZ(I)%W = QUIET_NAN(I)
+       ELSE IF (DZ(I)%W .EQ. DZ(I)%W) THEN
+          IT = IT + 1
+       END IF
+    END DO
+    !$OMP END PARALLEL DO
+
+    II = 0
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(NN,TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:II)
+    DO I = TT+1, NN
+       IP = P(I)
+       IQ = Q(I)
+       DZ(I)%P = IP
+       DZ(I)%Q = IQ
+       DZ(I)%B = IQ - IP
+       DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
+       IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
+          ! -\infty removed
+          DZ(I)%W = QUIET_NAN(I)
+       ELSE IF (DZ(I)%W .EQ. DZ(I)%W) THEN
+          II = II + 1
+       END IF
+    END DO
+    !$OMP END PARALLEL DO
+
+    IT = IT + II
     IF (IT .EQ. 0) GOTO 1
     IF (IT .LT. NN) THEN
        ! remove NaN weights
@@ -364,9 +398,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, SL, INFO)
+  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2
+    INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, TT, N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
@@ -385,7 +419,7 @@ CONTAINS
 
     WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
-    CALL DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, N_2, SL, STEP, INFO)
+    CALL DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
     IF (INFO .LE. 0) THEN
        IT = INFO
     ELSE
@@ -456,12 +490,12 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
+  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, TT, INFO)
 #ifdef ANIMATE
     USE VN_MTXVIS_F
 #endif
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2
+    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2, TT
     REAL(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     REAL(KIND=DWP), INTENT(OUT), TARGET :: U(LDU,N), Z(LDZ,N), SIGMA(N)
     TYPE(DPROC), INTENT(IN) :: R
@@ -492,6 +526,10 @@ CONTAINS
        INFO = -15
     ELSE IF (N_2 .LT. 0) THEN
        INFO = -17
+    ELSE IF (TT .LT. 0) THEN
+       INFO = -19
+    ELSE IF (TT .GT. NN) THEN
+       INFO = -19
     ELSE ! all OK
        INFO = 0
     END IF
@@ -549,7 +587,7 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, SL, INFO)
+       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, INFO)
        IF (INFO .LE. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1

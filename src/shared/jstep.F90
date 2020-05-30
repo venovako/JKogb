@@ -6,67 +6,161 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! column-cyclic
-  PURE SUBROUTINE TRU1(N, P, Q, NN, INFO)
+  PURE SUBROUTINE TRU1(N, J, NN, P, Q, PN, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, NN
-    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
+    INTEGER, INTENT(IN) :: N, J(N), NN
+    INTEGER, INTENT(OUT) :: P(NN), Q(NN), PN(2), INFO
 
-    INTEGER :: IP, IQ, I
+    INTEGER :: IP, IQ, IT, IH
+
+    PN = 0
 
     IF (N .LT. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
-       INFO = -4
+       INFO = -3
     ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
     IF (N .LE. 1) RETURN
 
-    INFO = (N * (N - 1)) / 2
+    DO IT = 1, N
+       SELECT CASE (J(IT))
+       CASE (-1)
+          PN(2) = PN(2) + 1
+       CASE (1)
+          PN(1) = PN(1) + 1
+       CASE DEFAULT
+          INFO = -2
+          RETURN
+       END SELECT
+    END DO
 
-    I = 1
+#ifndef NDEBUG
+    !DIR$ VECTOR ALWAYS
+    DO IT = 1, NN
+       P(IT) = 0
+    END DO
+    !DIR$ VECTOR ALWAYS
+    DO IT = 1, NN
+       Q(IT) = 0
+    END DO
+#endif
+
+    IT = 1
+    IH = NN
     DO IQ = 2, N
        DO IP = 1, IQ-1
-          IF (I .GT. NN) RETURN
-          P(I) = IP
-          Q(I) = IQ
-          I = I + 1
+          IF (IT .GT. IH) RETURN
+          IF (J(IP) .EQ. J(IQ)) THEN
+             P(IT) = IP
+             Q(IT) = IQ
+             IT = IT + 1
+          ELSE ! hyp
+             P(IH) = IP
+             Q(IH) = IQ
+             IH = IH - 1
+          END IF
        END DO
     END DO
+
+#ifndef NDEBUG
+    DO IH = 1, NN
+       IF (P(IH) .EQ. 0) THEN
+          INFO = -4
+          RETURN
+       END IF
+    END DO
+
+    DO IH = 1, NN
+       IF (Q(IH) .EQ. 0) THEN
+          INFO = -5
+          RETURN
+       END IF
+    END DO
+#endif
+    INFO = IT - 1
   END SUBROUTINE TRU1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! row-cyclic
-  PURE SUBROUTINE TRU2(N, P, Q, NN, INFO)
+  PURE SUBROUTINE TRU2(N, J, NN, P, Q, PN, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, NN
-    INTEGER, INTENT(OUT) :: P(NN), Q(NN), INFO
+    INTEGER, INTENT(IN) :: N, J(N), NN
+    INTEGER, INTENT(OUT) :: P(NN), Q(NN), PN(2), INFO
 
-    INTEGER :: IP, IQ, I
+    INTEGER :: IP, IQ, IT, IH
+
+    PN = 0
 
     IF (N .LT. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
-       INFO = -4
+       INFO = -3
     ELSE ! all OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
     IF (N .LE. 1) RETURN
 
-    INFO = (N * (N - 1)) / 2
+    DO IT = 1, N
+       SELECT CASE (J(IT))
+       CASE (-1)
+          PN(2) = PN(2) + 1
+       CASE (1)
+          PN(1) = PN(1) + 1
+       CASE DEFAULT
+          INFO = -2
+          RETURN
+       END SELECT
+    END DO
 
-    I = 1
+#ifndef NDEBUG
+    !DIR$ VECTOR ALWAYS
+    DO IT = 1, NN
+       P(IT) = 0
+    END DO
+    !DIR$ VECTOR ALWAYS
+    DO IT = 1, NN
+       Q(IT) = 0
+    END DO
+#endif
+
+    IT = 1
+    IH = NN
     DO IP = 1, N-1
        DO IQ = IP+1, N
-          IF (I .GT. NN) RETURN
-          P(I) = IP
-          Q(I) = IQ
-          I = I + 1
+          IF (IT .GT. IH) RETURN
+          IF (J(IP) .EQ. J(IQ)) THEN
+             P(IT) = IP
+             Q(IT) = IQ
+             IT = IT + 1
+          ELSE ! hyp
+             P(IH) = IP
+             Q(IH) = IQ
+             IH = IH - 1
+          END IF
        END DO
     END DO
+
+#ifndef NDEBUG
+    DO IH = 1, NN
+       IF (P(IH) .EQ. 0) THEN
+          INFO = -4
+          RETURN
+       END IF
+    END DO
+
+    DO IH = 1, NN
+       IF (Q(IH) .EQ. 0) THEN
+          INFO = -5
+          RETURN
+       END IF
+    END DO
+#endif
+    INFO = IT - 1
   END SUBROUTINE TRU2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -5,7 +5,7 @@ PROGRAM DJK
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO, NN, NM, NT, SZ(3), FD(3)
+  INTEGER :: N, N_2, ID_MAG, ID_CMP, ID_TRU, INFO, NN, NM, NT, TT, SZ(3), FD(3)
   TYPE(DPROC) :: R
 
   REAL(KIND=DWP), ALLOCATABLE, TARGET :: DARR(:,:)
@@ -90,32 +90,19 @@ PROGRAM DJK
   END IF
   CALL BCLOSEN(FD, 3)
 
-  FD = 0
-  DO INFO = 1, N
-     IF (J(INFO) .EQ. 1) THEN
-        FD(1) = FD(1) + 1
-     ELSE IF (J(INFO) .EQ. -1) THEN
-        FD(2) = FD(2) + 1
-     ELSE ! error
-        ERROR STOP 'invalid entry in J'
-     END IF
-  END DO
-  WRITE (OUTPUT_UNIT,'(2(A,I11),A)') 'J contains', FD(1), ' positive and', FD(2), ' negative signs.'
-  FLUSH(OUTPUT_UNIT)
-
-  CALL R%TRU(N, P, Q, NN, INFO)
-  IF (INFO .NE. NN) THEN
+  CALL R%TRU(N, J, NN, P, Q, FD, INFO)
+  IF (INFO .LT. 0) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
      FLUSH(ERROR_UNIT)
      ERROR STOP 'R%TRU'
   END IF
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,I11)') '    NN=', NN
-  FLUSH(ERROR_UNIT)
-#endif
+
+  TT = INFO
+  WRITE (OUTPUT_UNIT,'(3(A,I11),A)') 'J has', FD(1), ' +  and', FD(2), ' - signs for <=', TT, ' trig. transfs.'
+  FLUSH(OUTPUT_UNIT)
 
   FD(1) = GET_SYS_US()
-  CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, INFO)
+  CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, TT, INFO)
   FD(1) = GET_SYS_US() - FD(1)
   IF (INFO .GE. 0) THEN
      WRITE (OUTPUT_UNIT,'(A,I10,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DUS2S), ' s'
