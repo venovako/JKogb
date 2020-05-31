@@ -38,11 +38,10 @@ CONTAINS
     END DO
 
 #ifndef NDEBUG
-    !DIR$ VECTOR ALWAYS
     DO IT = 1, NN
        P(IT) = 0
     END DO
-    !DIR$ VECTOR ALWAYS
+
     DO IT = 1, NN
        Q(IT) = 0
     END DO
@@ -118,11 +117,10 @@ CONTAINS
     END DO
 
 #ifndef NDEBUG
-    !DIR$ VECTOR ALWAYS
     DO IT = 1, NN
        P(IT) = 0
     END DO
-    !DIR$ VECTOR ALWAYS
+
     DO IT = 1, NN
        Q(IT) = 0
     END DO
