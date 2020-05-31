@@ -11,10 +11,33 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION ZMAGF2T(N, P, Q, A, LDA)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, P, Q, LDA
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
+
+    COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
+    INTEGER :: INFO
+
+    IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
+         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
+         (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
+       ZMAGF2T = D_ZERO
+       ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
+       ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+       ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
+       ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+    ELSE ! no transform
+       ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
+    END IF
+  END FUNCTION ZMAGF2T
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #ifdef USE_EXTENDED
-  REAL(KIND=DWP) FUNCTION ZMAGF2(N, P, Q, A, LDA, J)
+  REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
 #else
-  PURE REAL(KIND=DWP) FUNCTION ZMAGF2(N, P, Q, A, LDA, J)
+  PURE REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
 #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
@@ -28,69 +51,49 @@ CONTAINS
 #endif
 
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
-         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
-         ((J(P) .EQ. J(Q)) .AND. (REAL(A(P,P)) .LT. REAL(A(Q,Q))))) THEN
-       IF (J(P) .EQ. J(Q)) THEN
-          ZMAGF2 = D_ZERO
-          ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
-          ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
-          ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-       ELSE ! J(P) .NE. J(Q)
-          A2(1,1) = A(P,P)
-          A2(2,1) = A(Q,P)
-          A2(1,2) = A(P,Q)
-          A2(2,2) = A(Q,Q)
-          J2(1) = J(P)
-          J2(2) = J(Q)
-          CALL ZHSVD2(A2, J2, U2, Z2, INFO)
-          IF (INFO .LE. 1) THEN
-             ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
-          ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
-             ZMAGF2 = D_ZERO
-             ZMAGF2 = ZMAGF2 + REAL(A(Q,P)) * REAL(A(Q,P))
-             ZMAGF2 = ZMAGF2 + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-             ZMAGF2 = ZMAGF2 + REAL(A(P,Q)) * REAL(A(P,Q))
-             ZMAGF2 = ZMAGF2 + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-          ELSE ! a non-trivial transform
-             ZMAGF2 = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
-          END IF
+         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE)) THEN
+       A2(1,1) = A(P,P)
+       A2(2,1) = A(Q,P)
+       A2(1,2) = A(P,Q)
+       A2(2,2) = A(Q,Q)
+       J2(1) = J(P)
+       J2(2) = J(Q)
+       CALL ZHSVD2(A2, J2, U2, Z2, INFO)
+       IF (INFO .LE. 1) THEN
+          ZMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
+       ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
+          ZMAGF2H = D_ZERO
+          ZMAGF2H = ZMAGF2H + REAL(A(Q,P)) * REAL(A(Q,P))
+          ZMAGF2H = ZMAGF2H + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+          ZMAGF2H = ZMAGF2H + REAL(A(P,Q)) * REAL(A(P,Q))
+          ZMAGF2H = ZMAGF2H + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+       ELSE ! a non-trivial transform
+          ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
        END IF
     ELSE ! no transform
-       ZMAGF2 = QUIET_NAN((P - 1) * N + (Q - 1))
+       ZMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
-  END FUNCTION ZMAGF2
+  END FUNCTION ZMAGF2H
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZPROC_INIT(NT, ID_MAG, ID_NCP, ID_TRU, R, INFO)
+  PURE SUBROUTINE ZPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT
-    INTEGER, INTENT(INOUT) :: ID_MAG, ID_NCP, ID_TRU
+    INTEGER, INTENT(INOUT) :: ID_NCP, ID_TRU
     TYPE(ZPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
     IF (NT .LE. 0) THEN
        INFO = -1
-    ELSE IF (ID_MAG .LT. 0) THEN
-       INFO = -2
     ELSE IF (ID_NCP .LT. 0) THEN
-       INFO = -3
+       INFO = -2
     ELSE IF (ID_TRU .LT. 0) THEN
-       INFO = -4
+       INFO = -3
     ELSE
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
-
-    IF (ID_MAG .EQ. 0) ID_MAG = 1
-    SELECT CASE (ID_MAG)
-    CASE (1)
-       R%MAG => ZMAGF2
-    CASE DEFAULT
-       R%MAG => NULL()
-       INFO = -2
-    END SELECT
 
     IF (ID_NCP .EQ. 0) THEN
        IF (NT .GT. 1) THEN
@@ -109,7 +112,7 @@ CONTAINS
        R%NCP => AW_NCP3
     CASE DEFAULT
        R%NCP => NULL()
-       INFO = -3
+       INFO = -2
     END SELECT
 
     IF (ID_TRU .EQ. 0) ID_TRU = 1
@@ -120,7 +123,7 @@ CONTAINS
        R%TRU => TRU2
     CASE DEFAULT
        R%TRU => NULL()
-       INFO = -4
+       INFO = -3
     END SELECT
 
     IF (NT .GT. 1) THEN
@@ -179,20 +182,15 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, TT
        IP = P(I)
        IQ = Q(I)
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
-       DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
-       IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
-          ! -\infty removed
-          DZ(I)%W = QUIET_NAN(I)
-       ELSE IF (DZ(I)%W .EQ. DZ(I)%W) THEN
-          IT = IT + 1
-       END IF
+       DZ(I)%W = ZMAGF2T(N, IP, IQ, A, LDA)
+       IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
     !$OMP END PARALLEL DO
 
@@ -204,7 +202,7 @@ CONTAINS
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
-       DZ(I)%W = R%MAG(N, IP, IQ, A, LDA, J)
+       DZ(I)%W = ZMAGF2H(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
           ! -\infty removed
           DZ(I)%W = QUIET_NAN(I)
