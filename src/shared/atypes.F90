@@ -74,16 +74,16 @@ CONTAINS
   !     outer bands first
   !       within a band, the lower elements first
 #ifdef _GNU_SOURCE
-  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP1(PA, PB, CTX) BIND(C)
+  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB, CTX) BIND(C)
 #else
-  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP1(CTX, PA, PB) BIND(C)
+  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(CTX, PA, PB) BIND(C)
 #endif
     IMPLICIT NONE
     TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB, CTX
 
     TYPE(AW), POINTER :: A, B
 
-    AW_CMP1 = 0_c_int
+    AW_CMP = 0_c_int
     CALL C_F_POINTER(PA, A)
     IF (.NOT. ASSOCIATED(A)) RETURN
     CALL C_F_POINTER(PB, B)
@@ -91,37 +91,37 @@ CONTAINS
     IF (ASSOCIATED(A, B)) RETURN
 
     IF (A%W .LT. B%W) THEN
-       AW_CMP1 = 1_c_int
+       AW_CMP = 1_c_int
     ELSE IF (A%W .GT. B%W) THEN
-       AW_CMP1 = -1_c_int
+       AW_CMP = -1_c_int
     ELSE IF (A%W .EQ. B%W) THEN
        IF (A%B .LT. B%B) THEN
-          AW_CMP1 = 2_c_int
+          AW_CMP = 2_c_int
        ELSE IF (A%B .GT. B%B) THEN
-          AW_CMP1 = -2_c_int
+          AW_CMP = -2_c_int
        ELSE ! A%B = B%B
           IF (A%P .LT. B%P) THEN
-             AW_CMP1 = 3_c_int
+             AW_CMP = 3_c_int
           ELSE IF (A%P .GT. B%P) THEN
-             AW_CMP1 = -3_c_int
+             AW_CMP = -3_c_int
           ELSE ! A%P = B%P
              IF (A%Q .LT. B%Q) THEN
-                AW_CMP1 = 4_c_int
+                AW_CMP = 4_c_int
              ELSE IF (A%Q .GT. B%Q) THEN
-                AW_CMP1 = -4_c_int
+                AW_CMP = -4_c_int
              ELSE ! A%Q = B%Q
-                AW_CMP1 = 0_c_int
+                AW_CMP = 0_c_int
              END IF
           END IF
        END IF
     ELSE ! NaN magnitude(s)
        IF (B%W .EQ. B%W) THEN
-          AW_CMP1 = 5_c_int
+          AW_CMP = 5_c_int
        ELSE ! NaN(B%W)
-          AW_CMP1 = -5_c_int
+          AW_CMP = -5_c_int
        END IF
     END IF
-  END FUNCTION AW_CMP1
+  END FUNCTION AW_CMP
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

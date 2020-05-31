@@ -63,10 +63,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZPROC_INIT(NT, ID_MAG, ID_CMP, ID_TRU, R, INFO)
+  PURE SUBROUTINE ZPROC_INIT(NT, ID_MAG, ID_NCP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT
-    INTEGER, INTENT(INOUT) :: ID_MAG, ID_CMP, ID_TRU
+    INTEGER, INTENT(INOUT) :: ID_MAG, ID_NCP, ID_TRU
     TYPE(ZPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
@@ -74,7 +74,7 @@ CONTAINS
        INFO = -1
     ELSE IF (ID_MAG .LT. 0) THEN
        INFO = -2
-    ELSE IF (ID_CMP .LT. 0) THEN
+    ELSE IF (ID_NCP .LT. 0) THEN
        INFO = -3
     ELSE IF (ID_TRU .LT. 0) THEN
        INFO = -4
@@ -92,12 +92,23 @@ CONTAINS
        INFO = -2
     END SELECT
 
-    IF (ID_CMP .EQ. 0) ID_CMP = 1
-    SELECT CASE (ID_CMP)
+    IF (ID_NCP .EQ. 0) THEN
+       IF (NT .GT. 1) THEN
+          ID_NCP = 1
+       ELSE ! <= 1 (single-threaded)
+          ID_NCP = 2
+       END IF
+    END IF
+
+    SELECT CASE (ID_NCP)
     CASE (1)
-       R%CMP => AW_CMP1
+       R%NCP => AW_NCP1
+    CASE (2)
+       R%NCP => AW_NCP2
+    CASE (3)
+       R%NCP => AW_NCP3
     CASE DEFAULT
-       R%CMP => NULL()
+       R%NCP => NULL()
        INFO = -3
     END SELECT
 
@@ -114,10 +125,8 @@ CONTAINS
 
     IF (NT .GT. 1) THEN
        R%SRT => AW_SRT1
-       R%NCP => AW_NCP1
     ELSE ! <= 1 (single-threaded)
        R%SRT => AW_SRT2
-       R%NCP => AW_NCP2
     END IF
   END SUBROUTINE ZPROC_INIT
 
@@ -232,7 +241,7 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('ZSTEP_BUILD', S)
 #endif
-    CALL R%SRT(NT, IT, NM, DZ, R%CMP, II)
+    CALL R%SRT(NT, IT, NM, DZ, AW_CMP, II)
     IF (II .LT. 0) THEN
        INFO = -11
        RETURN
