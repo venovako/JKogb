@@ -2,6 +2,6 @@
 #define XTRANSF_H
 #ifdef USE_EXTENDED
 #include "common.h"
-extern void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 2][2], dcomplex Z[static 2][2], fint info[static 1]);
+extern void zhsvd2_(dcomplex A[static restrict 2][2], const fint J[static restrict 2], dcomplex U[static restrict 2][2], dcomplex Z[static restrict 2][2], fint info[static restrict 1]);
 #endif /* USE_EXTENDED */
 #endif /* !XTRANSF_H */

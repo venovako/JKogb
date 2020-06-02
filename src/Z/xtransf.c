@@ -66,14 +66,14 @@ static inline xcomplex xxdiv(const xcomplex a, const xcomplex b)
 #endif /* ?NDEBUG */
 }
 
-static inline void xswp(xcomplex a[static 1], xcomplex b[static 1])
+static inline void xswp(xcomplex a[static restrict 1], xcomplex b[static restrict 1])
 {
   const xcomplex t = *a;
   *a = *b;
   *b = t;
 }
 
-static inline void xassgn2(xcomplex A[static 2][2], const xcomplex B[static 2][2])
+static inline void xassgn2(xcomplex A[static restrict 2][2], const xcomplex B[static restrict 2][2])
 {
   A[0][0] = B[0][0];
   A[0][1] = B[0][1];
@@ -81,7 +81,7 @@ static inline void xassgn2(xcomplex A[static 2][2], const xcomplex B[static 2][2
   A[1][1] = B[1][1];
 }
 
-static inline void zassgn2(dcomplex A[static 2][2], const xcomplex B[static 2][2])
+static inline void zassgn2(dcomplex A[static restrict 2][2], const xcomplex B[static restrict 2][2])
 {
   A[0][0] = (dcomplex)(B[0][0]);
   A[0][1] = (dcomplex)(B[0][1]);
@@ -90,13 +90,13 @@ static inline void zassgn2(dcomplex A[static 2][2], const xcomplex B[static 2][2
 }
 
 /* unused
-static inline void xassgn1(xcomplex A[static 2], const xcomplex B[static 2])
+static inline void xassgn1(xcomplex A[static restrict 2], const xcomplex B[static restrict 2])
 {
   A[0] = B[0];
   A[1] = B[1];
 }
 
-static inline void CA1(const xcomplex B[static 2][2], xcomplex A[static 2])
+static inline void CA1(const xcomplex B[static restrict 2][2], xcomplex A[static restrict 2])
 {
   const xcomplex C[2] =
     {
@@ -107,7 +107,7 @@ static inline void CA1(const xcomplex B[static 2][2], xcomplex A[static 2])
 }
 */
 
-static inline void CA2(const xcomplex B[static 2][2], xcomplex A[static 2][2])
+static inline void CA2(const xcomplex B[static restrict 2][2], xcomplex A[static restrict 2][2])
 {
   const xcomplex C[2][2] =
     {
@@ -123,7 +123,7 @@ static inline void CA2(const xcomplex B[static 2][2], xcomplex A[static 2][2])
   xassgn2(A, C);
 }
 
-static inline void AC(xcomplex A[static 2][2], const xcomplex B[static 2][2])
+static inline void AC(xcomplex A[static restrict 2][2], const xcomplex B[static restrict 2][2])
 {
   const xcomplex C[2][2] =
     {
@@ -139,7 +139,7 @@ static inline void AC(xcomplex A[static 2][2], const xcomplex B[static 2][2])
   xassgn2(A, C);
 }
 
-static inline void xhsvd2d(xcomplex A[static 2][2], xcomplex U[static 2][2], fint info[static 1])
+static inline void xhsvd2d(xcomplex A[static restrict 2][2], xcomplex U[static restrict 2][2], fint info[static restrict 1])
 {
   *info = FINT_C(0);
   A[1][0] = A[0][1] = x0;
@@ -199,7 +199,7 @@ static inline void xhsvd2d(xcomplex A[static 2][2], xcomplex U[static 2][2], fin
   }
 }
 
-static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
+static inline void xhsvd2u(const bool h, xcomplex A[static restrict 2][2], xcomplex U[static restrict 2][2], xcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   xcomplex y_ = (A[1][0] * creall(A[1][1])), z_ = x0;
@@ -243,7 +243,7 @@ static inline void xhsvd2u(const bool h, xcomplex A[static 2][2], xcomplex U[sta
   *info = FINT_C(1);
 }
 
-static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
+static inline void xhsvd2l(xcomplex A[static restrict 2][2], xcomplex U[static restrict 2][2], xcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   const xcomplex x_ = (A[0][1] / creall(A[1][1]));
   const extended x = cabsl(x_), y = (creall(A[0][0]) / creall(A[1][1]));
@@ -275,7 +275,7 @@ static inline void xhsvd2l(xcomplex A[static 2][2], xcomplex U[static 2][2], xco
   *info = FINT_C(1);
 }
 
-static inline void xhsvd2g(const bool h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
+static inline void xhsvd2g(const bool h, xcomplex A[static restrict 2][2], xcomplex U[static restrict 2][2], xcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   xcomplex
     r = CMPLXL(cabsl(A[0][0]), cabsl(A[0][1])),
@@ -396,7 +396,7 @@ static inline void xhsvd2g(const bool h, xcomplex A[static 2][2], xcomplex U[sta
     xhsvd2u(h, A, U, Z, info);
 }
 
-static inline void xhsvd2s(const fint h, xcomplex A[static 2][2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
+static inline void xhsvd2s(const fint h, xcomplex A[static restrict 2][2], xcomplex U[static restrict 2][2], xcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   if (((h == FINT_C(2)) && (creall(A[0][0]) < creall(A[1][1]))) || ((h == FINT_C(-2)) && (creall(A[0][0]) > creall(A[1][1])))) {
     xswp(&(U[0][0]), &(U[0][1]));
@@ -412,7 +412,7 @@ static inline void xhsvd2s(const fint h, xcomplex A[static 2][2], xcomplex U[sta
     *info += FINT_C(4);
 }
 
-static inline void xhsvd2_(xcomplex A[static 2][2], const fint J[static 2], xcomplex U[static 2][2], xcomplex Z[static 2][2], fint info[static 1])
+static inline void xhsvd2_(xcomplex A[static restrict 2][2], const fint J[static restrict 2], xcomplex U[static restrict 2][2], xcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   if ((A[0][1] == x0) && (A[1][0] == x0))
     xhsvd2d(A, U, info);
@@ -423,7 +423,7 @@ static inline void xhsvd2_(xcomplex A[static 2][2], const fint J[static 2], xcom
     xhsvd2s((J[0] + J[1]), A, U, Z, info);
 }
 
-void zhsvd2_(dcomplex A[static 2][2], const fint J[static 2], dcomplex U[static 2][2], dcomplex Z[static 2][2], fint info[static 1])
+void zhsvd2_(dcomplex A[static restrict 2][2], const fint J[static restrict 2], dcomplex U[static restrict 2][2], dcomplex Z[static restrict 2][2], fint info[static restrict 1])
 {
   if (!zisfinite(A[0][0]))
     *info = FINT_C(-1);

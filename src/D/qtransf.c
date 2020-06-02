@@ -1,19 +1,19 @@
 #include "qtransf.h"
 #ifdef USE_EXTENDED
-static inline void qswp(extended a[static 1], extended b[static 1])
+static inline void qswp(extended a[static restrict 1], extended b[static restrict 1])
 {
   const extended t = *a;
   *a = *b;
   *b = t;
 }
 
-static inline void qassgn1(extended A[static 2], const extended B[static 2])
+static inline void qassgn1(extended A[static restrict 2], const extended B[static restrict 2])
 {
   A[0] = B[0];
   A[1] = B[1];
 }
 
-static inline void qassgn2(extended A[static 2][2], const extended B[static 2][2])
+static inline void qassgn2(extended A[static restrict 2][2], const extended B[static restrict 2][2])
 {
   A[0][0] = B[0][0];
   A[0][1] = B[0][1];
@@ -21,7 +21,7 @@ static inline void qassgn2(extended A[static 2][2], const extended B[static 2][2
   A[1][1] = B[1][1];
 }
 
-static inline void dassgn2(double A[static 2][2], const extended B[static 2][2])
+static inline void dassgn2(double A[static restrict 2][2], const extended B[static restrict 2][2])
 {
   A[0][0] = (double)(B[0][0]);
   A[0][1] = (double)(B[0][1]);
@@ -29,7 +29,7 @@ static inline void dassgn2(double A[static 2][2], const extended B[static 2][2])
   A[1][1] = (double)(B[1][1]);
 }
 
-static inline void CA1(const extended B[static 2][2], extended A[static 2])
+static inline void CA1(const extended B[static restrict 2][2], extended A[static restrict 2])
 {
   const extended C[2] =
     {
@@ -39,7 +39,7 @@ static inline void CA1(const extended B[static 2][2], extended A[static 2])
   qassgn1(A, C);
 }
 
-static inline void CA2(const extended B[static 2][2], extended A[static 2][2])
+static inline void CA2(const extended B[static restrict 2][2], extended A[static restrict 2][2])
 {
   const extended C[2][2] =
     {
@@ -55,7 +55,7 @@ static inline void CA2(const extended B[static 2][2], extended A[static 2][2])
   qassgn2(A, C);
 }
 
-static inline void AC(extended A[static 2][2], const extended B[static 2][2])
+static inline void AC(extended A[static restrict 2][2], const extended B[static restrict 2][2])
 {
   const extended C[2][2] =
     {
@@ -71,7 +71,7 @@ static inline void AC(extended A[static 2][2], const extended B[static 2][2])
   qassgn2(A, C);
 }
 
-static inline void qhsvd2d(extended A[static 2][2], extended U[static 2][2], fint info[static 1])
+static inline void qhsvd2d(extended A[static restrict 2][2], extended U[static restrict 2][2], fint info[static restrict 1])
 {
   *info = FINT_C(0);
   A[1][0] = A[0][1] = 0.0L;
@@ -89,7 +89,7 @@ static inline void qhsvd2d(extended A[static 2][2], extended U[static 2][2], fin
   }
 }
 
-static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
+static inline void qhsvd2u(const bool h, extended A[static restrict 2][2], extended U[static restrict 2][2], extended Z[static restrict 2][2], fint info[static restrict 1])
 {
   extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   *info = FINT_C(0);
@@ -166,7 +166,7 @@ static inline void qhsvd2u(const bool h, extended A[static 2][2], extended U[sta
   *info = FINT_C(1);
 }
 
-static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
+static inline void qhsvd2l(extended A[static restrict 2][2], extended U[static restrict 2][2], extended Z[static restrict 2][2], fint info[static restrict 1])
 {
   extended tu = 0.0L, cu = 1.0L, tz = 0.0L, cz = 1.0L;
   *info = FINT_C(0);
@@ -216,7 +216,7 @@ static inline void qhsvd2l(extended A[static 2][2], extended U[static 2][2], ext
   *info = FINT_C(1);
 }
 
-static inline void qhsvd2g(const bool h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
+static inline void qhsvd2g(const bool h, extended A[static restrict 2][2], extended U[static restrict 2][2], extended Z[static restrict 2][2], fint info[static restrict 1])
 {
   extended r = 0.0L,
     c = hypotl(A[0][0], A[0][1]),
@@ -292,7 +292,7 @@ static inline void qhsvd2g(const bool h, extended A[static 2][2], extended U[sta
     qhsvd2u(h, A, U, Z, info);
 }
 
-static inline void qhsvd2s(const fint h, extended A[static 2][2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
+static inline void qhsvd2s(const fint h, extended A[static restrict 2][2], extended U[static restrict 2][2], extended Z[static restrict 2][2], fint info[static restrict 1])
 {
   if (((h == FINT_C(2)) && (A[0][0] < A[1][1])) || ((h == FINT_C(-2)) && (A[0][0] > A[1][1]))) {
     qswp(&(U[0][0]), &(U[0][1]));
@@ -308,7 +308,7 @@ static inline void qhsvd2s(const fint h, extended A[static 2][2], extended U[sta
     *info += FINT_C(4);
 }
 
-static inline void qhsvd2_(extended A[static 2][2], const fint J[static 2], extended U[static 2][2], extended Z[static 2][2], fint info[static 1])
+static inline void qhsvd2_(extended A[static restrict 2][2], const fint J[static restrict 2], extended U[static restrict 2][2], extended Z[static restrict 2][2], fint info[static restrict 1])
 {
   if ((A[0][1] == 0.0L) && (A[1][0] == 0.0L))
     qhsvd2d(A, U, info);
@@ -319,7 +319,7 @@ static inline void qhsvd2_(extended A[static 2][2], const fint J[static 2], exte
     qhsvd2s((J[0] + J[1]), A, U, Z, info);
 }
 
-void dhsvd2_(double A[static 2][2], const fint J[static 2], double U[static 2][2], double Z[static 2][2], fint info[static 1])
+void dhsvd2_(double A[static restrict 2][2], const fint J[static restrict 2], double U[static restrict 2][2], double Z[static restrict 2][2], fint info[static restrict 1])
 {
   if (!(fabs(A[0][0]) <= DBL_MAX))
     *info = FINT_C(-1);
