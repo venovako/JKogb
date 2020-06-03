@@ -29,6 +29,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <immintrin.h>
+
 #ifndef CMPLXF
 #define CMPLXF(r,i) ((float)(r) + I * (float)(i))
 #endif /* !CMPLXF */
