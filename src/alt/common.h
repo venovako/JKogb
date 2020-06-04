@@ -29,7 +29,11 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef USE_DOUBLE
+#ifdef __SSE4_1__
 #include <immintrin.h>
+#endif /* __SSE4_1__ */
+#endif /* USE_DOUBLE */
 
 #ifndef CMPLXF
 #define CMPLXF(r,i) ((float)(r) + I * (float)(i))

@@ -2,6 +2,24 @@
 #define WPQB_H
 #include "common.h"
 
+#ifdef USE_DOUBLE
+typedef struct {
+  double w;
+  struct {
+    int8_t jp, jq;
+    uint16_t p, q, b;
+  } i;
+} wpqb;
+
+typedef struct {
+  double w;
+  struct {
+    // z is reserved
+    uint16_t z, s;
+    uint32_t f;
+  } i;
+} wpqb_info;
+#else /* !USE_DOUBLE */
 typedef union {
   long double w;
   struct {
@@ -21,11 +39,25 @@ typedef union {
     uint32_t f;
   } i;
 } wpqb_info;
+#endif /* ?USE_DOUBLE */
 
+#ifdef USE_DOUBLE
+static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
+#else /* !USE_DOUBLE */
 static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q)
+#endif /* ?USE_DOUBLE */
 {
   assert(p < q);
+#ifdef USE_DOUBLE
+  assert(abs(jp) == 1);
+  assert(abs(jq) == 1);
+#endif /* USE_DOUBLE */
+
   a->w = w;
+#ifdef USE_DOUBLE
+  a->i.jp = jp;
+  a->i.jq = jq;
+#endif /* USE_DOUBLE */
   a->i.p = p;
   a->i.q = q;
   a->i.b = (q - p);
