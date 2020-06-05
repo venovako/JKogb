@@ -42,16 +42,14 @@ typedef union {
 #endif /* ?USE_DOUBLE */
 
 #ifdef USE_DOUBLE
-static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
+static inline void wpqb_init(wpqb a[static 1], const double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
 #else /* !USE_DOUBLE */
-static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q)
+static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
 #endif /* ?USE_DOUBLE */
 {
   assert(p < q);
-#ifdef USE_DOUBLE
   assert(abs(jp) == 1);
   assert(abs(jq) == 1);
-#endif /* USE_DOUBLE */
 
   a->w = w;
 #ifdef USE_DOUBLE

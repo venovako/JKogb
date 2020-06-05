@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 #ifdef USE_DOUBLE
       wpqb_init((a + i), (((double)rand()) / rand()), p, q, 1, 1);
 #else /* !USE_DOUBLE */
-      wpqb_init((a + i), (((long double)rand()) / rand()), p, q);
+      wpqb_init((a + i), (((long double)rand()) / rand()), p, q, 1, 1);
 #endif /* ?USE_DOUBLE */
 
   uint32_t *const s = (uint32_t*)calloc(n_s, sizeof(uint32_t));
