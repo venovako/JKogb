@@ -96,7 +96,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
+  SUBROUTINE DPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT
     INTEGER, INTENT(INOUT) :: ID_NCP, ID_TRU

@@ -77,7 +77,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
+  SUBROUTINE ZPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT
     INTEGER, INTENT(INOUT) :: ID_NCP, ID_TRU
