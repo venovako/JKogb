@@ -22,9 +22,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef USE_PGI
+#ifndef USE_NVIDIA
 #include <tgmath.h>
-#endif /* !USE_PGI */
+#endif /* !USE_NVIDIA */
 #include <time.h>
 
 // Intel 80-bit extended floating-point value stored in the lowest 10 bytes of a 16-byte variable

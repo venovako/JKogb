@@ -382,7 +382,7 @@ CONTAINS
 
     SL = 0
     INFO = 0
-#ifdef USE_PGI
+#ifdef USE_NVIDIA
     IF (CtrlC .NE. 0_c_int) RETURN
 #else
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) RETURN
@@ -411,7 +411,7 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     IF (SL .LE. 0) RETURN
-#ifdef USE_PGI
+#ifdef USE_NVIDIA
     IF (CtrlC .NE. 0_c_int) INFO = 0
 #else
     IF (CtrlC .NE. 0_ATOMIC_INT_KIND) INFO = 0
@@ -552,7 +552,7 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     S = 0
-#ifdef USE_PGI
+#ifdef USE_NVIDIA
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_c_int))
 #else
     DO WHILE ((S .GE. 0) .AND. (CtrlC .EQ. 0_ATOMIC_INT_KIND))
