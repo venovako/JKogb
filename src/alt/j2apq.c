@@ -1,6 +1,6 @@
 #include "j2apq.h"
 
-int apq_init(apq o[static 1], const uint16_t n, const int *const j)
+int apq_init(apq o[static 1], const uint16_t n, const fint *const j)
 {
   o->a = (wpqb*)NULL;
   o->q = o->p = (uint16_t*)NULL;

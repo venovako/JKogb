@@ -47,11 +47,7 @@ uint32_t wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
 {
   qsort(a, n_a, sizeof(wpqb), (int (*)(const void*, const void*))wpqb_cmp);
   for (uint32_t i = n_a; i; )
-#ifdef USE_DOUBLE
-    if (a[--i].w >= -DBL_MAX)
-#else /* !USE_DOUBLE */
     if (a[--i].w >= -LDBL_MAX)
-#endif /* ?USE_DOUBLE */
       return (i + 1u);
   return 0u;
 }
@@ -79,11 +75,7 @@ uint32_t wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
   }
 
   for (uint32_t i = n_a; i; )
-#ifdef USE_DOUBLE
-    if (a[--i].w >= -DBL_MAX)
-#else /* !USE_DOUBLE */
     if (a[--i].w >= -LDBL_MAX)
-#endif /* ?USE_DOUBLE */
       return (i + 1u);
   return 0u;
 }
@@ -133,11 +125,7 @@ void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uin
       break;
   }
 
-#ifdef USE_DOUBLE
-  w->w = 0.0;
-#else /* !USE_DOUBLE */
   w->w = 0.0L;
-#endif /* ?USE_DOUBLE */
   for (uint16_t i = w->i.s; i; )
     w->w += a[s[--i]].w;
 }
@@ -256,11 +244,7 @@ int main(int argc, char *argv[])
   const uint16_t n_1 = n - UINT16_C(1);
   for (uint16_t p = UINT16_C(0); p < n_1; ++p)
     for (uint16_t q = p + UINT16_C(1); q < n; ++q, ++i)
-#ifdef USE_DOUBLE
-      wpqb_init((a + i), (((double)rand()) / rand()), p, q, 1, 1);
-#else /* !USE_DOUBLE */
-      wpqb_init((a + i), (((long double)rand()) / rand()), p, q, 1, 1);
-#endif /* ?USE_DOUBLE */
+      wpqb_init((a + i), (((long double)rand()) / rand()), p, UINT16_C(0), q, UINT16_C(0));
 
   uint32_t *const s = (uint32_t*)calloc(n_s, sizeof(uint32_t));
   if (!s)
@@ -269,19 +253,19 @@ int main(int argc, char *argv[])
   wpqb_info w;
   ((r & 1u) ? wpqb_run1 : wpqb_run0)(n, n_a, a, n_s, s, &w);
 
-#if (defined(_WIN32) || defined(USE_DOUBLE))
+#ifdef _WIN32
   (void)fprintf(stdout, "w=%# .17e\n", (double)(w.w));
-#else /* !(_WIN32 || USE_DOUBLE) */
+#else /* !_WIN32 */
   (void)fprintf(stdout, "w=%# .21Le\n", w.w);
-#endif /* ?(_WIN32 || USE_DOUBLE) */
+#endif /* ?_WIN32 */
   (void)fprintf(stdout, "s=%hu\n", w.i.s);
   (void)fprintf(stdout, "f=%u\n", w.i.f);
   for (i = 0u; i < w.i.s; ++i)
-#if (defined(_WIN32) || defined(USE_DOUBLE))
+#ifdef _WIN32
     (void)fprintf(stdout, "%u=(%# .17e,%hu,%hu,%hu)\n", i, (double)(a[s[i]].w), a[s[i]].i.p, a[s[i]].i.q, a[s[i]].i.b);
-#else /* !(_WIN32 || USE_DOUBLE) */
+#else /* !_WIN32 */
     (void)fprintf(stdout, "%u=(%# .21Le,%hu,%hu,%hu)\n", i, a[s[i]].w, a[s[i]].i.p, a[s[i]].i.q, a[s[i]].i.b);
-#endif /* ?(_WIN32 || USE_DOUBLE) */
+#endif /* ?_WIN32 */
 
   free(s);
   free(a);

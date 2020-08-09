@@ -3,6 +3,12 @@
 #include "common.h"
 
 #ifdef USE_DOUBLE
+#ifdef __SSE4_1__
+#include <immintrin.h>
+#endif /* __SSE4_1__ */
+#endif /* USE_DOUBLE */
+
+#ifdef USE_DOUBLE
 static inline void wd(double d[static 1], const double apq, const double aqp)
 {
 #ifdef __SSE4_1__

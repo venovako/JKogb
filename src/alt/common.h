@@ -29,12 +29,6 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef USE_DOUBLE
-#ifdef __SSE4_1__
-#include <immintrin.h>
-#endif /* __SSE4_1__ */
-#endif /* USE_DOUBLE */
-
 #ifndef CMPLXF
 #define CMPLXF(r,i) ((float)(r) + I * (float)(i))
 #endif /* !CMPLXF */
@@ -45,7 +39,7 @@
 #define CMPLXL(r,i) ((long double)(r) + I * (long double)(i))
 #endif /* !CMPLXL */
 
-#ifndef FINT32
+#ifdef FINT64
 typedef int64_t fint;
 typedef uint64_t fnat;
 #ifndef FINT_C
@@ -58,7 +52,7 @@ typedef uint64_t fnat;
 #else /* FNAT_C */
 #error FNAT_C already defined
 #endif /* ?FNAT_C */
-#else /* FINT32 */
+#else /* !FINT64 */
 typedef int32_t fint;
 typedef uint32_t fnat;
 #ifndef FINT_C
@@ -71,7 +65,7 @@ typedef uint32_t fnat;
 #else /* FNAT_C */
 #error FNAT_C already defined
 #endif /* ?FNAT_C */
-#endif /* ?FINT32 */
+#endif /* ?FINT64 */
 
 // sqrtl(LDBL_MAX)
 #ifndef TWOF

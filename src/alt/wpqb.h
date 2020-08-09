@@ -2,30 +2,17 @@
 #define WPQB_H
 #include "common.h"
 
-#ifdef USE_DOUBLE
-typedef struct {
-  double w;
-  struct {
-    int8_t jp, jq;
-    uint16_t p, q, b;
-  } i;
-} wpqb;
-
-typedef struct {
-  double w;
-  struct {
-    // z is reserved
-    uint16_t z, s;
-    uint32_t f;
-  } i;
-} wpqb_info;
-#else /* !USE_DOUBLE */
 typedef union {
   long double w;
   struct {
     uint8_t a[10];
     // p, q, b are stored in the highest, unused 2+2+2=6 bytes of w
-    uint16_t p, q, b;
+    uint16_t p : 15;
+    uint16_t jp : 1;
+    uint16_t q : 15;
+    uint16_t jq : 1;
+    uint16_t b : 15;
+    uint16_t jj : 1;
   } i;
 } wpqb;
 
@@ -39,26 +26,17 @@ typedef union {
     uint32_t f;
   } i;
 } wpqb_info;
-#endif /* ?USE_DOUBLE */
 
-#ifdef USE_DOUBLE
-static inline void wpqb_init(wpqb a[static 1], const double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
-#else /* !USE_DOUBLE */
-static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q, const int8_t jp, const int8_t jq)
-#endif /* ?USE_DOUBLE */
+static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const fint jp, const uint16_t q, const fint jq)
 {
   assert(p < q);
-  assert(abs(jp) == 1);
-  assert(abs(jq) == 1);
-
   a->w = w;
-#ifdef USE_DOUBLE
-  a->i.jp = jp;
-  a->i.jq = jq;
-#endif /* USE_DOUBLE */
   a->i.p = p;
+  a->i.jp = ((jp == FINT_C(1)) ? UINT16_C(0) : UINT16_C(1));
   a->i.q = q;
+  a->i.jq = ((jq == FINT_C(1)) ? UINT16_C(0) : UINT16_C(1));
   a->i.b = (q - p);
+  a->i.jj = (a->i.jp ^ a->i.jq);
 }
 
 extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);

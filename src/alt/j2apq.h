@@ -8,6 +8,6 @@ typedef struct {
   uint16_t *p, *q;
 } apq;
 
-extern int apq_init(apq o[static 1], const uint16_t n, const int *const j);
+extern int apq_init(apq o[static 1], const uint16_t n, const fint *const j);
 extern void apq_free(apq o[static 1]);
 #endif /* !J2APQ_H */
