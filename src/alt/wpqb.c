@@ -1,5 +1,7 @@
 #include "wpqb.h"
 
+static_assert(sizeof(wpqb) == sizeof(long double), "sizeof(wpqb) != sizeof(long double)");
+
 int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
 {
   if (a == b)
@@ -244,7 +246,7 @@ int main(int argc, char *argv[])
   const uint16_t n_1 = n - UINT16_C(1);
   for (uint16_t p = UINT16_C(0); p < n_1; ++p)
     for (uint16_t q = p + UINT16_C(1); q < n; ++q, ++i)
-      wpqb_init((a + i), (((long double)rand()) / rand()), p, UINT16_C(0), q, UINT16_C(0));
+      wpqb_init((a + i), (((long double)rand()) / rand()), p, FINT_C(1), q, FINT_C(1));
 
   uint32_t *const s = (uint32_t*)calloc(n_s, sizeof(uint32_t));
   if (!s)
