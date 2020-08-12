@@ -7,12 +7,7 @@ typedef union {
   struct {
     uint8_t a[10];
     // p, q, b are stored in the highest, unused 2+2+2=6 bytes of w
-    uint16_t p : 15;
-    uint16_t jp : 1;
-    uint16_t q : 15;
-    uint16_t jq : 1;
-    uint16_t b : 15;
-    uint16_t jj : 1;
+    uint16_t p, q, b;
   } i;
 } wpqb;
 
@@ -27,16 +22,13 @@ typedef union {
   } i;
 } wpqb_info;
 
-static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const fint jp, const uint16_t q, const fint jq)
+static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16_t p, const uint16_t q)
 {
   assert(p < q);
   a->w = w;
   a->i.p = p;
-  a->i.jp = ((jp == FINT_C(1)) ? UINT16_C(0) : UINT16_C(1));
   a->i.q = q;
-  a->i.jq = ((jq == FINT_C(1)) ? UINT16_C(0) : UINT16_C(1));
   a->i.b = (q - p);
-  a->i.jj = (a->i.jp ^ a->i.jq);
 }
 
 extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);
