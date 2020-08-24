@@ -1,66 +1,73 @@
 #include "j2apq.h"
 
-int apq_init(apq o[static 1], const uint16_t n, const fint *const j)
+apq *apq_create(const uint16_t n, const fint *const j)
 {
-  o->a = (wpqb*)NULL;
-  o->q = o->p = (uint16_t*)NULL;
+  apq *const o = (apq*)(n ? calloc(1u, sizeof(apq)) : NULL);
+  if (o) {
+    int r = 0;
+    if (!(o->n_a = ((n * ((uint32_t)n - 1u)) >> 1u)))
+      r = -1;
+    else if (!(o->a = (wpqb*)malloc(o->n_a * sizeof(wpqb))))
+      r = 1;
+    else if (!(o->p = (uint16_t*)malloc(o->n_a * sizeof(uint16_t))))
+      r = 2;
+    else if (!(o->q = (uint16_t*)malloc(o->n_a * sizeof(uint16_t))))
+      r = 3;
 
-  int r = 0;
-  if (!(o->n_a = ((n * ((uint32_t)n - 1u)) >> 1u)))
-    r = -2;
-  else if (!(o->a = (wpqb*)malloc(o->n_a * sizeof(wpqb))))
-    r = 1;
-  else if (!(o->p = (uint16_t*)malloc(o->n_a * sizeof(uint16_t))))
-    r = 2;
-  else if (!(o->q = (uint16_t*)malloc(o->n_a * sizeof(uint16_t))))
-    r = 3;
-  else
-    o->n_t = 0u;
+    if (r)
+      return apq_free(o);
 
-  if (r) {
-    apq_free(o);
-    return r;
-  }
-
-  const uint16_t n_1 = n - UINT16_C(1);
-  if (j) {
-    uint32_t ih = o->n_a;
-    // row-cyclic pass
-    for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
-      for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
-        if (j[r] == j[c]) {
+    const uint16_t n_1 = n - UINT16_C(1);
+    if (j) {
+      uint32_t ih = o->n_a;
+      // row-cyclic pass
+      for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
+        for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
+          if (j[r] == j[c]) {
+            (o->p)[o->n_t] = r;
+            (o->q)[o->n_t] = c;
+            ++(o->n_t);
+          }
+          else {
+            --ih;
+            (o->p)[ih] = r;
+            (o->q)[ih] = c;
+          }
+        }
+      }
+    }
+    else {
+      // row-cyclic pass
+      for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
+        for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
           (o->p)[o->n_t] = r;
           (o->q)[o->n_t] = c;
           ++(o->n_t);
         }
-        else {
-          --ih;
-          (o->p)[ih] = r;
-          (o->q)[ih] = c;
-        }
-      }
-    }
-  }
-  else {
-    // row-cyclic pass
-    for (uint16_t r = UINT16_C(0); r < n_1; ++r) {
-      for (uint16_t c = (r + UINT16_C(1)); c < n; ++c) {
-        (o->p)[o->n_t] = r;
-        (o->q)[o->n_t] = c;
-        ++(o->n_t);
       }
     }
   }
 
-  return r;
+  return o;
 }
 
-void apq_free(apq o[static 1])
+apq *apq_free(apq *const o)
 {
-  free(o->q);
-  free(o->p);
-  free(o->a);
-  o->n_t = o->n_a = 0u;
-  o->a = (wpqb*)NULL;
-  o->q = o->p = (uint16_t*)NULL;
+  if (o) {
+    if (o->q) {
+      free(o->q);
+      o->q = (uint16_t*)NULL;
+    }
+    if (o->p) {
+      free(o->p);
+      o->p = (uint16_t*)NULL;
+    }
+    if (o->a) {
+      free(o->a);
+      o->a = (wpqb*)NULL;
+    }
+    o->n_a = o->n_t = 0u;
+    free(o);
+  }
+  return (apq*)NULL;
 }
