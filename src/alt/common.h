@@ -1,15 +1,12 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#ifdef _WIN32
-#ifndef OLD_OMP
-#define OLD_OMP
-#endif /* !OLD_OMP */
-#endif /* _WIN32 */
-
 #ifdef __ICC
 #include <mathimf.h>
 #else /* !__ICC */
+#ifdef _OPENMP
+#error OpenMP variant requires a recent Intel C compiler
+#endif /* _OPENMP */
 #include <complex.h>
 #include <math.h>
 #endif /* __ICC */

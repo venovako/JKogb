@@ -151,11 +151,7 @@ static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
     return;
 
 #ifdef _OPENMP
-#ifdef OLD_OMP
-#pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(dynamic,1)
-#else /* !OLD_OMP */
 #pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(nonmonotonic:dynamic,1)
-#endif /* ?OLD_OMP */
 #endif /* _OPENMP */
   for (uint32_t i = 0u; i < n_a; ++i)
     wpqb_ncpt(n, n_a - i, a + i, i, n_s, s, w);
