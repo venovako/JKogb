@@ -14,9 +14,10 @@ int main(int argc, char *argv[])
   if (!n_s)
     return EXIT_FAILURE;
   const unsigned r = (unsigned)atoi(argv[3]);
-  srand(r);
+  if (r)
+    srand(r);
 
-  const uint32_t n_a = (((uint32_t)n * ((uint32_t)n - 1u)) >> 1u);
+  const uint32_t n_a = ((n * ((uint32_t)n - 1u)) >> 1u);
   wpqb *const a = (wpqb*)calloc(n_a, sizeof(wpqb));
   if (!a)
     return EXIT_FAILURE;
@@ -35,12 +36,11 @@ int main(int argc, char *argv[])
   wpqb_ncp(n, n_a, a, n_s, s, &w);
 
 #ifdef _WIN32
-  (void)fprintf(stdout, "w=%# .17e\n", (double)(w.w));
+  (void)fprintf(stdout, "w=%# .17e, ", (double)(w.w));
 #else /* !_WIN32 */
-  (void)fprintf(stdout, "w=%# .21Le\n", w.w);
+  (void)fprintf(stdout, "w=%# .21Le, ", w.w);
 #endif /* ?_WIN32 */
-  (void)fprintf(stdout, "s=%hu\n", w.i.s);
-  (void)fprintf(stdout, "f=%u\n", w.i.f);
+  (void)fprintf(stdout, "s=%hu, f=%u\n", w.i.s, w.i.f);
   for (i = 0u; i < w.i.s; ++i)
 #ifdef _WIN32
     (void)fprintf(stdout, "%u=(%# .17e,%hu,%hu,%hu)\n", i, (double)(a[s[i]].w), a[s[i]].i.p, a[s[i]].i.q, a[s[i]].i.b);
