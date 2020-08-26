@@ -13,7 +13,7 @@ long double dtw(const double Aqp, const double Apq)
     M = Aqp_;
     m = Apq_;
   }
-  return fmal(M, M, m * (long double)m);
+  return ((M == 0.0) ? qNaN() : fmal(M, M, m * (long double)m));
 }
 
 long double ztw(const double complex Aqp, const double complex Apq)
@@ -60,5 +60,5 @@ long double ztw(const double complex Aqp, const double complex Apq)
     }
   }
   // now, M_r >= M_i >= m_r >= m_i
-  return fmal(M_r, M_r, fmal(M_i, M_i, fmal(m_r, m_r, m_i * (long double)m_i)));
+  return ((M_r == 0.0) ? qNaN() : fmal(M_r, M_r, fmal(M_i, M_i, fmal(m_r, m_r, m_i * (long double)m_i))));
 }

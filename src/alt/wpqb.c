@@ -76,8 +76,7 @@ static void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 
 static void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
-  for (unsigned i = 0u; i < 10u; ++i)
-    ((uint8_t*)w)[i] = UINT8_C(0xFF);
+  w->w = qNaN();
   w->i.s = UINT16_C(0);
   w->i.f = 0u;
 
@@ -138,8 +137,7 @@ static void wpqb_ncpt(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
 
 static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
-  for (unsigned i = 0u; i < 10u; ++i)
-    ((uint8_t*)w)[i] = UINT8_C(0xFF);
+  w->w = qNaN();
   w->i.s = UINT16_C(0);
   w->i.f = 0u;
 
@@ -159,8 +157,7 @@ static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
 
 void wpqb_ncp(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
-  for (unsigned i = 0u; i < 10u; ++i)
-    ((uint8_t*)w)[i] = UINT8_C(0xFF);
+  w->w = qNaN();
   w->i.s = UINT16_C(0);
   w->i.f = 0u;
 

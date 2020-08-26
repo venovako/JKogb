@@ -14,10 +14,12 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <fenv.h>
 #include <float.h>
 #include <limits.h>
 #include <signal.h>
+#include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -70,5 +72,7 @@ typedef uint32_t fnat;
 #else /* TWOF */
 #error TWOF already defined
 #endif /* ?TWOF */
+
+extern long double qNaN();
 
 #endif /* !COMMON_H */
