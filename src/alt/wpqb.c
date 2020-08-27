@@ -112,6 +112,7 @@ static void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
     w->w += a[s[--i]].w;
 }
 
+#ifdef _OPENMP
 static void wpqb_update(uint32_t s[static restrict 1], const uint32_t my_s[static restrict 1], wpqb_info w[static restrict 1], const wpqb_info my_w[static restrict 1])
 {
   if (!(my_w->w <= w->w)) {
@@ -128,9 +129,7 @@ static void wpqb_ncpt(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
   wpqb_ncp0(n, n_a, a, n_s, my_s, &my_w);
   if (my_w.i.s) {
     my_w.i.f = f;
-#ifdef _OPENMP
 #pragma omp critical
-#endif /* _OPENMP */
     wpqb_update(s, my_s, w, &my_w);
   }
 }
@@ -148,12 +147,11 @@ static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
   if (!n_a)
     return;
 
-#ifdef _OPENMP
 #pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(nonmonotonic:dynamic,1)
-#endif /* _OPENMP */
   for (uint32_t i = 0u; i < n_a; ++i)
     wpqb_ncpt(n, n_a - i, a + i, i, n_s, s, w);
 }
+#endif /* _OPENMP */
 
 void wpqb_ncp(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
