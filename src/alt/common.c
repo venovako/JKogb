@@ -1,6 +1,6 @@
 #include "common.h"
 
-static alignas(long double) const unsigned char all_ones[16] = { // 10 + 6
+static _Alignas(long double) const unsigned char all_ones[16] = { // 10 + 6
   UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF),
   UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF) };
 

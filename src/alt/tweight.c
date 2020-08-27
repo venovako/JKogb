@@ -16,7 +16,7 @@ long double dtw(const double Aqp, const double Apq)
   return ((M == 0.0) ? qNaN() : fmal(M, M, m * (long double)m));
 }
 
-long double ztw(const double complex Aqp, const double complex Apq)
+long double ztw(const double _Complex Aqp, const double _Complex Apq)
 {
   const double Aqp_r = fabs(creal(Aqp));
   const double Aqp_i = fabs(cimag(Aqp));

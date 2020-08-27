@@ -1,15 +1,15 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#ifdef __ICC
+#ifdef __INTEL_COMPILER
 #include <mathimf.h>
-#else /* !__ICC */
+#else /* !__INTEL_COMPILER */
 #ifdef _OPENMP
 #error OpenMP variant requires a recent Intel C compiler
 #endif /* _OPENMP */
 #include <complex.h>
 #include <math.h>
-#endif /* __ICC */
+#endif /* __INTEL_COMPILER */
 
 #include <assert.h>
 #include <ctype.h>
@@ -19,7 +19,6 @@
 #include <float.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
