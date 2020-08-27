@@ -1,7 +1,7 @@
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icc 
-C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic -std=c18
+C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -std=c18
 OPT=-xHost -qopt-zmm-usage=high
 DBG=-traceback -w3 -diag-disable=1572,2547,10397
 FPU=-fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high -fimf-use-svml=true
@@ -22,5 +22,5 @@ LIBFLAGS=-I.
 ifneq ($(ARCH),Darwin)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-L. -ljk$(PROFILE)$(DEBUG) -lm
+LDFLAGS=-rdynamic -L. -ljk$(PROFILE)$(DEBUG) -lm
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)

@@ -1,18 +1,14 @@
-ifeq ($(ARCH),Darwin)
-ifndef GNU
-GNU=-10
-endif # !GNU
-endif # Darwin
 AR=ar
 ARFLAGS=rsv
-CC=gcc$(GNU)
+CC=clang
 C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -pthread -std=gnu18
 OPT=-march=native
 DBG=-pedantic -Wall -Wextra
-FPUFLAGS=-ffp-contract=fast
+FPU=-ffp-contract=fast
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) $(OPT) -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
-DBGFLAGS=-DNDEBUG -fopt-info-optimized-vec $(DBG)
+OPTFLAGS=-O$(NDEBUG) $(OPT)
+DBGFLAGS=-DNDEBUG $(DBG)
+FPUFLAGS=$(FPU)
 ifneq ($(ARCH),Darwin)
 FPUFLAGS += -fno-math-errno
 endif # Linux
@@ -23,17 +19,15 @@ ifneq ($(ARCH),Darwin)
 DBGFLAGS += -fsanitize=leak
 endif # Linux
 DBGFLAGS += $(DBG)
+FPUFLAGS=$(FPU)
 endif # ?NDEBUG
 ifeq ($(ARCH),Darwin)
-OPTFLAGS += -Wa,-q
+OPTFLAGS += -integrated-as
 endif # Darwin
 LIBFLAGS=-I.
 ifneq ($(ARCH),Darwin)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -L. -ljk$(PROFILE)$(DEBUG)$(GNU)
-ifndef NDEBUG
-LDFLAGS += -lubsan
-endif # DEBUG
+LDFLAGS=-rdynamic -L. -ljk$(PROFILE)$(DEBUG)
 LDFLAGS += -lm
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUFLAGS)
