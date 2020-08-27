@@ -31,7 +31,7 @@ LIBFLAGS=-I.
 ifneq ($(ARCH),Darwin)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -L. -ljk$(PROFILE)$(DEBUG)$(GNU)
+LDFLAGS=-rdynamic -L. -ljk$(DEBUG)$(GNU)
 ifndef NDEBUG
 LDFLAGS += -lubsan
 endif # DEBUG

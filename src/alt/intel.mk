@@ -22,5 +22,5 @@ LIBFLAGS=-I.
 ifneq ($(ARCH),Darwin)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -L. -ljk$(PROFILE)$(DEBUG) -lm
+LDFLAGS=-rdynamic -L. -ljk$(DEBUG) -lm
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
