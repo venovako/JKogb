@@ -28,7 +28,7 @@ static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16
   a->w = w;
   a->i.p = p;
   a->i.q = q;
-  a->i.b = (q - p);
+  a->i.b = (uint16_t)(q - p);
 }
 
 extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);

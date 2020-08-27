@@ -45,12 +45,7 @@ int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
   return 0;
 }
 
-static void wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
-{
-  if (n_a)
-    qsort(a, n_a, sizeof(wpqb), (int (*)(const void*, const void*))wpqb_cmp);
-}
-
+#ifdef _OPENMP
 static void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 {
   if (!n_a)
@@ -59,9 +54,7 @@ static void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 
   for (uint32_t swps = ~0u, s = 0u, oe = 0u; swps; (oe ^= 1u), (swps = s), (s = 0u)) {
     // odd-even sort
-#ifdef _OPENMP
 #pragma omp parallel for default(none) shared(oe,na,a) reduction(+:s)
-#endif /* _OPENMP */
     for (uint32_t i = oe; i < na; i += 2u) {
       const uint32_t j = (i + 1u);
       if (wpqb_cmp((a + i), (a + j)) > 0) {
@@ -73,6 +66,13 @@ static void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
     }
   }
 }
+#else /* !_OPENMP */
+static void wpqb_sort0(const uint32_t n_a, wpqb a[static 1])
+{
+  if (n_a)
+    qsort(a, n_a, sizeof(wpqb), (int (*)(const void*, const void*))wpqb_cmp);
+}
+#endif /* ?_OPENMP */
 
 static void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], const uint16_t n_s, uint32_t s[static 1], wpqb_info w[static 1])
 {
@@ -91,9 +91,9 @@ static void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
   for (uint16_t i = UINT16_C(0); i < n; ++i)
     r[i] = false;
 
-  uint16_t ns = (n >> 1u);
-  ns = ((ns <= n_a) ? ns : (uint16_t)n_a);
-  ns = ((ns <= n_s) ? ns : n_s);
+  uint16_t ns = (uint16_t)(n >> 1u);
+  ns = (uint16_t)(((uint32_t)ns <= n_a) ? ns : (uint16_t)n_a);
+  ns = (uint16_t)((ns <= n_s) ? ns : n_s);
 
   for (uint32_t j = 0u, k; w->i.s < ns; j = k) {
     s[w->i.s] = j;

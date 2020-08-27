@@ -1,6 +1,8 @@
 #include "common.h"
 
-static alignas(long double) const uint64_t all_ones[2] = { UINT64_C(0xFFFFFFFFFFFFFFFF), UINT64_C(0xFFFFFFFFFFFFFFFF) };
+static alignas(long double) const unsigned char all_ones[16] = { // 10 + 6
+  UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF),
+  UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF), UINT8_C(0xFF) };
 
 long double qNaN()
 {

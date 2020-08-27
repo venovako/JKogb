@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
 
   uint32_t i = 0u;
-  const uint16_t n_1 = n - UINT16_C(1);
+  const uint16_t n_1 = (uint16_t)(n - UINT16_C(1));
   for (uint16_t p = UINT16_C(0); p < n_1; ++p)
-    for (uint16_t q = p + UINT16_C(1); q < n; ++q, ++i)
+    for (uint16_t q = (uint16_t)(p + UINT16_C(1)); q < n; ++q, ++i)
       wpqb_init((a + i), (((long double)rand()) / rand()), p, q);
 
   uint32_t *const s = (uint32_t*)calloc(n_s, sizeof(uint32_t));
