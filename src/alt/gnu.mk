@@ -6,7 +6,7 @@ endif # Darwin
 AR=ar
 ARFLAGS=rsv
 CC=gcc$(GNU)
-C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -pthread -std=gnu18
+C18FLAGS=-std=gnu18 -fPIC -fexceptions -fno-omit-frame-pointer -pthread
 OPT=-march=native
 DBG=-pedantic -Wall -Wextra
 FPUFLAGS=-ffp-contract=fast

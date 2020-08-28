@@ -1,7 +1,7 @@
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icc 
-C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -std=c18
+C18FLAGS=-std=c18 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp
 OPT=-xHost -qopt-zmm-usage=high
 DBG=-traceback -w3 -diag-disable=1572,2547,10397
 FPU=-fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high -fimf-use-svml=true

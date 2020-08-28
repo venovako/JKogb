@@ -4,7 +4,7 @@ endif # !Linux
 AR=ar
 ARFLAGS=rsv
 CC=nvc
-C11FLAGS=-m64 -KPIC -Mframe -Meh_frame -Minfo -pthread -c11
+C11FLAGS=-c11 -m64 -KPIC -Mframe -Meh_frame -Minfo -pthread
 FPUFLAGS=-Kieee -Mfma -Mnodaz -Mnoflushz -Mnofpapprox -Mnofprelaxed
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG)

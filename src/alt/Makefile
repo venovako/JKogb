@@ -7,20 +7,23 @@ RM=del /F
 AR=xilib.exe
 ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
 CC=icl.exe
-C11FLAGS=/nologo /Qstd=c11 /Qlong-double /Qopenmp
+C11FLAGS=/nologo /Qstd=c11 /Quse-intel-optimized-headers /Qlong-double /Qopenmp /Qrestrict /Qvla
+OPT=/QxHost /Qopt-multi-version-aggressive /Qprotect-parens
+DBG=/traceback /Wall /Wcheck
+FPU=/Qimf-precision:high /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
+LNK=/LIBPATH:. jk$(DEBUG).lib
 !IFDEF NDEBUG
-OPTFLAGS=/O$(NDEBUG) /QxHost /Qopt-multi-version-aggressive
-DBGFLAGS=/DNDEBUG /Qopt-report:5 /traceback
-FPUFLAGS=/fp:source /Qimf-precision:high /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
-LIBFLAGS=/I. /MD
-LDFLAGS=/link /RELEASE /LIBPATH:. jk$(DEBUG).lib
+OPTFLAGS=/O$(NDEBUG) $(OPT)
+DBGFLAGS=/DNDEBUG /Qopt-report:5 $(DBG)
+FPUFLAGS=/fp:source $(FPU)
+LDFLAGS=/link /RELEASE $(LNK)
 !ELSE # DEBUG
-OPTFLAGS=/O$(DEBUG) /QxHost /Qopt-multi-version-aggressive
-DBGFLAGS=/debug:full /debug:inline-debug-info /check:stack,uninit /traceback
-FPUFLAGS=/fp:strict /Qfp-stack-check /Qimf-precision:high /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
-LIBFLAGS=/I. /MDd
-LDFLAGS=/link /DEBUG /LIBPATH:. jk$(DEBUG).lib
+OPTFLAGS=/O$(DEBUG) $(OPT)
+DBGFLAGS=/debug:full /debug:inline-debug-info /debug:expr-source-pos /check:stack,uninit $(DBG)
+FPUFLAGS=/fp:strict /Qfp-stack-check $(FPU)
+LDFLAGS=/link /DEBUG $(LNK)
 !ENDIF # ?NDEBUG
+LIBFLAGS=/I. /MD$(DEBUG)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUFLAGS)
 
 all: jk$(DEBUG).lib common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe

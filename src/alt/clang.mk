@@ -1,7 +1,7 @@
 AR=ar
 ARFLAGS=rsv
 CC=clang
-C18FLAGS=-fPIC -fexceptions -fno-omit-frame-pointer -pthread -std=gnu18
+C18FLAGS=-std=gnu18 -fPIC -fexceptions -fno-omit-frame-pointer -pthread
 OPT=-march=native
 DBG=-pedantic -Wall -Wextra
 FPU=-ffp-contract=fast
