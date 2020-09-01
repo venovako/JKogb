@@ -1,15 +1,15 @@
-ifndef CPU
-CPU=gnu
-endif # !CPU
-include ../$(CPU).mk
-MKFS=GNUmakefile ../$(CPU).mk
+ifndef COMPILER
+COMPILER=gnu
+endif # !COMPILER
+include ../$(COMPILER).mk
+MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
 all: libjk$(PROFILE)$(DEBUG).a
 
 help:
-	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjk$(PROFILE)$(DEBUG).a: atypes.o binio.o common.o jstep.o params.o timer.o utils.o $(MKFS)
 	$(AR) $(ARFLAGS) $@  atypes.o binio.o common.o jstep.o params.o timer.o utils.o

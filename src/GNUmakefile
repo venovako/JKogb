@@ -1,28 +1,28 @@
-ifndef CPU
-CPU=gnu
-endif # !CPU
-include $(CPU).mk
-MKFS=GNUmakefile $(CPU).mk
+ifndef COMPILER
+COMPILER=gnu
+endif # !COMPILER
+include $(COMPILER).mk
+MKFS=GNUmakefile $(COMPILER).mk
 
 .PHONY: all help clean SHARED REAL8 COMPLEX8
 
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "gmake [CPU=x64|x200|gnu] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 SHARED: $(MKFS)
 ifdef NDEBUG
 ifdef PROFILE
-	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
 else # !PROFILE
-	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) && popd
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
-	pushd shared && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) && popd
 else # !PROFILE
-	pushd shared && $(MAKE) CPU=$(CPU) && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) && popd
 endif # ?PROFILE
 endif # ?NDEBUG
 
@@ -30,29 +30,29 @@ REAL8: SHARED $(MKFS)
 ifdef NDEBUG
 ifdef PROFILE
 ifdef ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
 endif # ?ANIMATE
 else # !PROFILE
 ifdef ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) && popd
 endif # ?ANIMATE
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
 ifdef ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) && popd
 endif # ?ANIMATE
 else # !PROFILE
 ifdef ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) ANIMATE=$(ANIMATE) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd D && $(MAKE) CPU=$(CPU) && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) && popd
 endif # ?ANIMATE
 endif # ?PROFILE
 endif # ?NDEBUG
@@ -61,29 +61,29 @@ COMPLEX8: SHARED $(MKFS)
 ifdef NDEBUG
 ifdef PROFILE
 ifdef ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) && popd
 endif # ?ANIMATE
 else # !PROFILE
 ifdef ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) && popd
 endif # ?ANIMATE
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
 ifdef ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) && popd
 endif # ?ANIMATE
 else # !PROFILE
 ifdef ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) ANIMATE=$(ANIMATE) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) ANIMATE=$(ANIMATE) && popd
 else # !ANIMATE
-	pushd Z && $(MAKE) CPU=$(CPU) && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) && popd
 endif # ?ANIMATE
 endif # ?PROFILE
 endif # ?NDEBUG
@@ -91,22 +91,22 @@ endif # ?NDEBUG
 clean:
 ifdef NDEBUG
 ifdef PROFILE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
-	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) PROFILE=$(PROFILE) clean && popd
 else # !PROFILE
-	pushd Z && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) clean && popd
-	pushd D && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) clean && popd
-	pushd shared && $(MAKE) CPU=$(CPU) NDEBUG=$(NDEBUG) clean && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) clean && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) clean && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) NDEBUG=$(NDEBUG) clean && popd
 endif # ?PROFILE
 else # DEBUG
 ifdef PROFILE
-	pushd Z && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) clean && popd
-	pushd D && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) clean && popd
-	pushd shared && $(MAKE) CPU=$(CPU) PROFILE=$(PROFILE) clean && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) clean && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) clean && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) PROFILE=$(PROFILE) clean && popd
 else # !PROFILE
-	pushd Z && $(MAKE) CPU=$(CPU) clean && popd
-	pushd D && $(MAKE) CPU=$(CPU) clean && popd
-	pushd shared && $(MAKE) CPU=$(CPU) clean && popd
+	pushd Z && $(MAKE) COMPILER=$(COMPILER) clean && popd
+	pushd D && $(MAKE) COMPILER=$(COMPILER) clean && popd
+	pushd shared && $(MAKE) COMPILER=$(COMPILER) clean && popd
 endif # ?PROFILE
 endif # ?NDEBUG
