@@ -11,23 +11,42 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION ZMAGF2T(N, P, Q, A, LDA)
+  PURE REAL(KIND=DWP) FUNCTION ZMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, P, Q, LDA
+    INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
     COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: INFO
 
-    IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
-         (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
-         (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
-       ZMAGF2T = D_ZERO
-       ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
-       ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-       ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
-       ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-    ELSE ! no transform
+    INFO = J(P) + J(Q)
+    IF (INFO .EQ. 2) THEN
+       IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. &
+            (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
+            (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
+            (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
+          ZMAGF2T = D_ZERO
+          ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
+          ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+          ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
+          ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+       ELSE ! no transform
+          ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
+       END IF
+    ELSE IF (INFO .EQ. -2) THEN
+       IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. &
+            (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
+            (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
+            (REAL(A(Q,Q)) .LT. REAL(A(P,P)))) THEN
+          ZMAGF2T = D_ZERO
+          ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
+          ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
+          ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
+          ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+       ELSE ! no transform
+          ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
+       END IF
+    ELSE ! invalid J
        ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
   END FUNCTION ZMAGF2T
@@ -182,14 +201,14 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, TT
        IP = P(I)
        IQ = Q(I)
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
-       DZ(I)%W = ZMAGF2T(N, IP, IQ, A, LDA)
+       DZ(I)%W = ZMAGF2T(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
     !$OMP END PARALLEL DO

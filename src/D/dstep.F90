@@ -11,32 +11,58 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DMAGF2T(N, P, Q, A, LDA)
+  PURE REAL(KIND=DWP) FUNCTION DMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: N, P, Q, LDA
+    INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
     REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: INFO
 
-    IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
-         (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. (A(P,P) .LT. A(Q,Q))) THEN
-       A2(2,1) = ABS(A(Q,P))
-       A2(1,2) = ABS(A(P,Q))
-       IF (A2(2,1) .GE. A2(1,2)) THEN
-          IF (A2(2,1) .EQ. D_ZERO) THEN
-             DMAGF2T = D_ZERO
-          ELSE ! A2(2,1) .GT. D_ZERO
-             A2(1,1) = A2(1,2) / A2(2,1)
-             DMAGF2T = A2(1,1) * A2(1,2) + A2(2,1)
-             DMAGF2T = DMAGF2T * A2(2,1)
+    INFO = J(P) + J(Q)
+    IF (INFO .EQ. 2) THEN
+       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
+            (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. (A(P,P) .LT. A(Q,Q))) THEN
+          A2(2,1) = ABS(A(Q,P))
+          A2(1,2) = ABS(A(P,Q))
+          IF (A2(2,1) .GE. A2(1,2)) THEN
+             IF (A2(2,1) .EQ. D_ZERO) THEN
+                DMAGF2T = D_ZERO
+             ELSE ! A2(2,1) .GT. D_ZERO
+                A2(1,1) = A2(1,2) / A2(2,1)
+                DMAGF2T = A2(1,1) * A2(1,2) + A2(2,1)
+                DMAGF2T = DMAGF2T * A2(2,1)
+             END IF
+          ELSE ! A2(2,1) .LT. A2(1,2)
+             A2(2,2) = A2(2,1) / A2(1,2)
+             DMAGF2T = A2(1,2) + A2(2,1) * A2(2,2)
+             DMAGF2T = DMAGF2T * A2(1,2)
           END IF
-       ELSE ! A2(2,1) .LT. A2(1,2)
-          A2(2,2) = A2(2,1) / A2(1,2)
-          DMAGF2T = A2(1,2) + A2(2,1) * A2(2,2)
-          DMAGF2T = DMAGF2T * A2(1,2)
+       ELSE ! no transform
+          DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
-    ELSE ! no transform
+    ELSE IF (INFO .EQ. -2) THEN
+       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
+            (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. (A(Q,Q) .LT. A(P,P))) THEN
+          A2(2,1) = ABS(A(Q,P))
+          A2(1,2) = ABS(A(P,Q))
+          IF (A2(2,1) .GE. A2(1,2)) THEN
+             IF (A2(2,1) .EQ. D_ZERO) THEN
+                DMAGF2T = D_ZERO
+             ELSE ! A2(2,1) .GT. D_ZERO
+                A2(1,1) = A2(1,2) / A2(2,1)
+                DMAGF2T = A2(1,1) * A2(1,2) + A2(2,1)
+                DMAGF2T = DMAGF2T * A2(2,1)
+             END IF
+          ELSE ! A2(2,1) .LT. A2(1,2)
+             A2(2,2) = A2(2,1) / A2(1,2)
+             DMAGF2T = A2(1,2) + A2(2,1) * A2(2,2)
+             DMAGF2T = DMAGF2T * A2(1,2)
+          END IF
+       ELSE ! no transform
+          DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
+       END IF
+    ELSE ! invalid J
        DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
     END IF
   END FUNCTION DMAGF2T
@@ -201,14 +227,14 @@ CONTAINS
     IF (N_2 .EQ. 0) GOTO 1
 
     IT = 0
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,P,Q,R,DZ) REDUCTION(+:IT)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(IP,IQ,I) SHARED(TT,N,A,LDA,J,P,Q,R,DZ) REDUCTION(+:IT)
     DO I = 1, TT
        IP = P(I)
        IQ = Q(I)
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
-       DZ(I)%W = DMAGF2T(N, IP, IQ, A, LDA)
+       DZ(I)%W = DMAGF2T(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
     !$OMP END PARALLEL DO
