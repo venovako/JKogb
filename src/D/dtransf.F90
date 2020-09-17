@@ -737,7 +737,7 @@ CONTAINS
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
-    IF (((H .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((H .EQ. -2) .AND. (A(1,1) .GT. A(2,2)))) THEN
+    IF (((H .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((H .EQ. -2) .AND. (A(2,2) .LT. A(1,1)))) THEN
        ! swap the rows of U
        ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)

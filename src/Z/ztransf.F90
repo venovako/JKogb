@@ -1055,7 +1055,7 @@ CONTAINS
 
     ! assume A real, non-negative, diagonal
     ! permute A, U, Z in trigonometric case
-    IF (((H .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((H .EQ. -2) .AND. (REAL(A(1,1)) .GT. REAL(A(2,2))))) THEN
+    IF (((H .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((H .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1))))) THEN
        ! swap the rows of U
        ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
