@@ -6,6 +6,57 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE SUBROUTINE UH2(U)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
+
+    COMPLEX(KIND=DWP) :: U21
+
+    U(1,1) = CONJG(U(1,1))
+    U21 = U(2,1)
+    U(2,1) = CONJG(U(1,2))
+    U(1,2) = CONJG(U21)
+    U(2,2) = CONJG(U(2,2))
+  END SUBROUTINE UH2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE JZHJ2(Z, J)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(2,2)
+    INTEGER, INTENT(IN) :: J(2)
+
+    CALL UH2(Z)
+    IF (J(1) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
+    END IF
+    IF (J(2) .EQ. -1) THEN
+       Z(2,1) = -Z(2,1)
+       Z(1,2) = -Z(1,2)
+    END IF
+  END SUBROUTINE JZHJ2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  REAL(KIND=DWP) FUNCTION ZPOLAR(Z, E)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: Z
+    COMPLEX(KIND=DWP), INTENT(OUT) :: E
+
+    REAL(KIND=DWP) :: R, I, A, C, S
+
+    R = REAL(Z)
+    I = AIMAG(Z)
+    A = HYPOT(R, I)
+    C = SIGN(MIN(ABS(R) / A, D_ONE), R)
+    S = I / MAX(A, MINF)
+    E = CMPLX(C, S, DWP)
+    ZPOLAR = A
+  END FUNCTION ZPOLAR
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZDFMA(A, B, C)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: A
@@ -28,7 +79,7 @@ CONTAINS
 
     REAL(KIND=DWP) :: R, I
 
-    R = -A * AIMAG(B) + REAL(C)
+    R = REAL(C) - A * AIMAG(B)
     I = A * REAL(B) + AIMAG(C)
 
     ZJFMA = CMPLX(R, I, DWP)
@@ -98,39 +149,6 @@ CONTAINS
     ZZDIV = ZZMUL(CONJG(B / F), A) / F
 #endif
   END FUNCTION ZZDIV
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE UH2(U)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
-
-    COMPLEX(KIND=DWP) :: U21
-
-    U(1,1) = CONJG(U(1,1))
-    U21 = U(2,1)
-    U(2,1) = CONJG(U(1,2))
-    U(1,2) = CONJG(U21)
-    U(2,2) = CONJG(U(2,2))
-  END SUBROUTINE UH2
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE JZHJ2(Z, J)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: Z(2,2)
-    INTEGER, INTENT(IN) :: J(2)
-
-    CALL UH2(Z)
-    IF (J(1) .EQ. -1) THEN
-       Z(2,1) = -Z(2,1)
-       Z(1,2) = -Z(1,2)
-    END IF
-    IF (J(2) .EQ. -1) THEN
-       Z(2,1) = -Z(2,1)
-       Z(1,2) = -Z(1,2)
-    END IF
-  END SUBROUTINE JZHJ2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
