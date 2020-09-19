@@ -11,7 +11,7 @@ all: zjk.exe ztest.exe
 help:
 	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-ztransf.o ztransf.mod: ztransf.F90 ../shared/params.mod $(MKFS)
+ztransf.o ztransf.mod: ztransf.F90 ../shared/ktransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztransf.F90
 
 ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)

@@ -11,8 +11,8 @@ all: libjk$(PROFILE)$(DEBUG).a
 help:
 	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libjk$(PROFILE)$(DEBUG).a: atypes.o binio.o common.o jstep.o params.o timer.o utils.o $(MKFS)
-	$(AR) $(ARFLAGS) $@  atypes.o binio.o common.o jstep.o params.o timer.o utils.o
+libjk$(PROFILE)$(DEBUG).a: atypes.o binio.o common.o jstep.o ktransf.o params.o timer.o utils.o $(MKFS)
+	$(AR) $(ARFLAGS) $@  atypes.o binio.o common.o jstep.o ktransf.o params.o timer.o utils.o
 
 atypes.o atypes.mod: atypes.F90 timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
 	$(FC) $(FFLAGS) -c atypes.F90
@@ -25,6 +25,9 @@ common.o: common.c common.h $(MKFS)
 
 jstep.o jstep.mod: jstep.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c jstep.F90
+
+ktransf.o ktransf.mod: ktransf.F90 params.mod $(MKFS)
+	$(FC) $(FFLAGS) -c ktransf.F90
 
 params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c params.F90

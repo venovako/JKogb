@@ -11,7 +11,7 @@ all: djk.exe dtest.exe
 help:
 	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-dtransf.o dtransf.mod: dtransf.F90 ../shared/params.mod $(MKFS)
+dtransf.o dtransf.mod: dtransf.F90 ../shared/ktransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtransf.F90
 
 dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
