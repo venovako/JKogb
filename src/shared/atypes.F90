@@ -85,9 +85,13 @@ CONTAINS
 
     AW_CMP = 0_c_int
     CALL C_F_POINTER(PA, A)
+#ifndef NDEBUG
     IF (.NOT. ASSOCIATED(A)) RETURN
+#endif
     CALL C_F_POINTER(PB, B)
+#ifndef NDEBUG
     IF (.NOT. ASSOCIATED(B)) RETURN
+#endif
     IF (ASSOCIATED(A, B)) RETURN
 
     IF (A%W .LT. B%W) THEN

@@ -37,28 +37,51 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE CA(B, N, A)
+  PURE SUBROUTINE C1A(B, A)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2)
-    INTEGER, INTENT(IN) :: N
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,N)
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2)
 
-    REAL(KIND=DWP) :: C(2,N)
+    REAL(KIND=DWP) :: C(2)
+
+    C(1) = (A(1) + B(1,2) * A(2)) / B(1,1)
+    C(2) = (B(2,1) * A(1) + A(2)) / B(2,2)
+    A = C
+  END SUBROUTINE C1A
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE C2A(B, A)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
+
+    REAL(KIND=DWP) :: C(2,2)
     INTEGER :: J
 
-    IF (N .EQ. 1) THEN
-       C(1,1) = (A(1,1) + B(1,2) * A(2,1)) / B(1,1)
-       C(2,1) = (B(2,1) * A(1,1) + A(2,1)) / B(2,2)
-    ELSE IF (N .GE. 2) THEN
-       DO J = 1, N
-          C(1,J) = (A(1,J) + B(1,2) * A(2,J)) / B(1,1)
-          C(2,J) = (B(2,1) * A(1,J) + A(2,J)) / B(2,2)
-       END DO
-    ELSE ! should never happen
-       RETURN
-    END IF
+    DO J = 1, 2
+       C(1,J) = (A(1,J) + B(1,2) * A(2,J)) / B(1,1)
+       C(2,J) = (B(2,1) * A(1,J) + A(2,J)) / B(2,2)
+    END DO
     A = C
-  END SUBROUTINE CA
+  END SUBROUTINE C2A
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE A2C(A, B)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+
+    REAL(KIND=DWP) :: C(2,2)
+    INTEGER :: I
+
+    DO I = 1, 2
+       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) / B(1,1)
+       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) / B(2,2)
+    END DO
+    A = C
+  END SUBROUTINE A2C
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -125,23 +148,6 @@ CONTAINS
        END IF
     END IF
   END SUBROUTINE BA
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE AC(A, B)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
-    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
-
-    REAL(KIND=DWP) :: C(2,2)
-    INTEGER :: I
-
-    DO I = 1, 2
-       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) / B(1,1)
-       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) / B(2,2)
-    END DO
-    A = C
-  END SUBROUTINE AC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -215,10 +221,12 @@ CONTAINS
     REAL(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
 
+#ifndef NDEBUG
     IF ((M .LT. 2) .OR. (P .LE. 0) .OR. (P .GT. M) .OR. (Q .LE. P) .OR. (Q .GT. M)) THEN
        ABODNDF2 = D_MZERO
        RETURN
     END IF
+#endif
 
     XX = ABS(X(Q))
     YY = ABS(Y(P))
@@ -325,248 +333,38 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2D(A, U, INFO)
-    ! A diagonal
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    ! make the zeroes positive
-    A(2,1) = D_ZERO
-    A(1,2) = D_ZERO
-
-    IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
-       ! A(1,1) negative
-       U(1,1) = -U(1,1)
-       U(1,2) = -U(1,2)
-       A(1,1) = -A(1,1)
-    END IF
-
-    IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
-       ! A(2,2) negative
-       U(2,1) = -U(2,1)
-       U(2,2) = -U(2,2)
-       A(2,2) = -A(2,2)
-    END IF
-
-    IF (INFO .NE. 0) THEN
-       A(1,1) = SCALE(A(1,1), -INFO)
-       A(2,2) = SCALE(A(2,2), -INFO)
-       INFO = 0
-    END IF
-  END SUBROUTINE DHSVD2D
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE DHSVD2U(H, A, U, Z, INFO)
-    ! A upper triangular, not diagonal
-    IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, TU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, TZ ! trigonometric or hyperbolic
-
-    REAL(KIND=DWP) :: T2U, X, Y
-    LOGICAL :: A22Z
-
-    A22Z = .TRUE.
-
-    IF (H) THEN
-       IF (A(2,2) .NE. D_ZERO) THEN
-          X = A(1,2) / A(1,1) ! .NE. 0
-          Y = A(2,2) / A(1,1) ! .GT. 0
-          IF (ABS(X) .LE. Y) THEN
-             T2U = SCALE(X, 1) * Y
-          ELSE ! ABS(X) .GT. Y
-             T2U = SCALE(Y, 1) * X
-          END IF
-          T2U = T2U / (D_ONE + (Y - X) * (Y + X))
-          IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
-             TU = SIGN(D_ONE, T2U)
-          ELSE ! |T2U| sufficiently small
-             TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
-          END IF
-          CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-          TZ = Y * TU - X
-          IF (ABS(TZ) .GE. D_ONE) THEN
-             INFO = -8
-             RETURN
-          END IF
-          CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-          A22Z = .FALSE.
-       ELSE IF (ABS(A(1,2)) .LT. ABS(A(1,1))) THEN
-          ! TU = D_ZERO
-          ! CU = D_ONE
-          TZ = -A(1,2) / A(1,1)
-          IF (ABS(TZ) .GE. D_ONE) THEN
-             INFO = -10
-             RETURN
-          END IF
-          CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       ELSE ! (A(2,2) .EQ. 0) .AND. (ABS(A(1,1)) .EQ. ABS(A(1,2)))
-          ! |TZ| .GE. 1
-          INFO = -12
-          RETURN
-       END IF
-       W(1,1) =  CZ
-       W(2,1) =  TZ
-       W(1,2) =  TZ
-       W(2,2) =  CZ
-    ELSE ! trigonometric
-       IF (A(2,2) .NE. D_ZERO) THEN
-          X = A(1,2) / A(1,1) ! .NE. 0
-          Y = A(2,2) / A(1,1) ! .GT. 0
-          IF (ABS(X) .LE. Y) THEN
-             T2U = -SCALE(X, 1) * Y
-          ELSE ! ABS(X) .GT. Y
-             T2U = -SCALE(Y, 1) * X
-          END IF
-          T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-          IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
-             TU = SIGN(D_ONE, T2U)
-          ELSE ! |T2U| sufficiently small
-             TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
-          END IF
-          CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-          TZ = Y * TU - X
-          CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
-          A22Z = .FALSE.
-       ELSE ! A(2,2) .EQ. 0
-          ! TU = D_ZERO
-          ! CU = D_ONE
-          TZ = -A(1,2) / A(1,1)
-          CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
-       END IF
-       W(1,1) =  CZ
-       W(2,1) = -TZ
-       W(1,2) =  TZ
-       W(2,2) =  CZ
-    END IF
-
-    IF (.NOT. A22Z) THEN
-       V(1,1) =  CU
-       V(2,1) =  TU
-       V(1,2) = -TU
-       V(2,2) =  CU
-
-       CALL CA(V, 2, U)
-       CALL CA(V, 2, A)
-    END IF
-
-    CALL AC(Z, W)
-
-    IF (H .AND. (INFO .NE. 0)) THEN
-       W(1,1) = SCALE(W(1,1), INFO)
-       W(2,2) = SCALE(W(2,2), INFO)
-       INFO = 0
-    END IF
-    CALL AC(A, W)
-
-    CALL DHSVD2D(A, U, INFO)
-    INFO = 1
-  END SUBROUTINE DHSVD2U
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE DHSVD2L(A, U, Z, INFO)
-    ! A lower triangular, not diagonal, hyperbolic J
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    REAL(KIND=DWP) :: V(2,2), W(2,2)
-    REAL(KIND=DWP) :: CU, TU ! always trigonometric
-    REAL(KIND=DWP) :: CZ, TZ ! always hyperbolic
-
-    REAL(KIND=DWP) :: T2U, X, Y
-    LOGICAL :: A11Z
-
-    A11Z = .TRUE.
-
-    IF (A(1,1) .NE. D_ZERO) THEN
-       X = A(1,1) / A(2,2) ! .GT. 0
-       Y = A(2,1) / A(2,2) ! .NE. 0
-       IF (ABS(Y) .LE. X) THEN
-          T2U = -SCALE(Y, 1) * X
-       ELSE ! ABS(Y) .GT. X
-          T2U = -SCALE(X, 1) * Y
-       END IF
-       T2U = T2U / (D_ONE + (X - Y) * (X + Y))
-       IF (.NOT. (ABS(T2U) .LT. TWOF)) THEN
-          TU = SIGN(D_ONE, T2U)
-       ELSE ! |T2U| sufficiently small
-          TU = T2U / (D_ONE + SQRT(D_ONE + T2U * T2U))
-       END IF
-       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-       TZ = -(X * TU + Y)
-       IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -13
-          RETURN
-       END IF
-       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       A11Z = .FALSE.
-    ELSE IF (ABS(A(2,1)) .LT. ABS(A(2,2))) THEN
-       ! TU = D_ZERO
-       ! CU = D_ONE
-       TZ = -A(2,1) / A(2,2)
-       IF (ABS(TZ) .GE. D_ONE) THEN
-          INFO = -15
-          RETURN
-       END IF
-       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-    ELSE ! (A(1,1) .EQ. 0) .AND. (ABS(A(2,1)) .EQ. ABS(A(2,2)))
-       ! |TZ| .GE. 1
-       INFO = -17
-       RETURN
-    END IF
-
-    IF (.NOT. A11Z) THEN
-       V(1,1) =  CU
-       V(2,1) =  TU
-       V(1,2) = -TU
-       V(2,2) =  CU
-
-       CALL CA(V, 2, U)
-       CALL CA(V, 2, A)
-    END IF
-
-    W(1,1) =  CZ
-    W(2,1) =  TZ
-    W(1,2) =  TZ
-    W(2,2) =  CZ
-    CALL AC(Z, W)
-
-    IF (INFO .NE. 0) THEN
-       W(1,1) = SCALE(W(1,1), INFO)
-       W(2,2) = SCALE(W(2,2), INFO)
-       INFO = 0
-    END IF
-    CALL AC(A, W)
-
-    CALL DHSVD2D(A, U, INFO)
-    INFO = 1
-  END SUBROUTINE DHSVD2L
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE DHSVD2G(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2T(A, J, U, Z, INFO)
     ! A general
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
+    INTEGER, INTENT(IN) :: J(2)
+    INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: Q(2,2), C, S, R
-    LOGICAL :: P
+    LOGICAL :: P, D
 
     ! REAL(KIND=DWP), EXTERNAL :: DNRM2
     ! EXTERNAL :: DLARTG, DROT, DSWAP
 
-    C = HYPOT(A(1,1), A(2,1))
-    S = HYPOT(A(1,2), A(2,2))
+    D = .TRUE.
+    IF (A(2,1) .EQ. D_ZERO) THEN
+       C = ABS(A(1,1))
+    ELSE IF (A(1,1) .EQ. D_ZERO) THEN
+       C = ABS(A(2,1))
+       D = .FALSE.
+    ELSE ! full 1st column
+       C = HYPOT(A(1,1), A(2,1))
+       D = .FALSE.
+    END IF
+    IF (A(1,2) .EQ. D_ZERO) THEN
+       S = ABS(A(2,2))
+    ELSE IF (A(2,2) .EQ. D_ZERO) THEN
+       S = ABS(A(1,2))
+       D = .FALSE.
+    ELSE ! full 2nd column
+       S = HYPOT(A(1,2), A(2,2))
+       D = .FALSE.
+    END IF
 
     ! column pivoting
     ! IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
@@ -582,7 +380,7 @@ CONTAINS
        A(2,2) = S
        ! swap the columns of Z
        ! IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
-       IF (.NOT. H) THEN
+       IF (J(1) .EQ. J(2)) THEN
           C = Z(1,1)
           S = Z(2,1)
           Z(1,1) = Z(1,2)
@@ -596,14 +394,25 @@ CONTAINS
        R = C
        P = .FALSE.
     END IF
-    ! should never happen
-    IF (.NOT. (R .LE. HUGE(R))) THEN
-       INFO = -7
-       RETURN
+
+    ! make A(1,1) non-negative
+    IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
+       U(1,1) = -U(1,1)
+       U(1,2) = -U(1,2)
+       A(1,1) = -A(1,1)
+       A(1,2) = -A(1,2)
+    END IF
+
+    ! make A(2,1) non-negative
+    IF (SIGN(D_ONE, A(2,1)) .EQ. D_MONE) THEN
+       U(2,1) = -U(2,1)
+       U(2,2) = -U(2,2)
+       A(2,1) = -A(2,1)
+       A(2,2) = -A(2,2)
     END IF
 
     ! row sorting
-    IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
+    IF (A(1,1) .LT. A(2,1)) THEN
        ! swap the rows of U
        ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)
@@ -624,10 +433,6 @@ CONTAINS
 
     ! QR factorization of A
     ! CALL DLARTG(A(1,1), A(2,1), C, S, R)
-    ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
-    !    INFO = -7
-    !    RETURN
-    ! END IF
     ! CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
     ! premultiply U by Q^T
     ! CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
@@ -636,55 +441,22 @@ CONTAINS
     ! ||A_1||=0 >= ||A_2|| >= 0, so A=0
     ! specifically, A is diagonal
 
-    R = SIGN(R, A(1,1))
     ! S is tangent here, |S| <= 1
-    S = A(2,1) / A(1,1)
-    C = SQRT(D_ONE + S * S) ! D_ONE /
-    Q(1,1) =  C
-    Q(2,1) = -S
-    Q(1,2) =  S
-    Q(2,2) =  C
-    CALL CA(Q, 1, A(1,2))
-    CALL CA(Q, 2, U)
+    IF (.NOT. D) THEN
+       S = A(2,1) / A(1,1)
+       C = SQRT(S * S + D_ONE) ! D_ONE /
+       Q(1,1) =  C
+       Q(2,1) = -S
+       Q(1,2) =  S
+       Q(2,2) =  C
 
-    ! make diag(A) non-negative
-    IF (SIGN(D_ONE, R) .EQ. D_MONE) THEN
-       U(1,1) = -U(1,1)
-       U(1,2) = -U(1,2)
-       A(1,2) = -A(1,2)
-       R = -R
+       CALL C2A(Q, U)
+       CALL C1A(Q, A(1,2))
     END IF
     A(1,1) = R
-    IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
-       U(2,1) = -U(2,1)
-       U(2,2) = -U(2,2)
-       A(2,2) = -A(2,2)
-    END IF
     A(2,1) = D_ZERO
 
-    IF (A(1,2) .EQ. D_ZERO) THEN
-       ! A diagonal
-       IF (H .AND. P) THEN
-          ! swap the rows of U
-          ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
-          C = U(1,1)
-          S = U(1,2)
-          U(1,1) = U(2,1)
-          U(1,2) = U(2,2)
-          U(2,1) = C
-          U(2,2) = S
-          ! swap the diagonal elements of A
-          ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
-          C = A(1,1)
-          A(1,1) = A(2,2)
-          A(2,2) = C
-       END IF
-       IF (INFO .NE. 0) THEN
-          A(1,1) = SCALE(A(1,1), -INFO)
-          A(2,2) = SCALE(A(2,2), -INFO)
-       END IF
-       INFO = 1
-    ELSE IF (H .AND. P) THEN
+    IF ((J(1) .NE. J(2)) .AND. P) THEN
        ! swap the columns of A
        ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
        C = A(1,1)
@@ -693,9 +465,9 @@ CONTAINS
        A(2,1) = A(2,2)
        A(1,2) = C
        A(2,2) = S
-       ! A upper antitriangular, not antidiagonal (X .NE. 0)
-       !     | X R | <- R .NE. 0 the largest
-       ! A = | x 0 |    element by magnitude
+       ! A upper antitriangular
+       !     | x R | <- R is the largest
+       ! A = | y 0 |    element by magnitude
        ! swap the rows of U
        ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)
@@ -712,59 +484,101 @@ CONTAINS
        A(1,2) = A(2,2)
        A(2,1) = C
        A(2,2) = S
-       ! A lower triangular, not diagonal (X .NE. 0)
-       ! A = | x 0 |    R .NE. 0 the largest
-       !     | X R | <- element by magnitude
-       CALL DHSVD2L(A, U, Z, INFO)
-    ELSE
-       ! A upper triangular, not diagonal (X .NE. 0)
-       !     | R X | <- R .NE. 0 the largest
-       ! A = | 0 x |    element by magnitude
-       CALL DHSVD2U(H, A, U, Z, INFO)
+       ! A lower triangular
+       ! A = | y 0 |    R is the largest
+       !     | x R | <- element by magnitude
+
+       ! make A(2,1) non-negative
+       IF (SIGN(D_ONE, A(2,1)) .EQ. D_MONE) THEN
+          Z(1,1) = -Z(1,1)
+          Z(2,1) = -Z(2,1)
+          A(1,1) = -A(1,1)
+          A(2,1) = -A(2,1)
+       END IF
+
+       ! make A(1,1) non-negative
+       IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
+          U(1,1) = -U(1,1)
+          U(1,2) = -U(1,2)
+          A(1,1) = -A(1,1)
+       END IF
+    ELSE ! trigonometric or no column pivoting
+       ! A upper triangular
+       !     | R x | <- R is the largest
+       ! A = | 0 y |    element by magnitude
+
+       ! make A(1,2) non-negative
+       IF (SIGN(D_ONE, A(1,2)) .EQ. D_MONE) THEN
+          Z(1,2) = -Z(1,2)
+          Z(2,2) = -Z(2,2)
+          A(1,2) = -A(1,2)
+          A(2,2) = -A(2,2)
+       END IF
+
+       ! make A(2,2) non-negative
+       IF (SIGN(D_ONE, A(2,2)) .EQ. D_MONE) THEN
+          U(2,1) = -U(2,1)
+          U(2,2) = -U(2,2)
+          A(2,2) = -A(2,2)
+       END IF
     END IF
-  END SUBROUTINE DHSVD2G
+
+    IF (D) THEN
+       INFO = 0
+    ELSE ! .NOT. D
+       INFO = 1
+    END IF
+  END SUBROUTINE DHSVD2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2S(H, A, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2S(A, J, U, Z, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: H
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
+    INTEGER, INTENT(IN) :: J(2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    REAL(KIND=DWP) :: C, S
-    ! EXTERNAL :: DSWAP
+    INTEGER :: T
 
-    ! assume A real, non-negative, diagonal
-    ! permute A, U, Z in trigonometric case
-    IF (((H .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((H .EQ. -2) .AND. (A(2,2) .LT. A(1,1)))) THEN
+    T = J(1) + J(2)
+#ifndef NDEBUG
+    IF (ABS(T) .NE. 2) INFO = -12
+    IF (INFO .LT. 0) RETURN
+#endif
+
+    IF ((INFO .EQ. 1) .AND. &
+         (((T .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((T .EQ. -2) .AND. (A(2,2) .LT. A(1,1))))) THEN
        ! swap the rows of U
-       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
-       C = U(1,1)
-       S = U(1,2)
+       A(2,1) = U(1,1)
+       A(1,2) = U(1,2)
        U(1,1) = U(2,1)
        U(1,2) = U(2,2)
-       U(2,1) = C
-       U(2,2) = S
+       U(2,1) = A(2,1)
+       U(2,2) = A(1,2)
        ! swap the diagonal elements of A
-       ! CALL DSWAP(1, A(1,1), 1, A(2,2), 1)
-       C = A(1,1)
+       A(2,1) = A(1,1)
        A(1,1) = A(2,2)
-       A(2,2) = C
+       A(2,2) = A(2,1)
        ! swap the columns of Z
-       ! CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
-       C = Z(1,1)
-       S = Z(2,1)
+       A(2,1) = Z(1,1)
+       A(1,2) = Z(2,1)
        Z(1,1) = Z(1,2)
        Z(2,1) = Z(2,2)
-       Z(1,2) = C
-       Z(2,2) = S
+       Z(1,2) = A(2,1)
+       Z(2,2) = A(1,2)
     END IF
+    A(2,1) = D_ZERO
+    A(1,2) = D_ZERO
 
     ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
     IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 4
+#ifndef NDEBUG
+    ! check for overflow
+    IF (A(1,1) .GT. HUGE(D_ZERO)) INFO = INFO + 8
+    IF (A(2,2) .GT. HUGE(D_ZERO)) INFO = INFO + 16
+#endif
   END SUBROUTINE DHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -855,30 +669,29 @@ CONTAINS
     REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
+    REAL(KIND=DWP) :: B(2,2), C(2,2)
     INTEGER :: S
 
+#ifndef NDEBUG
+    IF (ABS(J(1)) .NE. 1) THEN ! error
+       INFO = -5
+    ELSE IF (ABS(J(2)) .NE. 1) THEN ! error
+       INFO = -6
+    ELSE ! J OK
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+#endif
     CALL DSCALEA(A, S)
     IF (S .LT. -1) THEN
        ! A has NaNs and/or infinities
        INFO = S + 1
        RETURN
+#ifdef NDEBUG
+    ELSE ! A OK
+       INFO = 0
+#endif
     END IF
-
-    SELECT CASE (J(1))
-    CASE (-1,1)
-       CONTINUE
-    CASE DEFAULT
-       INFO = -5
-       RETURN
-    END SELECT
-    SELECT CASE (J(2))
-    CASE (-1,1)
-       CONTINUE
-    CASE DEFAULT
-       INFO = -6
-       RETURN
-    END SELECT
-    INFO = S
 
     ! U = I
     U(1,1) = D_ONE
@@ -892,16 +705,18 @@ CONTAINS
     Z(1,2) = D_ZERO
     Z(2,2) = D_ONE
 
-    IF ((A(2,1) .EQ. D_ZERO) .AND. (A(1,2) .EQ. D_ZERO)) THEN
-       ! A diagonal
-       CALL DHSVD2D(A, U, INFO)
-    ELSE
-       ! A general
-       CALL DHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
-    END IF
+    CALL DHSVD2T(A, J, U, Z, INFO)
+    CALL KHSVD2(A, J, B, C, INFO)
     IF (INFO .LT. 0) RETURN
-
-    CALL DHSVD2S((J(1) + J(2)), A, U, Z, INFO)
+    IF (INFO .EQ. 1) THEN
+       CALL C2A(B, U)
+       CALL A2C(Z, C)
+    END IF
+    IF (S .NE. 0) THEN
+       A(1,1) = SCALE(A(1,1), -S)
+       A(2,2) = SCALE(A(2,2), -S)
+    END IF
+    CALL DHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE DHSVD2
 #endif
 

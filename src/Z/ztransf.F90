@@ -39,12 +39,13 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  REAL(KIND=DWP) FUNCTION ZPOLAR(Z, E)
+  PURE SUBROUTINE ZPOLAR(Z, A, E)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: Z
+    REAL(KIND=DWP), INTENT(OUT) :: A
     COMPLEX(KIND=DWP), INTENT(OUT) :: E
 
-    REAL(KIND=DWP) :: R, I, A, C, S
+    REAL(KIND=DWP) :: R, I, C, S
 
     R = REAL(Z)
     I = AIMAG(Z)
@@ -52,8 +53,7 @@ CONTAINS
     C = SIGN(MIN(ABS(R) / A, D_ONE), R)
     S = I / MAX(A, MINF)
     E = CMPLX(C, S, DWP)
-    ZPOLAR = A
-  END FUNCTION ZPOLAR
+  END SUBROUTINE ZPOLAR
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -149,6 +149,54 @@ CONTAINS
     ZZDIV = ZZMUL(CONJG(B / F), A) / F
 #endif
   END FUNCTION ZZDIV
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE C1A(B, A)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2)
+
+    COMPLEX(KIND=DWP) :: C(2)
+
+    C(1) = ZDFMA(B(1,2), A(2), A(1)) / B(1,1)
+    C(2) = ZDFMA(B(2,1), A(1), A(2)) / B(2,2)
+    A = C
+  END SUBROUTINE C1A
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE C2A(B, A)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
+
+    COMPLEX(KIND=DWP) :: C(2,2)
+    INTEGER :: J
+
+    DO J = 1, 2
+       C(1,J) = ZDFMA(B(1,2), A(2,J), A(1,J)) / B(1,1)
+       C(2,J) = ZDFMA(B(2,1), A(1,J), A(2,J)) / B(2,2)
+    END DO
+    A = C
+  END SUBROUTINE C2A
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE A2C(A, B)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2)
+
+    COMPLEX(KIND=DWP) :: C(2,2)
+    INTEGER :: I
+
+    DO I = 1, 2
+       C(I,1) = ZDFMA(B(2,1), A(I,2), A(I,1)) / B(1,1)
+       C(I,2) = ZDFMA(B(1,2), A(I,1), A(I,2)) / B(2,2)
+    END DO
+    A = C
+  END SUBROUTINE A2C
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -393,10 +441,13 @@ CONTAINS
     REAL(KIND=DWP) :: AXI, AXX, AYI, AYY
     INTEGER :: I
 
+#ifndef NDEBUG
     IF ((M .LT. 2) .OR. (P .LE. 0) .OR. (P .GT. M) .OR. (Q .LE. P) .OR. (Q .GT. M)) THEN
        ABODNZF2 = D_MZERO
        RETURN
     END IF
+#endif
+
     ABODNZF2 = D_ZERO
     ABODNZF2 = ABODNZF2 + REAL(Y(P)) * REAL(Y(P))
     ABODNZF2 = ABODNZF2 + AIMAG(Y(P)) * AIMAG(Y(P))
@@ -566,283 +617,41 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2D(A, U, INFO)
-    ! A diagonal
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    COMPLEX(KIND=DWP) :: V
-    REAL(KIND=DWP) :: W
-
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
-
-    IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
-       ! A(1,1) real
-       IF (SIGN(D_ONE, REAL(A(1,1))) .EQ. D_MONE) THEN
-          ! A(1,1) negative
-          U(1,1) = -U(1,1)
-          U(1,2) = -U(1,2)
-          A(1,1) = -A(1,1)
-       END IF
-    ELSE IF (REAL(A(1,1)) .EQ. D_ZERO) THEN
-       ! A(1,1) imaginary .NE. 0
-       IF (AIMAG(A(1,1)) .LT. D_ZERO) THEN
-          ! A(1,1) = i * negative
-          ! V = CMPLX(D_ZERO, D_ONE, DWP)
-          U(1,1) = CMPLX(-AIMAG(U(1,1)), REAL(U(1,1)), DWP)
-          U(1,2) = CMPLX(-AIMAG(U(1,2)), REAL(U(1,2)), DWP)
-          A(1,1) = CMPLX(-AIMAG(A(1,1)), REAL(A(1,1)), DWP)
-       ELSE
-          ! A(1,1) = i * positive
-          ! V = CMPLX(D_ZERO, D_MONE, DWP)
-          U(1,1) = CMPLX(AIMAG(U(1,1)), -REAL(U(1,1)), DWP)
-          U(1,2) = CMPLX(AIMAG(U(1,2)), -REAL(U(1,2)), DWP)
-          A(1,1) = CMPLX(AIMAG(A(1,1)), -REAL(A(1,1)), DWP)
-       END IF
-    ELSE
-       ! A(1,1) complex .NE. 0
-       W = ABS(A(1,1))
-       V = CONJG(A(1,1) / W)
-       U(1,1) = ZZMUL(V, U(1,1))
-       U(1,2) = ZZMUL(V, U(1,2))
-       A(1,1) = W
-    END IF
-
-    IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
-       ! A(2,2) real
-       IF (SIGN(D_ONE, REAL(A(2,2))) .EQ. D_MONE) THEN
-          ! A(2,2) negative
-          U(2,1) = -U(2,1)
-          U(2,2) = -U(2,2)
-          A(2,2) = -A(2,2)
-       END IF
-    ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
-       ! A(2,2) imaginary .NE. 0
-       IF (AIMAG(A(2,2)) .LT. D_ZERO) THEN
-          ! A(2,2) = i * negative
-          ! V = CMPLX(D_ZERO, D_ONE, DWP)
-          U(2,1) = CMPLX(-AIMAG(U(2,1)), REAL(U(2,1)), DWP)
-          U(2,2) = CMPLX(-AIMAG(U(2,2)), REAL(U(2,2)), DWP)
-          A(2,2) = CMPLX(-AIMAG(A(2,2)), REAL(A(2,2)), DWP)
-       ELSE
-          ! A(2,2) = i * positive
-          ! V = CMPLX(D_ZERO, D_MONE, DWP)
-          U(2,1) = CMPLX(AIMAG(U(2,1)), -REAL(U(2,1)), DWP)
-          U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
-          A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
-       END IF
-    ELSE
-       ! A(2,2) complex .NE. 0
-       W = ABS(A(2,2))
-       V = CONJG(A(2,2) / W)
-       U(2,1) = ZZMUL(V, U(2,1))
-       U(2,2) = ZZMUL(V, U(2,2))
-       A(2,2) = W
-    END IF
-
-    IF (INFO .NE. 0) THEN
-       A(1,1) = SCALE(REAL(A(1,1)), -INFO)
-       A(2,2) = SCALE(REAL(A(2,2)), -INFO)
-       INFO = 0
-    END IF
-  END SUBROUTINE ZHSVD2D
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE ZHSVD2U(H, A, U, Z, INFO)
-    ! A upper triangular, not diagonal
-    IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
-    REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
-
-    IF (H) THEN
-       X_ = CONJG(A(1,2) / REAL(A(1,1)))
-       X = ABS(X_)
-       Y = REAL(A(2,2)) / REAL(A(1,1))
-       IF (X .EQ. D_ONE) THEN
-          IF (Y .EQ. D_ZERO) THEN
-             ! TH .EQ. 1
-             INFO = -8
-          ELSE ! should never happen
-             INFO = -9
-          END IF
-          RETURN
-       END IF
-       Y_ = A(1,2) * REAL(A(2,2))
-       T2 = D_ONE + (Y - X) * (Y + X)
-       IF (X .LT. Y) THEN
-          T2 = (SCALE(X, 1) * Y) / T2
-       ELSE ! X .GE. Y
-          T2 = (SCALE(Y, 1) * X) / T2
-       END IF
-       IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
-          T2 = SIGN(D_ONE, T2)
-       ELSE ! |T2| sufficiently small
-          TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-       END IF
-       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-       IF (Y_ .EQ. Z_ZERO) THEN
-          Y_ = TU
-       ELSE ! Y_ .NE. Z_ZERO
-          Y_ = (CONJG(Y_) / ABS(Y_)) * TU
-       END IF
-       V(1,1) = CU
-       V(2,1) = Y_
-       V(1,2) = -CONJG(Y_)
-       V(2,2) = CU
-       Z_ = ZDFMA(Y, Y_, -X_)
-       TZ = ABS(Z_)
-       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-       W(1,1) = CZ
-       W(2,1) = Z_
-       W(1,2) = CONJG(Z_)
-       W(2,2) = CZ
-    ELSE ! trigonometric
-       X_ = CONJG(A(1,2) / REAL(A(1,1)))
-       X = ABS(X_)
-       Y = REAL(A(2,2)) / REAL(A(1,1))
-       Y_ = A(1,2) * REAL(A(2,2))
-       T2 = D_ONE + (X - Y) * (X + Y)
-       IF (X .LT. Y) THEN
-          T2 = -(SCALE(X, 1) * Y) / T2
-       ELSE ! X .GE. Y
-          T2 = -(SCALE(Y, 1) * X) / T2
-       END IF
-       IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
-          TU = SIGN(D_ONE, T2)
-       ELSE ! |T2| sufficiently small
-          TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-       END IF
-       CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-       IF (Y_ .EQ. Z_ZERO) THEN
-          Y_ = TU
-       ELSE ! Y_ .NE. Z_ZERO
-          Y_ = (CONJG(Y_) / ABS(Y_)) * TU
-       END IF
-       V(1,1) = CU
-       V(2,1) = Y_
-       V(1,2) = -CONJG(Y_)
-       V(2,2) = CU
-       Z_ = ZDFMA(Y, Y_, -X_)
-       TZ = ABS(Z_)
-       CZ = SQRT(D_ONE + TZ * TZ) ! D_ONE /
-       W(1,1) = CZ
-       W(2,1) = -Z_
-       W(1,2) = CONJG(Z_)
-       W(2,2) = CZ
-    END IF
-
-    CALL CA(V, 2, U(1,1), U(2,1), 2)
-    CALL CA(V, 2, A(1,1), A(2,1), 2)
-
-    CALL AC(W, 2, Z(1,1), Z(1,2))
-
-    IF (H .AND. (INFO .NE. 0)) THEN
-       W(1,1) = SCALE(REAL(W(1,1)), INFO)
-       W(2,2) = SCALE(REAL(W(2,2)), INFO)
-       INFO = 0
-    END IF
-    CALL AC(W, 2, A(1,1), A(1,2))
-
-    CALL ZHSVD2D(A, U, INFO)
-    INFO = 1
-  END SUBROUTINE ZHSVD2U
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE ZHSVD2L(A, U, Z, INFO)
-    ! A lower triangular, not diagonal, hyperbolic J
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
-
-    COMPLEX(KIND=DWP) :: V(2,2), W(2,2), X_, Y_, Z_
-    REAL(KIND=DWP) :: X, Y, T2, TU, TZ, CU, CZ
-
-    X_ = A(2,1) / REAL(A(2,2))
-    X = ABS(X_)
-    Y = REAL(A(1,1)) / REAL(A(2,2))
-    IF (X .EQ. D_ONE) THEN
-       IF (Y .EQ. D_ZERO) THEN
-          ! TH .EQ. 1
-          INFO = -10
-       ELSE ! should never happen
-          INFO = -11
-       END IF
-       RETURN
-    END IF
-    Y_ = CONJG(A(2,1)) * REAL(A(1,1))
-    T2 = D_ONE + (Y - X) * (Y + X)
-    IF (X .LT. Y) THEN
-       T2 = -(SCALE(X, 1) * Y) / T2
-    ELSE ! X .GE. Y
-       T2 = -(SCALE(Y, 1) * X) / T2
-    END IF
-    IF (.NOT. (ABS(T2) .LT. TWOF)) THEN
-       TU = SIGN(D_ONE, T2)
-    ELSE ! |T2| sufficiently small
-       TU = T2 / (D_ONE + SQRT(D_ONE + T2 * T2))
-    END IF
-    CU = SQRT(D_ONE + TU * TU) ! D_ONE /
-    IF (Y_ .EQ. Z_ZERO) THEN
-       Y_ = TU
-    ELSE ! Y_ .NE. Z_ZERO
-       Y_ = (CONJG(Y_) / ABS(Y_)) * TU
-    END IF
-    V(1,1) = CU
-    V(2,1) = Y_
-    V(1,2) = -CONJG(Y_)
-    V(2,2) = CU
-    Z_ = -ZDFMA(Y, Y_, X_)
-    TZ = ABS(Z_)
-    CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
-    W(1,1) = CZ
-    W(2,1) = Z_
-    W(1,2) = CONJG(Z_)
-    W(2,2) = CZ
-
-    CALL CA(V, 2, U(1,1), U(2,1), 2)
-    CALL CA(V, 2, A(1,1), A(2,1), 2)
-
-    CALL AC(W, 2, Z(1,1), Z(1,2))
-
-    IF (INFO .NE. 0) THEN
-       W(1,1) = SCALE(REAL(W(1,1)), INFO)
-       W(2,2) = SCALE(REAL(W(2,2)), INFO)
-       INFO = 0
-    END IF
-    CALL AC(W, 2, A(1,1), A(1,2))
-
-    CALL ZHSVD2D(A, U, INFO)
-    INFO = 1
-  END SUBROUTINE ZHSVD2L
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE SUBROUTINE ZHSVD2G(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2T(A, J, U, Z, INFO)
     ! A general
     IMPLICIT NONE
-    LOGICAL, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
-    INTEGER, INTENT(INOUT) :: INFO
+    INTEGER, INTENT(IN) :: J(2)
+    INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: C, T
-    COMPLEX(KIND=DWP) :: Q(2,2), R, S
-    LOGICAL :: P
+    REAL(KIND=DWP) :: Q(2,2), C, T, W
+    COMPLEX(KIND=DWP) :: R, S
+    LOGICAL :: P, D
 
     ! REAL(KIND=DWP), EXTERNAL :: DZNRM2
     ! EXTERNAL :: ZLARTG, ZROT, ZSWAP
 
-    R = CMPLX(ABS(A(1,1)), ABS(A(2,1)), DWP)
-    S = CMPLX(ABS(A(1,2)), ABS(A(2,2)), DWP)
-    C = ABS(R) ! ||A_1||
-    T = ABS(S) ! ||A_2||
+    D = .TRUE.
+    ! C = ||A_1||
+    IF (A(2,1) .EQ. Z_ZERO) THEN
+       C = ABS(A(1,1))
+    ELSE IF (A(1,1) .EQ. Z_ZERO) THEN
+       C = ABS(A(2,1))
+       D = .FALSE.
+    ELSE ! full 1st column
+       C = HYPOT(ABS(A(1,1)), ABS(A(2,1)))
+       D = .FALSE.
+    END IF
+    ! T = ||A_2||
+    IF (A(1,2) .EQ. Z_ZERO) THEN
+       T = ABS(A(2,2))
+    ELSE IF (A(2,2) .EQ. Z_ZERO) THEN
+       T = ABS(A(1,2))
+       D = .FALSE.
+    ELSE ! full 2nd column
+       T = HYPOT(ABS(A(1,2)), ABS(A(2,2)))
+       D = .FALSE.
+    END IF
 
     ! column pivoting
     ! IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
@@ -857,7 +666,7 @@ CONTAINS
        A(2,2) = S
        ! swap the columns of Z
        ! IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
-       IF (.NOT. H) THEN
+       IF (J(1) .EQ. J(2)) THEN
           R = Z(1,1)
           S = Z(2,1)
           Z(1,1) = Z(1,2)
@@ -867,12 +676,34 @@ CONTAINS
        END IF
        ! record the swap
        P = .TRUE.
+       W = T
     ELSE ! no pivoting
        P = .FALSE.
+       W = C
+    END IF
+
+    CALL ZPOLAR(A(1,1), C, R)
+    ! make A(1,1) non-negative
+    IF (R .NE. Z_ONE) THEN
+       S = CONJG(R)
+       U(1,1) = ZZMUL(U(1,1), S)
+       U(1,2) = ZZMUL(U(1,2), S)
+       A(1,1) = ZZMUL(A(1,1), S)
+       A(1,2) = ZZMUL(A(1,2), S)
+    END IF
+
+    CALL ZPOLAR(A(2,1), T, S)
+    ! make A(2,1) non-negative
+    IF (S .NE. Z_ONE) THEN
+       R = CONJG(S)
+       U(2,1) = ZZMUL(U(2,1), R)
+       U(2,2) = ZZMUL(U(2,2), R)
+       A(2,1) = ZZMUL(A(2,1), R)
+       A(2,2) = ZZMUL(A(2,2), R)
     END IF
 
     ! row sorting
-    IF (ABS(A(1,1)) .LT. ABS(A(2,1))) THEN
+    IF (REAL(A(1,1)) .LT. REAL(A(2,1))) THEN
        ! swap the rows of U
        ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
@@ -892,135 +723,25 @@ CONTAINS
     END IF
 
     ! QR factorization of A
-    ! CALL ZLARTG(A(1,1), A(2,1), C, S, R)
-    ! IF (.NOT. (ABS(R) .LE. HUGE(R))) THEN
-    !    INFO = -7
-    !    RETURN
-    ! END IF
-    ! A(1,1) = R
-    ! A(2,1) = Z_ZERO
-    ! CALL ZROT(1, A(1,2), 2, A(2,2), 2, C, S)
-    ! premultiply U by Q^H
-    ! CALL ZROT(2, U(1,1), 2, U(2,1), 2, C, S)
-
     ! |A(1,1)| >= |A(2,1)| cannot be 0; otherwise,
     ! ||A_1||=0 >= ||A_2|| >= 0, so A=0
     ! specifically, A is diagonal
 
-    ! C * |   1 e**i\alpha T | = Q
-    !     | -e**-i\alpha T 1 |
-    IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
-       S = A(2,1) / REAL(A(1,1))
-    ELSE ! A(1,1) complex
-       S = ZZDIV(A(2,1), A(1,1))
+    IF (.NOT. D) THEN
+       T = A(2,1) / A(1,1)
+       C = SQRT(T * T + D_ONE) ! D_ONE /
+       Q(1,1) =  C
+       Q(2,1) = -T
+       Q(1,2) =  T
+       Q(2,2) =  C
+
+       CALL C2A(Q, U)
+       CALL C1A(Q, A(1,2))
     END IF
-    T = ABS(S)
-    ! e**i\alpha = conjg(S)/T
-    ! S is e**i\alpha * T here
-    S = CONJG(S)
-    C = SQRT(D_ONE + T * T) ! D_ONE /
-    Q(1,1) =  C
-    Q(2,1) = -CONJG(S)
-    Q(1,2) =  S
-    Q(2,2) =  C
-    CALL CA(Q, 2, A(1,1), A(2,1), 2)
-    ! should never happen
-    IF (.NOT. (ABS(A(1,1)) .LE. HUGE(D_ZERO))) THEN
-       INFO = -7
-       RETURN
-    END IF
-    CALL CA(Q, 2, U(1,1), U(2,1), 2)
+    A(1,1) = CMPLX(W, D_ZERO, DWP)
     A(2,1) = Z_ZERO
 
-    ! make diag(A) real and non-negative
-    ! the first row of U and A
-    IF (AIMAG(A(1,1)) .EQ. D_ZERO) THEN
-       ! A(1,1) real
-       IF (SIGN(D_ONE, REAL(A(1,1))) .EQ. D_MONE) THEN
-          ! A(1,1) negative
-          U(1,1) = -U(1,1)
-          U(1,2) = -U(1,2)
-          A(1,1) = -A(1,1)
-          A(1,2) = -A(1,2)
-       END IF
-    ELSE IF (REAL(A(1,1)) .EQ. D_ZERO) THEN
-       ! A(1,1) imaginary .NE. 0
-       IF (AIMAG(A(1,1)) .LT. D_ZERO) THEN
-          ! A(1,1) = i * negative
-          U(1,1) = CMPLX(-AIMAG(U(1,1)), REAL(U(1,1)), DWP)
-          U(1,2) = CMPLX(-AIMAG(U(1,2)), REAL(U(1,2)), DWP)
-          A(1,1) = CMPLX(-AIMAG(A(1,1)), REAL(A(1,1)), DWP)
-          A(1,2) = CMPLX(-AIMAG(A(1,2)), REAL(A(1,2)), DWP)
-       ELSE
-          ! A(1,1) = i * positive
-          U(1,1) = CMPLX(AIMAG(U(1,1)), -REAL(U(1,1)), DWP)
-          U(1,2) = CMPLX(AIMAG(U(1,2)), -REAL(U(1,2)), DWP)
-          A(1,1) = CMPLX(AIMAG(A(1,1)), -REAL(A(1,1)), DWP)
-          A(1,2) = CMPLX(AIMAG(A(1,2)), -REAL(A(1,2)), DWP)
-       END IF
-    ELSE
-       ! A(1,1) complex .NE. 0
-       R = A(1,1)
-       A(1,1) = ABS(A(1,1))
-       R = CONJG(R / REAL(A(1,1)))
-       U(1,1) = ZZMUL(R, U(1,1))
-       U(1,2) = ZZMUL(R, U(1,2))
-       A(1,2) = ZZMUL(R, A(1,2))
-    END IF
-    ! the second row of U and A
-    IF (AIMAG(A(2,2)) .EQ. D_ZERO) THEN
-       ! A(2,2) real
-       IF (SIGN(D_ONE, REAL(A(2,2))) .EQ. D_MONE) THEN
-          ! A(2,2) negative
-          U(2,1) = -U(2,1)
-          U(2,2) = -U(2,2)
-          A(2,2) = -A(2,2)
-       END IF
-    ELSE IF (REAL(A(2,2)) .EQ. D_ZERO) THEN
-       ! A(2,2) imaginary .NE. 0
-       IF (AIMAG(A(2,2)) .LT. D_ZERO) THEN
-          ! A(2,2) = i * negative
-          U(2,1) = CMPLX(-AIMAG(U(2,1)), REAL(U(2,1)), DWP)
-          U(2,2) = CMPLX(-AIMAG(U(2,2)), REAL(U(2,2)), DWP)
-          A(2,2) = CMPLX(-AIMAG(A(2,2)), REAL(A(2,2)), DWP)
-       ELSE
-          ! A(2,2) = i * positive
-          U(2,1) = CMPLX(AIMAG(U(2,1)), -REAL(U(2,1)), DWP)
-          U(2,2) = CMPLX(AIMAG(U(2,2)), -REAL(U(2,2)), DWP)
-          A(2,2) = CMPLX(AIMAG(A(2,2)), -REAL(A(2,2)), DWP)
-       END IF
-    ELSE
-       ! A(2,2) complex .NE. 0
-       R = A(2,2)
-       A(2,2) = ABS(A(2,2))
-       R = CONJG(R / REAL(A(2,2)))
-       U(2,1) = ZZMUL(R, U(2,1))
-       U(2,2) = ZZMUL(R, U(2,2))
-    END IF
-
-    IF (A(1,2) .EQ. Z_ZERO) THEN
-       ! A diagonal
-       IF (H .AND. P) THEN
-          ! swap the rows of U
-          ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
-          R = U(1,1)
-          S = U(1,2)
-          U(1,1) = U(2,1)
-          U(1,2) = U(2,2)
-          U(2,1) = R
-          U(2,2) = S
-          ! swap the diagonal elements of A
-          ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
-          R = A(1,1)
-          A(1,1) = A(2,2)
-          A(2,2) = R
-       END IF
-       IF (INFO .NE. 0) THEN
-          A(1,1) = SCALE(REAL(A(1,1)), -INFO)
-          A(2,2) = SCALE(REAL(A(2,2)), -INFO)
-       END IF
-       INFO = 1
-    ELSE IF (H .AND. P) THEN
+    IF ((J(1) .NE. J(2)) .AND. P) THEN
        ! swap the columns of A
        ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        R = A(1,1)
@@ -1029,9 +750,9 @@ CONTAINS
        A(2,1) = A(2,2)
        A(1,2) = R
        A(2,2) = S
-       ! A upper antitriangular, not antidiagonal (X .NE. 0)
-       !     | X R | <- R .NE. 0 the largest
-       ! A = | x 0 |    element by magnitude
+       ! A upper antitriangular
+       !     | x R | <- R is the largest
+       ! A = | y 0 |    element by magnitude
        ! swap the rows of U
        ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
@@ -1048,59 +769,109 @@ CONTAINS
        A(1,2) = A(2,2)
        A(2,1) = R
        A(2,2) = S
-       ! A lower triangular, not diagonal (X .NE. 0)
-       ! A = | x 0 |    R .NE. 0 the largest
-       !     | X R | <- element by magnitude
-       CALL ZHSVD2L(A, U, Z, INFO)
-    ELSE
-       ! A upper triangular, not diagonal (X .NE. 0)
-       !     | R X | <- R .NE. 0 the largest
-       ! A = | 0 x |    element by magnitude
-       CALL ZHSVD2U(H, A, U, Z, INFO)
+       ! A lower triangular
+       ! A = | y 0 |    R is the largest
+       !     | x R | <- element by magnitude
+
+       CALL ZPOLAR(A(2,1), T, S)
+       ! make A(2,1) non-negative
+       IF (S .NE. Z_ONE) THEN
+          R = CONJG(S)
+          Z(1,1) = ZZMUL(Z(1,1), R)
+          Z(2,1) = ZZMUL(Z(2,1), R)
+          A(1,1) = ZZMUL(A(1,1), R)
+          A(2,1) = ZZMUL(A(2,1), R)
+       END IF
+
+       CALL ZPOLAR(A(1,1), C, R)
+       ! make A(1,1) non-negative
+       IF (R .NE. Z_ONE) THEN
+          S = CONJG(R)
+          U(1,1) = ZZMUL(U(1,1), S)
+          U(1,2) = ZZMUL(U(1,2), S)
+          A(1,1) = ZZMUL(A(1,1), S)
+       END IF
+    ELSE ! trigonometric or no column pivoting
+       ! A upper triangular
+       !     | R x | <- R is the largest
+       ! A = | 0 y |    element by magnitude
+
+       CALL ZPOLAR(A(1,2), C, R)
+       ! make A(1,2) non-negative
+       IF (R .NE. Z_ONE) THEN
+          S = CONJG(R)
+          Z(1,2) = ZZMUL(Z(1,2), S)
+          Z(2,2) = ZZMUL(Z(2,2), S)
+          A(1,2) = ZZMUL(A(1,2), S)
+          A(2,2) = ZZMUL(A(2,2), S)
+       END IF
+
+       CALL ZPOLAR(A(2,2), T, S)
+       ! make A(2,2) non-negative
+       IF (S .NE. Z_ONE) THEN
+          R = CONJG(S)
+          U(2,1) = ZZMUL(U(2,1), R)
+          U(2,2) = ZZMUL(U(2,2), R)
+          A(2,2) = ZZMUL(A(2,2), R)
+       END IF
     END IF
-  END SUBROUTINE ZHSVD2G
+
+    IF (D) THEN
+       INFO = 0
+    ELSE ! .NOT. D
+       INFO = 1
+    END IF
+  END SUBROUTINE ZHSVD2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2S(H, A, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2S(A, J, U, Z, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: H
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2), U(2,2), Z(2,2)
+    INTEGER, INTENT(IN) :: J(2)
     INTEGER, INTENT(INOUT) :: INFO
 
-    COMPLEX(KIND=DWP) :: R, S
-    ! EXTERNAL :: ZSWAP
+    INTEGER :: T
 
-    ! assume A real, non-negative, diagonal
-    ! permute A, U, Z in trigonometric case
-    IF (((H .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((H .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1))))) THEN
+    T = J(1) + J(2)
+#ifndef NDEBUG
+    IF (ABS(T) .NE. 2) INFO = -12
+    IF (INFO .LT. 0) RETURN
+#endif
+
+    IF ((INFO .EQ. 1) .AND. &
+         (((T .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((T .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1)))))) THEN
        ! swap the rows of U
-       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
-       R = U(1,1)
-       S = U(1,2)
+       A(2,1) = U(1,1)
+       A(1,2) = U(1,2)
        U(1,1) = U(2,1)
        U(1,2) = U(2,2)
-       U(2,1) = R
-       U(2,2) = S
+       U(2,1) = A(2,1)
+       U(2,2) = A(1,2)
        ! swap the diagonal elements of A
-       ! CALL ZSWAP(1, A(1,1), 1, A(2,2), 1)
-       R = A(1,1)
+       A(2,1) = A(1,1)
        A(1,1) = A(2,2)
-       A(2,2) = R
+       A(2,2) = A(2,1)
        ! swap the columns of Z
-       ! CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
-       R = Z(1,1)
-       S = Z(2,1)
+       A(2,1) = Z(1,1)
+       A(1,2) = Z(2,1)
        Z(1,1) = Z(1,2)
        Z(2,1) = Z(2,2)
-       Z(1,2) = R
-       Z(2,2) = S
+       Z(1,2) = A(2,1)
+       Z(2,2) = A(1,2)
     END IF
+    A(2,1) = Z_ZERO
+    A(1,2) = Z_ZERO
 
     ! check if U is identity and record in INFO if it is not
     IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
     IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 4
+#ifndef NDEBUG
+    ! check for overflow
+    IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + 8
+    IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + 16
+#endif
   END SUBROUTINE ZHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1191,8 +962,19 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: W(2,2)
+    REAL(KIND=DWP) :: W(2,2), B(2,2), C(2,2)
     INTEGER :: S, I, K
+
+#ifndef NDEBUG
+    IF (ABS(J(1)) .NE. 1) THEN ! error
+       INFO = -5
+    ELSE IF (ABS(J(2)) .NE. 1) THEN ! error
+       INFO = -6
+    ELSE ! J OK
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+#endif
 
     W(1,1) = ABS(A(1,1))
     W(2,1) = ABS(A(2,1))
@@ -1234,22 +1016,11 @@ CONTAINS
        ! W has NaNs and/or infinities
        INFO = S + 1
        RETURN
+#ifdef NDEBUG
+    ELSE
+       INFO = 0
+#endif
     END IF
-
-    SELECT CASE (J(1))
-    CASE (-1,1)
-       CONTINUE
-    CASE DEFAULT
-       INFO = -5
-       RETURN
-    END SELECT
-    SELECT CASE (J(2))
-    CASE (-1,1)
-       CONTINUE
-    CASE DEFAULT
-       INFO = -6
-       RETURN
-    END SELECT
 
     ! scale A
     IF (S .NE. 0) THEN
@@ -1261,7 +1032,6 @@ CONTAINS
     ELSE ! S .EQ. 0
        S = K
     END IF
-    INFO = S
 
     ! U = I
     U(1,1) = Z_ONE
@@ -1275,16 +1045,25 @@ CONTAINS
     Z(1,2) = Z_ZERO
     Z(2,2) = Z_ONE
 
-    IF ((A(2,1) .EQ. Z_ZERO) .AND. (A(1,2) .EQ. Z_ZERO)) THEN
-       ! A diagonal
-       CALL ZHSVD2D(A, U, INFO)
-    ELSE
-       ! A general
-       CALL ZHSVD2G((J(1) .NE. J(2)), A, U, Z, INFO)
-    END IF
+    CALL ZHSVD2T(A, J, U, Z, INFO)
+    W(1,1) = REAL(A(1,1))
+    W(2,1) = REAL(A(2,1))
+    W(1,2) = REAL(A(1,2))
+    W(2,2) = REAL(A(2,2))
+    CALL KHSVD2(W, J, B, C, INFO)
     IF (INFO .LT. 0) RETURN
-
-    CALL ZHSVD2S((J(1) + J(2)), A, U, Z, INFO)
+    IF (INFO .EQ. 1) THEN
+       CALL C2A(B, U)
+       CALL A2C(Z, C)
+    END IF
+    IF (S .NE. 0) THEN
+       A(1,1) = CMPLX(SCALE(W(1,1), -S), D_ZERO, DWP)
+       A(2,2) = CMPLX(SCALE(W(2,2), -S), D_ZERO, DWP)
+    ELSE ! no scaling
+       A(1,1) = CMPLX(W(1,1), D_ZERO, DWP)
+       A(2,2) = CMPLX(W(2,2), D_ZERO, DWP)
+    END IF
+    CALL ZHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 #endif
 
