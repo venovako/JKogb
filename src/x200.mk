@@ -8,35 +8,35 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
-CC=icc -std=c18
+# CC=icc -std=c18
 FC=ifort
-CXX=icpc -std=c++17
+# CXX=icpc -std=c++17
 CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads #-cxxlib
-C18FLAGS=$(CPUFLAGS)
+# C18FLAGS=$(CPUFLAGS)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost -qopt-zmm-usage=high
 OPTFFLAGS=$(OPTFLAGS)
-OPTCFLAGS=$(OPTFLAGS)
+# OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
-DBGCFLAGS=$(DBGFLAGS) -w3 -diag-disable=1572,2547
+# DBGCFLAGS=$(DBGFLAGS) -w3 -diag-disable=1572,2547
 FPUFLAGS=-fma -fp-model source -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high -fimf-use-svml=true
 FPUFFLAGS=$(FPUFLAGS)
-FPUCFLAGS=$(FPUFLAGS)
+# FPUCFLAGS=$(FPUFLAGS)
 else # DEBUG
 OPTFLAGS=-O0 -xHost -qopt-zmm-usage=high
 OPTFFLAGS=$(OPTFLAGS)
-OPTCFLAGS=$(OPTFLAGS)
+# OPTCFLAGS=$(OPTFLAGS)
 DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug parallel -debug pubnames -traceback -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
-DBGCFLAGS=$(DBGFLAGS) -check=stack,uninit -w3 -diag-disable=1572,2547
+# DBGCFLAGS=$(DBGFLAGS) -check=stack,uninit -w3 -diag-disable=1572,2547
 FPUFLAGS=-fp-model strict -fp-stack-check -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high
 FPUFFLAGS=$(FPUFLAGS) -assume ieee_fpe_flags
-FPUCFLAGS=$(FPUFLAGS)
+# FPUCFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-D_GNU_SOURCE -I. -I../shared -I../../../JACSD/vn
 ifdef ANIMATE
@@ -48,4 +48,4 @@ LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_inte
 endif # ANIMATE
 LDFLAGS += -lpthread -lm -ldl -lmemkind
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
-CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)
+# CFLAGS=$(OPTCFLAGS) $(DBGCFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)

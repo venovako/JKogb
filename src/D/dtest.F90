@@ -12,9 +12,9 @@ PROGRAM DTEST
   REAL(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
-#ifdef USE_EXTENDED
-  EXTERNAL :: DHSVD2
-#endif
+! #ifdef USE_EXTENDED
+!   EXTERNAL :: DHSVD2
+! #endif
 
   A = D_ZERO
   U = D_ZERO

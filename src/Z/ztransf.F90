@@ -954,7 +954,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifndef USE_EXTENDED
+! #ifndef USE_EXTENDED
   PURE SUBROUTINE ZHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
@@ -1065,7 +1065,7 @@ CONTAINS
     END IF
     CALL ZHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE ZHSVD2
-#endif
+! #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

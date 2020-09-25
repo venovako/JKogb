@@ -12,9 +12,9 @@ PROGRAM ZTEST
   COMPLEX(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
-#ifdef USE_EXTENDED
-  EXTERNAL :: ZHSVD2
-#endif
+! #ifdef USE_EXTENDED
+!   EXTERNAL :: ZHSVD2
+! #endif
 
   A = Z_ZERO
   U = Z_ZERO

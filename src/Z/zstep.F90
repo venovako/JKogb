@@ -53,11 +53,11 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#ifdef USE_EXTENDED
-  REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
-#else
+! #ifdef USE_EXTENDED
+!   REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
+! #else
   PURE REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
-#endif
+! #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -65,9 +65,9 @@ CONTAINS
     COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: J2(2), INFO
 
-#ifdef USE_EXTENDED
-    EXTERNAL :: ZHSVD2
-#endif
+! #ifdef USE_EXTENDED
+!     EXTERNAL :: ZHSVD2
+! #endif
 
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE)) THEN
@@ -310,9 +310,9 @@ CONTAINS
     INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
 
-#ifdef USE_EXTENDED
-    EXTERNAL :: ZHSVD2
-#endif
+! #ifdef USE_EXTENDED
+!     EXTERNAL :: ZHSVD2
+! #endif
 
     CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])
