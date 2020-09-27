@@ -783,8 +783,7 @@ CONTAINS
     IF (INFO .LT. 0) RETURN
 #endif
 
-    IF ((INFO .EQ. 1) .AND. &
-         (((T .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((T .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1)))))) THEN
+    IF (((T .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((T .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1))))) THEN
        ! swap the rows of U
        A(2,1) = U(1,1)
        A(1,2) = U(1,2)
