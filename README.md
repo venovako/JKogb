@@ -1,12 +1,16 @@
 # JKogb
-J-Kogbetliantz algorithm for the hyperbolic singular value decomposition (HSVD)
+The J-Kogbetliantz algorithm for the hyperbolic singular value decomposition (HSVD)
 
 This software is a supplementary material for the paper
 arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorithm for the hyperbolic SVD") \[math.NA\].
 
+## Building
+
+### Prerequisites
+
 A recent 64-bit Linux (e.g., CentOS 7.8 with devtoolset-8) or macOS (e.g., Catalina) is needed.
 
-Have the Intel MKL (Math Kernel Library) installed.
+Have the Intel MKL (Math Kernel Library) installed (only required as a JACSD's dependency).
 Other (sequential) BLAS and LAPACK libraries might work with some makefile tweaking, if they support 8-byte INTEGERs.
 
 Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory parallel to this one.
@@ -23,8 +27,9 @@ If ``COMPILER`` is not set, GNU Fortran compilers will be used instead.
 
 GNU Fortran 9 and 10 are *not* supported!
 Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
-Currently, only GPU Fortran *8* is supported (but Intel Fortran is nevertheless preferred).
+Currently, only GPU Fortran *8* is supported.
 On RHEL/CentOS it is provided by, e.g., devtoolset-8.
+However, Intel Fortran is preferred and is the only one the software has been fully tested with.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.
@@ -46,7 +51,7 @@ for the real, or
 src/Z/zjk.exe FN N N_2
 ```
 for the complex variant.
-The standard OpenMP environment variables can be used to set the desired number and the placement of threads.
+The standard OpenMP environment variables can be used to set the desired number and/or placement of threads.
 
 ### Data format
 
