@@ -8,9 +8,51 @@ A recent 64-bit Linux (e.g., CentOS 7.8 with devtoolset-8) or macOS (e.g., Catal
 
 Have the Intel MKL (Math Kernel Library) installed.
 Other (sequential) BLAS and LAPACK libraries might work with some makefile tweaking, if they support 8-byte INTEGERs.
-Intel C/C++ and Fortran compilers (version 19.1+/2020+) are recommended.
 
 Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory parallel to this one.
+
+### Make options
+
+Run ``make`` as follows:
+```bash
+cd src
+make [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
+```
+where ``COMPILER`` should be set for the Intel Fortran compilers (version 19.1+/2020+ recommended) to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
+If ``COMPILER`` is not set, GNU Fortran compilers will be used instead.
+
+GNU Fortran 9 and 10 are *not* supported!
+Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
+Currently, only GPU Fortran *8* is supported (but Intel Fortran is nevertheless preferred).
+On RHEL/CentOS it is provided by, e.g., devtoolset-8.
+
+Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
+If unset, the predefined debug-mode build options will be used.
+
+For example, ``make COMPILER=x200 NDEBUG=3 clean all`` will trigger a full, release-mode rebuild for the KNLs.
+
+## Execution
+
+### Command line
+
+In the examples below, ``FN`` is the input and output file name prefix (without an extension), ``N`` for the matrix order, and ``N_2`` for the maximal number of transformations per step (up to ``N/2``).
+
+Assuming the top directory of the cloned repository has been made current, execute either
+```bash
+src/D/djk.exe FN N N_2
+```
+for the real, or
+```bash
+src/Z/zjk.exe FN N N_2
+```
+for the complex variant.
+The standard OpenMP environment variables can be used to set the desired number and the placement of threads.
+
+### Data format
+
+``FN.Y`` should be a binary (``DOUBLE PRECISION`` or ``DOUBLE COMPLEX``) file containing the input matrix in the Fortran (column-major) array order.
+``FN.J`` should be a binary file containing a vector of ``N`` 8-byte ``INTEGER``s (either `1` or `-1`), representing the diagonal of the sign matrix.
+The outputs will be stored in the binary files ``FN.SY`` (the hyperbolic singular values), ``FN.YU`` (for the left), and ``FN.ZZ`` (for the right hyperbolic singular vectors).
 
 Makefiles for the old and unmaintained code are included for Windows and macOS; for Linux, please edit `src/old/GNUmakefile`.
 
