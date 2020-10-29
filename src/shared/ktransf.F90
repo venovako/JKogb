@@ -15,27 +15,23 @@ CONTAINS
 
     X = MAX(A(1,2) / A(1,1), D_ZERO)
     Y = MAX(A(2,2) / A(1,1), D_ZERO)
-    T2 = (SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((X - Y) * (X + Y) + D_ONE)
-    T2 = -MIN(MAX(T2, D_ZERO), TWOF)
+    T2 = MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((X - Y) * (X + Y) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
-    A(1,2) = TU * TU + D_ONE
-    CU = SQRT(A(1,2)) ! D_ONE /
-    TZ = Y * TU - X
-    A(2,1) = TZ * TZ + D_ONE
-    CZ = SQRT(A(2,1)) ! D_ONE /
+    CU = SQRT(TU * TU + D_ONE) ! D_ONE /
+    TZ = Y * TU + X
+    CZ = SQRT(TZ * TZ + D_ONE) ! D_ONE /
 
-    T2 = CU * CZ
-    A(1,1) = (A(2,1) / T2) * A(1,1)
-    A(2,2) = (A(1,2) / T2) * A(2,2)
+    A(1,1) = (CZ / CU) * A(1,1)
+    A(2,2) = (CU / CZ) * A(2,2)
 
     U(1,1) =  CU
-    U(2,1) =  TU
-    U(1,2) = -TU
+    U(2,1) = -TU
+    U(1,2) =  TU
     U(2,2) =  CU
 
     Z(1,1) =  CZ
-    Z(2,1) = -TZ
-    Z(1,2) =  TZ
+    Z(2,1) =  TZ
+    Z(1,2) = -TZ
     Z(2,2) =  CZ
   END SUBROUTINE KHSVD2T
 
@@ -51,23 +47,19 @@ CONTAINS
 
     X = MAX(A(1,2) / A(1,1), D_ZERO)
     Y = MAX(A(2,2) / A(1,1), D_ZERO)
-    T2 = (SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE)
-    T2 = MIN(MAX(T2, D_ZERO), TWOF)
+    T2 = -MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), T2, D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
-    TZ = Y * TU - X
+    TZ = -(Y * TU + X)
     IF (ABS(TZ) .LT. D_ONE) THEN
-       A(1,2) = TU * TU + D_ONE
-       CU = SQRT(A(1,2)) ! D_ONE /
-       A(2,1) = D_ONE - TZ * TZ
-       CZ = SQRT(A(2,1)) ! D_ONE /
+       CU = SQRT(TU * TU + D_ONE) ! D_ONE /
+       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
 
-       T2 = CU * CZ
-       A(1,1) = (A(2,1) / T2) * A(1,1)
-       A(2,2) = (A(1,2) / T2) * A(2,2)
+       A(1,1) = (CZ / CU) * A(1,1)
+       A(2,2) = (CU / CZ) * A(2,2)
 
        U(1,1) =  CU
-       U(2,1) =  TU
-       U(1,2) = -TU
+       U(2,1) = -TU
+       U(1,2) =  TU
        U(2,2) =  CU
 
        Z(1,1) =  CZ
@@ -91,23 +83,19 @@ CONTAINS
 
     X = MAX(A(2,1) / A(2,2), D_ZERO)
     Y = MAX(A(1,1) / A(2,2), D_ZERO)
-    T2 = (SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE)
-    T2 = -MIN(MAX(T2, D_ZERO), TWOF)
+    T2 = MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
-    TZ = -(Y * TU + X)
+    TZ = Y * TU - X
     IF (ABS(TZ) .LT. D_ONE) THEN
-       A(1,2) = TU * TU + D_ONE
-       CU = SQRT(A(1,2)) ! D_ONE /
-       A(2,1) = D_ONE - TZ * TZ
-       CZ = SQRT(A(2,1)) ! D_ONE /
+       CU = SQRT(TU * TU + D_ONE) ! D_ONE /
+       CZ = SQRT(D_ONE - TZ * TZ) ! D_ONE /
 
-       T2 = CU * CZ
-       A(1,1) = (A(1,2) / T2) * A(1,1)
-       A(2,2) = (A(2,1) / T2) * A(2,2)
+       A(1,1) = (CU / CZ) * A(1,1)
+       A(2,2) = (CZ / CU) * A(2,2)
 
        U(1,1) =  CU
-       U(2,1) =  TU
-       U(1,2) = -TU
+       U(2,1) = -TU
+       U(1,2) =  TU
        U(2,2) =  CU
 
        Z(1,1) =  CZ
