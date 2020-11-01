@@ -16,58 +16,41 @@ CONTAINS
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
-    COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
-    INTEGER :: INFO
-
-    INFO = J(P) + J(Q)
-    IF (INFO .EQ. 2) THEN
-       IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. &
-            (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
-            (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
-            (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
-          ZMAGF2T = D_ZERO
-          ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
-          ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
-          ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
-       ELSE ! no transform
-          ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
-       END IF
-    ELSE IF (INFO .EQ. -2) THEN
+    SELECT CASE (J(P) + J(Q))
+    CASE (-2)
        IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. &
             (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
             (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
             (REAL(A(Q,Q)) .LT. REAL(A(P,P)))) THEN
-          ZMAGF2T = D_ZERO
-          ZMAGF2T = ZMAGF2T + REAL(A(Q,P)) * REAL(A(Q,P))
-          ZMAGF2T = ZMAGF2T + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          ZMAGF2T = ZMAGF2T + REAL(A(P,Q)) * REAL(A(P,Q))
-          ZMAGF2T = ZMAGF2T + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+          ZMAGF2T = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
+               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ELSE ! no transform
           ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
-    ELSE ! invalid J
+    CASE (2)
+       IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. &
+            (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
+            (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
+            (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
+          ZMAGF2T = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
+               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+       ELSE ! no transform
+          ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
+       END IF
+    CASE DEFAULT ! invalid J
        ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
-    END IF
+    END SELECT
   END FUNCTION ZMAGF2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! #ifdef USE_EXTENDED
-!   REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
-! #else
   PURE REAL(KIND=DWP) FUNCTION ZMAGF2H(N, P, Q, A, LDA, J)
-! #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
     COMPLEX(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: J2(2), INFO
-
-! #ifdef USE_EXTENDED
-!     EXTERNAL :: ZHSVD2
-! #endif
 
     IF ((A(Q,P) .NE. Z_ZERO) .OR. (A(P,Q) .NE. Z_ZERO) .OR. (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
          (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE)) THEN
@@ -78,14 +61,13 @@ CONTAINS
        J2(1) = J(P)
        J2(2) = J(Q)
        CALL ZHSVD2(A2, J2, U2, Z2, INFO)
-       IF (INFO .LE. 1) THEN
+       IF (INFO .LT. 0) THEN
           ZMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
        ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
           ZMAGF2H = D_ZERO
-          ZMAGF2H = ZMAGF2H + REAL(A(Q,P)) * REAL(A(Q,P))
-          ZMAGF2H = ZMAGF2H + AIMAG(A(Q,P)) * AIMAG(A(Q,P))
-          ZMAGF2H = ZMAGF2H + REAL(A(P,Q)) * REAL(A(P,Q))
-          ZMAGF2H = ZMAGF2H + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+       ELSE IF (IAND(INFO, 4) .EQ. 0) THEN
+          ZMAGF2H = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
+               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
        ELSE ! a non-trivial transform
           ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
        END IF
@@ -127,8 +109,6 @@ CONTAINS
        R%NCP => AW_NCP1
     CASE (2)
        R%NCP => AW_NCP2
-    CASE (3)
-       R%NCP => AW_NCP3
     CASE DEFAULT
        R%NCP => NULL()
        INFO = -2
@@ -309,10 +289,6 @@ CONTAINS
     REAL(KIND=DWP) :: TW
     INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
-
-! #ifdef USE_EXTENDED
-!     EXTERNAL :: ZHSVD2
-! #endif
 
     CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])

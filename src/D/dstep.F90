@@ -16,64 +16,31 @@ CONTAINS
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
 
-    REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
-    INTEGER :: INFO
-
-    INFO = J(P) + J(Q)
-    IF (INFO .EQ. 2) THEN
-       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
-            (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. (A(P,P) .LT. A(Q,Q))) THEN
-          A2(2,1) = ABS(A(Q,P))
-          A2(1,2) = ABS(A(P,Q))
-          IF (A2(2,1) .GE. A2(1,2)) THEN
-             IF (A2(2,1) .EQ. D_ZERO) THEN
-                DMAGF2T = D_ZERO
-             ELSE ! A2(2,1) .GT. D_ZERO
-                A2(1,1) = A2(1,2) / A2(2,1)
-                DMAGF2T = A2(1,1) * A2(1,2) + A2(2,1)
-                DMAGF2T = DMAGF2T * A2(2,1)
-             END IF
-          ELSE ! A2(2,1) .LT. A2(1,2)
-             A2(2,2) = A2(2,1) / A2(1,2)
-             DMAGF2T = A2(1,2) + A2(2,1) * A2(2,2)
-             DMAGF2T = DMAGF2T * A2(1,2)
-          END IF
+    SELECT CASE (J(P) + J(Q))
+    CASE (-2)
+       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. &
+            (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. &
+            (A(Q,Q) .LT. A(P,P))) THEN
+          DMAGF2T = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
        ELSE ! no transform
           DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
-    ELSE IF (INFO .EQ. -2) THEN
-       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
-            (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. (A(Q,Q) .LT. A(P,P))) THEN
-          A2(2,1) = ABS(A(Q,P))
-          A2(1,2) = ABS(A(P,Q))
-          IF (A2(2,1) .GE. A2(1,2)) THEN
-             IF (A2(2,1) .EQ. D_ZERO) THEN
-                DMAGF2T = D_ZERO
-             ELSE ! A2(2,1) .GT. D_ZERO
-                A2(1,1) = A2(1,2) / A2(2,1)
-                DMAGF2T = A2(1,1) * A2(1,2) + A2(2,1)
-                DMAGF2T = DMAGF2T * A2(2,1)
-             END IF
-          ELSE ! A2(2,1) .LT. A2(1,2)
-             A2(2,2) = A2(2,1) / A2(1,2)
-             DMAGF2T = A2(1,2) + A2(2,1) * A2(2,2)
-             DMAGF2T = DMAGF2T * A2(1,2)
-          END IF
+    CASE (2)
+       IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. &
+            (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. &
+            (A(P,P) .LT. A(Q,Q))) THEN
+          DMAGF2T = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
        ELSE ! no transform
           DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
-    ELSE ! invalid J
+    CASE DEFAULT ! invalid J
        DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
-    END IF
+    END SELECT
   END FUNCTION DMAGF2T
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! #ifdef USE_EXTENDED
-!   REAL(KIND=DWP) FUNCTION DMAGF2H(N, P, Q, A, LDA, J)
-! #else
   PURE REAL(KIND=DWP) FUNCTION DMAGF2H(N, P, Q, A, LDA, J)
-! #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
@@ -81,12 +48,8 @@ CONTAINS
     REAL(KIND=DWP) :: A2(2,2), U2(2,2), Z2(2,2)
     INTEGER :: J2(2), INFO
 
-! #ifdef USE_EXTENDED
-!     EXTERNAL :: DHSVD2
-! #endif
-
-    IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. &
-         (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE)) THEN
+    IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. &
+         (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE)) THEN
        A2(1,1) = A(P,P)
        A2(2,1) = A(Q,P)
        A2(1,2) = A(P,Q)
@@ -94,24 +57,12 @@ CONTAINS
        J2(1) = J(P)
        J2(2) = J(Q)
        CALL DHSVD2(A2, J2, U2, Z2, INFO)
-       IF (INFO .LE. 1) THEN
+       IF (INFO .LT. 0) THEN
           DMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
        ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
-          A2(2,1) = ABS(A(Q,P))
-          A2(1,2) = ABS(A(P,Q))
-          IF (A2(2,1) .GE. A2(1,2)) THEN
-             IF (A2(2,1) .EQ. D_ZERO) THEN
-                DMAGF2H = D_ZERO
-             ELSE ! A2(2,1) .GT. D_ZERO
-                A2(1,1) = A2(1,2) / A2(2,1)
-                DMAGF2H = A2(1,1) * A2(1,2) + A2(2,1)
-                DMAGF2H = DMAGF2H * A2(2,1)
-             END IF
-          ELSE ! A2(2,1) .LT. A2(1,2)
-             A2(2,2) = A2(2,1) / A2(1,2)
-             DMAGF2H = A2(1,2) + A2(2,1) * A2(2,2)
-             DMAGF2H = DMAGF2H * A2(1,2)
-          END IF
+          DMAGF2H = D_ZERO
+       ELSE IF (IAND(INFO, 4) .EQ. 0) THEN
+          DMAGF2H = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
        ELSE ! a non-trivial transform
           DMAGF2H = ABODNDF2(Z2, N, A(1,P), A(1,Q), P, Q)
        END IF
@@ -153,8 +104,6 @@ CONTAINS
        R%NCP => AW_NCP1
     CASE (2)
        R%NCP => AW_NCP2
-    CASE (3)
-       R%NCP => AW_NCP3
     CASE DEFAULT
        R%NCP => NULL()
        INFO = -2
@@ -335,10 +284,6 @@ CONTAINS
     REAL(KIND=DWP) :: TW
     INTEGER :: I, P, Q, K(2)
     INTEGER, POINTER, CONTIGUOUS :: IT(:)
-
-! #ifdef USE_EXTENDED
-!     EXTERNAL :: DHSVD2
-! #endif
 
     CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
     CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])

@@ -399,16 +399,16 @@ CONTAINS
     IF (SIGN(D_ONE, A(1,1)) .EQ. D_MONE) THEN
        U(1,1) = -U(1,1)
        U(1,2) = -U(1,2)
-       A(1,1) = -A(1,1)
        A(1,2) = -A(1,2)
+       A(1,1) = -A(1,1)
     END IF
 
     ! make A(2,1) non-negative
     IF (SIGN(D_ONE, A(2,1)) .EQ. D_MONE) THEN
        U(2,1) = -U(2,1)
        U(2,2) = -U(2,2)
-       A(2,1) = -A(2,1)
        A(2,2) = -A(2,2)
+       A(2,1) = -A(2,1)
     END IF
 
     ! row sorting
@@ -511,8 +511,8 @@ CONTAINS
        IF (SIGN(D_ONE, A(1,2)) .EQ. D_MONE) THEN
           Z(1,2) = -Z(1,2)
           Z(2,2) = -Z(2,2)
-          A(1,2) = -A(1,2)
           A(2,2) = -A(2,2)
+          A(1,2) = -A(1,2)
        END IF
 
        ! make A(2,2) non-negative
@@ -660,7 +660,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! #ifndef USE_EXTENDED
   PURE SUBROUTINE DHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
@@ -705,9 +704,9 @@ CONTAINS
     Z(2,2) = D_ONE
 
     CALL DHSVD2T(A, J, U, Z, INFO)
-    CALL KHSVD2(A, J, B, C, INFO)
+    IF (INFO .GT. 0) CALL KHSVD2(A, J, B, C, INFO)
     IF (INFO .LT. 0) RETURN
-    IF (INFO .EQ. 1) THEN
+    IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
     END IF
@@ -717,7 +716,6 @@ CONTAINS
     END IF
     CALL DHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE DHSVD2
-! #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

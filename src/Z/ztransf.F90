@@ -897,7 +897,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! #ifndef USE_EXTENDED
   PURE SUBROUTINE ZHSVD2(A, J, U, Z, INFO)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
@@ -993,9 +992,9 @@ CONTAINS
     W(2,1) = REAL(A(2,1))
     W(1,2) = REAL(A(1,2))
     W(2,2) = REAL(A(2,2))
-    CALL KHSVD2(W, J, B, C, INFO)
+    IF (INFO .GT. 0) CALL KHSVD2(W, J, B, C, INFO)
     IF (INFO .LT. 0) RETURN
-    IF (INFO .EQ. 1) THEN
+    IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
     END IF
@@ -1008,7 +1007,6 @@ CONTAINS
     END IF
     CALL ZHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE ZHSVD2
-! #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
