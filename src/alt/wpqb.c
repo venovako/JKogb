@@ -115,7 +115,7 @@ static void wpqb_ncp0(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
 #ifdef _OPENMP
 static void wpqb_update(uint32_t s[static restrict 1], const uint32_t my_s[static restrict 1], wpqb_info w[static restrict 1], const wpqb_info my_w[static restrict 1])
 {
-  if (!(my_w->w <= w->w)) {
+  if (!(my_w->w <= w->w) || ((my_w->w == w->w) && (my_w->i.f < w->i.f))) {
     for (uint16_t i = UINT16_C(0); i < my_w->i.s; ++i)
       s[i] = my_s[i] + my_w->i.f;
     *w = *my_w;
@@ -138,7 +138,7 @@ static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
 {
   w->w = qNaN();
   w->i.s = UINT16_C(0);
-  w->i.f = 0u;
+  w->i.f = n_a;
 
   if (!n)
     return;
@@ -147,11 +147,7 @@ static void wpqb_ncp1(const uint16_t n, const uint32_t n_a, wpqb a[static 1], co
   if (!n_a)
     return;
 
-#ifdef __ICL
-#pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(dynamic,1)
-#else /* !__ICL */
 #pragma omp parallel for default(none) shared(n,n_a,a,n_s,s,w) schedule(nonmonotonic:dynamic,1)
-#endif /* ?__ICL */
   for (uint32_t i = 0u; i < n_a; ++i)
     wpqb_ncpt(n, n_a - i, a + i, i, n_s, s, w);
 }
