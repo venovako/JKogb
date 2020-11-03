@@ -343,9 +343,6 @@ CONTAINS
     REAL(KIND=DWP) :: Q(2,2), C, S, R
     LOGICAL :: P, D
 
-    ! REAL(KIND=DWP), EXTERNAL :: DNRM2
-    ! EXTERNAL :: DLARTG, DROT, DSWAP
-
     D = .TRUE.
     IF (A(2,1) .EQ. D_ZERO) THEN
        C = ABS(A(1,1))
@@ -367,11 +364,9 @@ CONTAINS
     END IF
 
     ! column pivoting
-    ! IF (DNRM2(2, A(1,1), 1) .LT. DNRM2(2, A(1,2), 1)) THEN
     IF (C .LT. S) THEN
        R = S
        ! swap the columns of A
-       ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
        C = A(1,1)
        S = A(2,1)
        A(1,1) = A(1,2)
@@ -379,7 +374,6 @@ CONTAINS
        A(1,2) = C
        A(2,2) = S
        ! swap the columns of Z
-       ! IF (.NOT. H) CALL DSWAP(2, Z(1,1), 1, Z(1,2), 1)
        IF (J(1) .EQ. J(2)) THEN
           C = Z(1,1)
           S = Z(2,1)
@@ -414,7 +408,6 @@ CONTAINS
     ! row sorting
     IF (A(1,1) .LT. A(2,1)) THEN
        ! swap the rows of U
-       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)
        S = U(1,2)
        U(1,1) = U(2,1)
@@ -422,7 +415,6 @@ CONTAINS
        U(2,1) = C
        U(2,2) = S
        ! swap the rows of A
-       ! CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
        C = A(1,1)
        S = A(1,2)
        A(1,1) = A(2,1)
@@ -432,11 +424,6 @@ CONTAINS
     END IF
 
     ! QR factorization of A
-    ! CALL DLARTG(A(1,1), A(2,1), C, S, R)
-    ! CALL DROT(1, A(1,2), 2, A(2,2), 2, C, S)
-    ! premultiply U by Q^T
-    ! CALL DROT(2, U(1,1), 2, U(2,1), 2, C, S)
-
     ! |A(1,1)| >= |A(2,1)| cannot be 0; otherwise,
     ! ||A_1||=0 >= ||A_2|| >= 0, so A=0
     ! specifically, A is diagonal
@@ -450,6 +437,7 @@ CONTAINS
        Q(1,2) =  S
        Q(2,2) =  C
 
+       ! premultiply U by Q^T
        CALL C2A(Q, U)
        CALL C1A(Q, A(1,2))
     END IF
@@ -458,7 +446,6 @@ CONTAINS
 
     IF ((J(1) .NE. J(2)) .AND. P) THEN
        ! swap the columns of A
-       ! CALL DSWAP(2, A(1,1), 1, A(1,2), 1)
        C = A(1,1)
        S = A(2,1)
        A(1,1) = A(1,2)
@@ -469,7 +456,6 @@ CONTAINS
        !     | x R | <- R is the largest
        ! A = | y 0 |    element by magnitude
        ! swap the rows of U
-       ! CALL DSWAP(2, U(1,1), 2, U(2,1), 2)
        C = U(1,1)
        S = U(1,2)
        U(1,1) = U(2,1)
@@ -477,7 +463,6 @@ CONTAINS
        U(2,1) = C
        U(2,2) = S
        ! swap the rows of A
-       ! CALL DSWAP(2, A(1,1), 2, A(2,1), 2)
        C = A(1,1)
        S = A(1,2)
        A(1,1) = A(2,1)

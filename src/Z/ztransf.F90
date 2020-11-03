@@ -572,9 +572,6 @@ CONTAINS
     COMPLEX(KIND=DWP) :: R, S
     LOGICAL :: P, D
 
-    ! REAL(KIND=DWP), EXTERNAL :: DZNRM2
-    ! EXTERNAL :: ZLARTG, ZROT, ZSWAP
-
     D = .TRUE.
     ! C = ||A_1||
     IF (A(2,1) .EQ. Z_ZERO) THEN
@@ -598,10 +595,8 @@ CONTAINS
     END IF
 
     ! column pivoting
-    ! IF (DZNRM2(2, A(1,1), 1) .LT. DZNRM2(2, A(1,2), 1)) THEN
     IF (C .LT. T) THEN
        ! swap the columns of A
-       ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        R = A(1,1)
        S = A(2,1)
        A(1,1) = A(1,2)
@@ -609,7 +604,6 @@ CONTAINS
        A(1,2) = R
        A(2,2) = S
        ! swap the columns of Z
-       ! IF (.NOT. H) CALL ZSWAP(2, Z(1,1), 1, Z(1,2), 1)
        IF (J(1) .EQ. J(2)) THEN
           R = Z(1,1)
           S = Z(2,1)
@@ -649,7 +643,6 @@ CONTAINS
     ! row sorting
     IF (REAL(A(1,1)) .LT. REAL(A(2,1))) THEN
        ! swap the rows of U
-       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
        S = U(1,2)
        U(1,1) = U(2,1)
@@ -657,7 +650,6 @@ CONTAINS
        U(2,1) = R
        U(2,2) = S
        ! swap the rows of A
-       ! CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
        R = A(1,1)
        S = A(1,2)
        A(1,1) = A(2,1)
@@ -679,6 +671,7 @@ CONTAINS
        Q(1,2) =  T
        Q(2,2) =  C
 
+       ! premultiply U by Q^H
        CALL C2A(Q, U)
        CALL C1A(Q, A(1,2))
     END IF
@@ -687,7 +680,6 @@ CONTAINS
 
     IF ((J(1) .NE. J(2)) .AND. P) THEN
        ! swap the columns of A
-       ! CALL ZSWAP(2, A(1,1), 1, A(1,2), 1)
        R = A(1,1)
        S = A(2,1)
        A(1,1) = A(1,2)
@@ -698,7 +690,6 @@ CONTAINS
        !     | x R | <- R is the largest
        ! A = | y 0 |    element by magnitude
        ! swap the rows of U
-       ! CALL ZSWAP(2, U(1,1), 2, U(2,1), 2)
        R = U(1,1)
        S = U(1,2)
        U(1,1) = U(2,1)
@@ -706,7 +697,6 @@ CONTAINS
        U(2,1) = R
        U(2,2) = S
        ! swap the rows of A
-       ! CALL ZSWAP(2, A(1,1), 2, A(2,1), 2)
        R = A(1,1)
        S = A(1,2)
        A(1,1) = A(2,1)

@@ -11,6 +11,23 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION DASUM2(X1, X2)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: X1, X2
+
+    REAL(KIND=DWP) :: X(2), Y(2)
+
+    X(1) = ABS(X1)
+    X(2) = ABS(X2)
+
+    Y(1) = MAX(X(1), X(2))
+    Y(2) = MIN(X(1), X(2))
+
+    DASUM2 = Y(1) * Y(1) + (Y(2) * Y(2))
+  END FUNCTION DASUM2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE REAL(KIND=DWP) FUNCTION DMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
@@ -21,7 +38,7 @@ CONTAINS
        IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. &
             (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. &
             (A(Q,Q) .LT. A(P,P))) THEN
-          DMAGF2T = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
+          DMAGF2T = DASUM2(A(Q,P), A(P,Q))
        ELSE ! no transform
           DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
@@ -29,7 +46,7 @@ CONTAINS
        IF ((A(Q,P) .NE. D_ZERO) .OR. (A(P,Q) .NE. D_ZERO) .OR. &
             (SIGN(D_ONE, A(P,P)) .EQ. D_MONE) .OR. (SIGN(D_ONE, A(Q,Q)) .EQ. D_MONE) .OR. &
             (A(P,P) .LT. A(Q,Q))) THEN
-          DMAGF2T = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
+          DMAGF2T = DASUM2(A(Q,P), A(P,Q))
        ELSE ! no transform
           DMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
@@ -62,7 +79,7 @@ CONTAINS
        ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
           DMAGF2H = D_ZERO
        ELSE IF (IAND(INFO, 4) .EQ. 0) THEN
-          DMAGF2H = A(Q,P)*A(Q,P) + A(P,Q)*A(P,Q)
+          DMAGF2H = DASUM2(A(Q,P), A(P,Q))
        ELSE ! a non-trivial transform
           DMAGF2H = ABODNDF2(Z2, N, A(1,P), A(1,Q), P, Q)
        END IF

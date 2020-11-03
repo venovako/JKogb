@@ -11,6 +11,37 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION DASUM4(X1, X2, X3, X4)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
+
+    REAL(KIND=DWP) :: X(4), Y(4)
+
+    X(1) = ABS(X1)
+    X(2) = ABS(X2)
+    X(3) = ABS(X3)
+    X(4) = ABS(X4)
+
+    Y(1) = MAX(X(1), X(2))
+    Y(2) = MIN(X(1), X(2))
+    Y(3) = MAX(X(3), X(4))
+    Y(4) = MIN(X(3), X(4))
+
+    X(1) = MAX(Y(1), Y(3))
+    X(2) = MAX(Y(2), Y(4))
+    X(3) = MIN(Y(1), Y(3))
+    X(4) = MIN(Y(2), Y(4))
+
+    Y(1) = X(1)
+    Y(2) = MAX(X(2), X(3))
+    Y(3) = MIN(X(2), X(3))
+    Y(4) = X(4)
+
+    DASUM4 = Y(1) * Y(1) + (Y(2) * Y(2) + (Y(3) * Y(3) + (Y(4) * Y(4))))
+  END FUNCTION DASUM4
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE REAL(KIND=DWP) FUNCTION ZMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
@@ -22,8 +53,7 @@ CONTAINS
             (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
             (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
             (REAL(A(Q,Q)) .LT. REAL(A(P,P)))) THEN
-          ZMAGF2T = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
-               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+          ZMAGF2T = DASUM4(REAL(A(Q,P)), AIMAG(A(Q,P)), REAL(A(P,Q)), AIMAG(A(P,Q)))
        ELSE ! no transform
           ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
@@ -32,8 +62,7 @@ CONTAINS
             (AIMAG(A(P,P)) .NE. D_ZERO) .OR. (AIMAG(A(Q,Q)) .NE. D_ZERO) .OR. &
             (SIGN(D_ONE, REAL(A(P,P))) .EQ. D_MONE) .OR. (SIGN(D_ONE, REAL(A(Q,Q))) .EQ. D_MONE) .OR. &
             (REAL(A(P,P)) .LT. REAL(A(Q,Q)))) THEN
-          ZMAGF2T = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
-               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+          ZMAGF2T = DASUM4(REAL(A(Q,P)), AIMAG(A(Q,P)), REAL(A(P,Q)), AIMAG(A(P,Q)))
        ELSE ! no transform
           ZMAGF2T = QUIET_NAN((P - 1) * N + (Q - 1))
        END IF
@@ -66,8 +95,7 @@ CONTAINS
        ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
           ZMAGF2H = D_ZERO
        ELSE IF (IAND(INFO, 4) .EQ. 0) THEN
-          ZMAGF2H = REAL(A(Q,P)) * REAL(A(Q,P)) + AIMAG(A(Q,P)) * AIMAG(A(Q,P)) + &
-               REAL(A(P,Q)) * REAL(A(P,Q)) + AIMAG(A(P,Q)) * AIMAG(A(P,Q))
+          ZMAGF2H = DASUM4(REAL(A(Q,P)), AIMAG(A(Q,P)), REAL(A(P,Q)), AIMAG(A(P,Q)))
        ELSE ! a non-trivial transform
           ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
        END IF
