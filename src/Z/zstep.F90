@@ -137,6 +137,8 @@ CONTAINS
        R%NCP => AW_NCP1
     CASE (2)
        R%NCP => AW_NCP2
+    CASE (3)
+       R%NCP => AW_NCP3
     CASE DEFAULT
        R%NCP => NULL()
        INFO = -2

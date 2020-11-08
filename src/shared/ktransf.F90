@@ -47,7 +47,7 @@ CONTAINS
 
     X = MAX(A(1,2) / A(1,1), D_ZERO)
     Y = MAX(A(2,2) / A(1,1), D_ZERO)
-    T2 = -MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), T2, D_ZERO), TWOF)
+    T2 = -MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
     TZ = -(Y * TU + X)
     IF (ABS(TZ) .LT. D_ONE) THEN
