@@ -6,10 +6,9 @@ MODULE UTILS
   IMPLICIT NONE
 
 #ifdef USE_NVIDIA
-  INTEGER(KIND=c_int), VOLATILE, PRIVATE :: CtrlC = 0_c_int
-#else
-  INTEGER(KIND=ATOMIC_INT_KIND), VOLATILE, PRIVATE :: CtrlC = 0_ATOMIC_INT_KIND
+  INTEGER, PARAMETER :: ATOMIC_INT_KIND = c_int
 #endif
+  INTEGER(KIND=ATOMIC_INT_KIND), VOLATILE, PRIVATE :: CtrlC = 0_ATOMIC_INT_KIND
   INTEGER(KIND=c_int), PARAMETER, PRIVATE :: SigCtrlC = 2_c_int ! SIGINT
   TYPE(c_funptr), PRIVATE :: OldCtrlC = C_NULL_FUNPTR
 
@@ -38,11 +37,8 @@ CONTAINS
 
   LOGICAL FUNCTION IsCtrlC()
     IMPLICIT NONE
-#ifdef USE_NVIDIA
-    IF (CtrlC .EQ. 0_c_int) THEN
-#else
+
     IF (CtrlC .EQ. 0_ATOMIC_INT_KIND) THEN
-#endif
        IsCtrlC = .FALSE.
     ELSE ! CtrlC
        IsCtrlC = .TRUE.
@@ -54,11 +50,8 @@ CONTAINS
   SUBROUTINE OnCtrlC(S) BIND(C)
     IMPLICIT NONE
     INTEGER(KIND=c_int), INTENT(IN), VALUE :: S
-#ifdef USE_NVIDIA
-    IF (S .EQ. SigCtrlC) CtrlC = 1_c_int
-#else
+
     IF (S .EQ. SigCtrlC) CtrlC = 1_ATOMIC_INT_KIND
-#endif
   END SUBROUTINE OnCtrlC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

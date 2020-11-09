@@ -16,7 +16,6 @@ PROGRAM ZJK
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
-  IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN and/or MAX do NOT handle NaNs properly!'
 #ifndef NDEBUG
   CALL SetCtrlC
 #endif

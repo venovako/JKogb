@@ -11,37 +11,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DASUM4(X1, X2, X3, X4)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
-
-    REAL(KIND=DWP) :: X(4), Y(4)
-
-    X(1) = ABS(X1)
-    X(2) = ABS(X2)
-    X(3) = ABS(X3)
-    X(4) = ABS(X4)
-
-    Y(1) = MAX(X(1), X(2))
-    Y(2) = MIN(X(1), X(2))
-    Y(3) = MAX(X(3), X(4))
-    Y(4) = MIN(X(3), X(4))
-
-    X(1) = MAX(Y(1), Y(3))
-    X(2) = MAX(Y(2), Y(4))
-    X(3) = MIN(Y(1), Y(3))
-    X(4) = MIN(Y(2), Y(4))
-
-    Y(1) = X(1)
-    Y(2) = MAX(X(2), X(3))
-    Y(3) = MIN(X(2), X(3))
-    Y(4) = X(4)
-
-    DASUM4 = Y(1) * Y(1) + (Y(2) * Y(2) + (Y(3) * Y(3) + (Y(4) * Y(4))))
-  END FUNCTION DASUM4
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE REAL(KIND=DWP) FUNCTION ZMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)

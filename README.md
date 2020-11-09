@@ -8,7 +8,7 @@ arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorit
 
 ### Prerequisites
 
-A recent 64-bit Linux (e.g., CentOS 7.8 with devtoolset-8) or macOS (e.g., Catalina) is needed.
+A recent 64-bit Linux (e.g., CentOS 7.8 with devtoolset-9) or macOS (e.g., Catalina) is needed.
 
 Have the Intel MKL (Math Kernel Library) installed (only required as a JACSD's dependency).
 Other (sequential) BLAS and LAPACK libraries might work with some makefile tweaking, if they support 8-byte INTEGERs.
@@ -24,12 +24,6 @@ make [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel Fortran compilers (version 19.1+/2020+ recommended) to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
 If ``COMPILER`` is not set, GNU Fortran compilers will be used instead.
-
-GNU Fortran 9 and 10 are *not* supported!
-Please take a look [here](https://gcc.gnu.org/gcc-9/changes.html) for the explanation regarding the MAX and MIN intrinsics.
-Currently, only GPU Fortran *8* is supported.
-On RHEL/CentOS it is provided by, e.g., devtoolset-8.
-However, Intel Fortran is preferred and is the only one the software has been fully tested with.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.

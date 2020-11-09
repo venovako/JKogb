@@ -6,37 +6,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DASUM4(X1, X2, X3, X4)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
-
-    REAL(KIND=DWP) :: X(4), Y(4)
-
-    X(1) = ABS(X1)
-    X(2) = ABS(X2)
-    X(3) = ABS(X3)
-    X(4) = ABS(X4)
-
-    Y(1) = MAX(X(1), X(2))
-    Y(2) = MIN(X(1), X(2))
-    Y(3) = MAX(X(3), X(4))
-    Y(4) = MIN(X(3), X(4))
-
-    X(1) = MAX(Y(1), Y(3))
-    X(2) = MAX(Y(2), Y(4))
-    X(3) = MIN(Y(1), Y(3))
-    X(4) = MIN(Y(2), Y(4))
-
-    Y(1) = X(1)
-    Y(2) = MAX(X(2), X(3))
-    Y(3) = MIN(X(2), X(3))
-    Y(4) = X(4)
-
-    DASUM4 = IEEE_FMA(Y(1), Y(1), IEEE_FMA(Y(2), Y(2), IEEE_FMA(Y(3), Y(3), Y(4) * Y(4))))
-  END FUNCTION DASUM4
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
@@ -81,7 +50,7 @@ CONTAINS
     R = REAL(Z)
     I = AIMAG(Z)
     A = HYPOT(R, I)
-    C = SIGN(IEEE_MIN_NUM(ABS(R) / A, D_ONE), R)
+    C = SIGN(MIN(ABS(R) / A, D_ONE), R)
     S = I / MAX(A, MINF)
     E = CMPLX(C, S, DWP)
   END SUBROUTINE ZPOLAR
@@ -95,8 +64,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: R, I
 
-    R = IEEE_FMA(A, REAL(B), REAL(C))
-    I = IEEE_FMA(A, AIMAG(B), AIMAG(C))
+    R = A * REAL(B) + REAL(C)
+    I = A * AIMAG(B) + AIMAG(C)
 
     ZDFMA = CMPLX(R, I, DWP)
   END FUNCTION ZDFMA
@@ -110,8 +79,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: R, I
 
-    R = IEEE_FMA(-A, AIMAG(B), REAL(C))
-    I = IEEE_FMA( A, REAL(B), AIMAG(C))
+    R = REAL(C) - A * AIMAG(B)
+    I = A * REAL(B) + AIMAG(C)
 
     ZJFMA = CMPLX(R, I, DWP)
   END FUNCTION ZJFMA
@@ -126,10 +95,10 @@ CONTAINS
 
     REAL(KIND=DWP) :: F, R, I
 
-    F = IEEE_FMA(-AIMAG(A), AIMAG(B), REAL(C))
-    R = IEEE_FMA(REAL(A), REAL(B), F)
-    F = IEEE_FMA(AIMAG(A), REAL(B), AIMAG(C))
-    I = IEEE_FMA(REAL(A), AIMAG(B), F)
+    F = REAL(C) - AIMAG(A) * AIMAG(B)
+    R = REAL(A) * REAL(B) + F
+    F = AIMAG(A) * REAL(B) + AIMAG(C)
+    I = REAL(A) * AIMAG(B) + F
 
     ZZFMA = CMPLX(R, I, DWP)
   END FUNCTION ZZFMA
@@ -158,9 +127,9 @@ CONTAINS
     REAL(KIND=DWP) :: F, R, I
 
     F = AIMAG(A) * AIMAG(B)
-    R = IEEE_FMA(REAL(A), REAL(B), -F)
+    R = REAL(A) * REAL(B) - F
     F = AIMAG(A) * REAL(B)
-    I = IEEE_FMA(REAL(A), AIMAG(B), F)
+    I = REAL(A) * AIMAG(B) + F
 
     ZZMUL = CMPLX(R, I, DWP)
   END FUNCTION ZZMUL
@@ -422,7 +391,12 @@ CONTAINS
        RETURN
     END IF
 #endif
-    ABODNZF2 = DASUM4(REAL(Y(P)), AIMAG(Y(P)), REAL(X(Q)), AIMAG(X(Q)))
+
+    ABODNZF2 = D_ZERO
+    ABODNZF2 = ABODNZF2 + REAL(Y(P)) * REAL(Y(P))
+    ABODNZF2 = ABODNZF2 + AIMAG(Y(P)) * AIMAG(Y(P))
+    ABODNZF2 = ABODNZF2 + REAL(X(Q)) * REAL(X(Q))
+    ABODNZF2 = ABODNZF2 + AIMAG(X(Q)) * AIMAG(X(Q))
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
@@ -443,8 +417,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -453,8 +427,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -463,8 +437,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
@@ -479,8 +453,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -489,8 +463,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -499,8 +473,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
@@ -522,8 +496,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -532,8 +506,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -542,8 +516,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
@@ -558,8 +532,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -568,8 +542,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -578,8 +552,8 @@ CONTAINS
              AXX = ABS(XX)
              AYI = ABS(Y(I))
              AYY = ABS(YY)
-             ABODNZF2 = IEEE_FMA(AXI - AXX, AXI + AXX, ABODNZF2)
-             ABODNZF2 = IEEE_FMA(AYI - AYY, AYI + AYY, ABODNZF2)
+             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
+             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
           END DO
        END IF
     END IF
@@ -690,8 +664,8 @@ CONTAINS
     ! specifically, A is diagonal
 
     IF (.NOT. D) THEN
-       T = REAL(A(2,1)) / REAL(A(1,1))
-       C = SQRT(IEEE_FMA(T, T, D_ONE)) ! D_ONE /
+       T = A(2,1) / A(1,1)
+       C = SQRT(T * T + D_ONE) ! D_ONE /
        Q(1,1) =  C
        Q(2,1) = -T
        Q(1,2) =  T
@@ -828,8 +802,8 @@ CONTAINS
     IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 4
 #ifndef NDEBUG
     ! check for overflow
-    ! IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + 8
-    ! IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + 16
+    IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + 8
+    IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + 16
 #endif
   END SUBROUTINE ZHSVD2S
 

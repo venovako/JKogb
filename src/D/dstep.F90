@@ -11,23 +11,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DASUM2(X1, X2)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: X1, X2
-
-    REAL(KIND=DWP) :: X(2), Y(2)
-
-    X(1) = ABS(X1)
-    X(2) = ABS(X2)
-
-    Y(1) = MAX(X(1), X(2))
-    Y(2) = MIN(X(1), X(2))
-
-    DASUM2 = Y(1) * Y(1) + (Y(2) * Y(2))
-  END FUNCTION DASUM2
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE REAL(KIND=DWP) FUNCTION DMAGF2T(N, P, Q, A, LDA, J)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, P, Q, LDA, J(N)
