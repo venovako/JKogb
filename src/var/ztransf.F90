@@ -664,7 +664,7 @@ CONTAINS
     ! specifically, A is diagonal
 
     IF (.NOT. D) THEN
-       T = A(2,1) / A(1,1)
+       T = REAL(A(2,1)) / REAL(A(1,1))
        C = SQRT(T * T + D_ONE) ! D_ONE /
        Q(1,1) =  C
        Q(2,1) = -T

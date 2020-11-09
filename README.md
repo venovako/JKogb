@@ -20,10 +20,11 @@ Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory 
 Run ``make`` as follows:
 ```bash
 cd src
-make [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
+make [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel Fortran compilers (version 19.1+/2020+ recommended) to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-If ``COMPILER`` is not set, GNU Fortran compilers will be used instead.
+If ``COMPILER`` is not set or is ``gnu``, GNU Fortran compilers will be used (versions 8, 9, and 10 should work, but not extensively tested).
+There is also a preliminary support for NVIDIA HPC SDK on Linux (building works, but the executables have not been tested).
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.

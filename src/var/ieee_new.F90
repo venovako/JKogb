@@ -1,3 +1,4 @@
+! If this program compiles, it means that the intrinsics named below are available.
 PROGRAM IEEE_NEW
   USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY: IEEE_FMA, IEEE_SIGNBIT, IEEE_MAX_NUM, IEEE_MAX_NUM_MAG, IEEE_MIN_NUM, IEEE_MIN_NUM_MAG
   IMPLICIT NONE
