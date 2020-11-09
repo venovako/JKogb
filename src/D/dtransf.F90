@@ -10,15 +10,20 @@ CONTAINS
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: X1, X2
 
-    REAL(KIND=DWP) :: X(2), Y(2)
+    REAL(KIND=DWP) :: X(2)
 
     X(1) = ABS(X1)
     X(2) = ABS(X2)
 
-    Y(1) = MAX(X(1), X(2))
-    Y(2) = MIN(X(1), X(2))
-
-    DASUM2 = IEEE_FMA(Y(1), Y(1), Y(2) * Y(2))
+    IF (X(1) .GE. X(2)) THEN
+       IF (X(1) .EQ. D_ZERO) THEN
+          DASUM2 = D_ZERO
+       ELSE ! X(1) .GT. D_ZERO
+          DASUM2 = ((X(2) / X(1)) * X(2) + X(1)) * X(1)
+       END IF
+    ELSE ! X(1) .LT. X(2)
+       DASUM2 = (X(2) + X(1) * (X(1) / X(2))) * X(2)
+    END IF
   END FUNCTION DASUM2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -61,8 +66,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: C(2)
 
-    C(1) = IEEE_FMA(B(1,2), A(2), A(1)) / B(1,1)
-    C(2) = IEEE_FMA(B(2,1), A(1), A(2)) / B(2,2)
+    C(1) = (A(1) + B(1,2) * A(2)) / B(1,1)
+    C(2) = (B(2,1) * A(1) + A(2)) / B(2,2)
     A = C
   END SUBROUTINE C1A
 
@@ -77,8 +82,8 @@ CONTAINS
     INTEGER :: J
 
     DO J = 1, 2
-       C(1,J) = IEEE_FMA(B(1,2), A(2,J), A(1,J)) / B(1,1)
-       C(2,J) = IEEE_FMA(B(2,1), A(1,J), A(2,J)) / B(2,2)
+       C(1,J) = (A(1,J) + B(1,2) * A(2,J)) / B(1,1)
+       C(2,J) = (B(2,1) * A(1,J) + A(2,J)) / B(2,2)
     END DO
     A = C
   END SUBROUTINE C2A
@@ -94,8 +99,8 @@ CONTAINS
     INTEGER :: I
 
     DO I = 1, 2
-       C(I,1) = IEEE_FMA(A(I,2), B(2,1), A(I,1)) / B(1,1)
-       C(I,2) = IEEE_FMA(A(I,1), B(1,2), A(I,2)) / B(2,2)
+       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) / B(1,1)
+       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) / B(2,2)
     END DO
     A = C
   END SUBROUTINE A2C
@@ -126,8 +131,8 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
           DO J = 1, N
-             XX = IEEE_FMA(R1, Y(I), X(I))
-             YY = IEEE_FMA(R2, X(I), Y(I))
+             XX = X(I) + R1 * Y(I)
+             YY = R2 * X(I) + Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
              I = I + LDA
@@ -135,8 +140,8 @@ CONTAINS
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
           DO J = 1, N
-             XX = IEEE_FMA(R1, Y(I), X(I))
-             YY = IEEE_FMA(R2, Y(I), X(I))
+             XX = X(I) + R1 * Y(I)
+             YY = X(I) + R2 * Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,1)
              I = I + LDA
@@ -147,8 +152,8 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
           DO J = 1, N
-             XX = IEEE_FMA(R1, X(I), Y(I))
-             YY = IEEE_FMA(R2, X(I), Y(I))
+             XX = R1 * X(I) + Y(I)
+             YY = R2 * X(I) + Y(I)
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,2)
              I = I + LDA
@@ -156,8 +161,8 @@ CONTAINS
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
           DO J = 1, N
-             XX = IEEE_FMA(R1, X(I), Y(I))
-             YY = IEEE_FMA(R2, Y(I), X(I))
+             XX = R1 * X(I) + Y(I)
+             YY = X(I) + R2 * Y(I)
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,1)
              I = I + LDA
@@ -189,16 +194,16 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, M
-             XX = IEEE_FMA(Y(I), R1, X(I))
-             YY = IEEE_FMA(X(I), R2, Y(I))
+             XX = X(I) + Y(I) * R1
+             YY = X(I) * R2 + Y(I)
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, M
-             XX = IEEE_FMA(Y(I), R1, X(I))
-             YY = IEEE_FMA(Y(I), R2, X(I))
+             XX = X(I) + Y(I) * R1
+             YY = X(I) + Y(I) * R2
              X(I) = XX * B(1,1)
              Y(I) = YY * B(1,2)
           END DO
@@ -208,16 +213,16 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, M
-             XX = IEEE_FMA(X(I), R1, Y(I))
-             YY = IEEE_FMA(X(I), R2, Y(I))
+             XX = X(I) * R1 + Y(I)
+             YY = X(I) * R2 + Y(I)
              X(I) = XX * B(2,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, M
-             XX = IEEE_FMA(X(I), R1, Y(I))
-             YY = IEEE_FMA(Y(I), R2, X(I))
+             XX = X(I) * R1 + Y(I)
+             YY = X(I) + Y(I) * R2
              X(I) = XX * B(2,1)
              Y(I) = YY * B(1,2)
           END DO
@@ -251,42 +256,42 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, P-1
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = P+1, Q-1
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = Q+1, M
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, P-1
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = P+1, Q-1
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = Q+1, M
-             XX = IEEE_FMA(Y(I), R1, X(I)) * B(1,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) + Y(I) * R1) * B(1,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
@@ -294,42 +299,42 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, P-1
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = P+1, Q-1
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = Q+1, M
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(X(I), R2, Y(I)) * B(2,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) * R2 + Y(I)) * B(2,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, P-1
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = P+1, Q-1
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
           DO I = Q+1, M
-             XX = IEEE_FMA(X(I), R1, Y(I)) * B(2,1)
-             YY = IEEE_FMA(Y(I), R2, X(I)) * B(1,2)
-             ABODNDF2 = IEEE_FMA(X(I) - XX, X(I) + XX, ABODNDF2)
-             ABODNDF2 = IEEE_FMA(Y(I) - YY, Y(I) + YY, ABODNDF2)
+             XX = (X(I) * R1 + Y(I)) * B(2,1)
+             YY = (X(I) + Y(I) * R2) * B(1,2)
+             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
+             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
           END DO
        END IF
     END IF
@@ -435,7 +440,7 @@ CONTAINS
     ! S is tangent here, |S| <= 1
     IF (.NOT. D) THEN
        S = A(2,1) / A(1,1)
-       C = SQRT(IEEE_FMA(S, S, D_ONE)) ! D_ONE /
+       C = SQRT(S * S + D_ONE) ! D_ONE /
        Q(1,1) =  C
        Q(2,1) = -S
        Q(1,2) =  S
