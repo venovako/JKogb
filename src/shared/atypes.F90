@@ -377,24 +377,8 @@ CONTAINS
 
     DO I = 1, N_2
        STEP(I) = J
-#ifndef NDEBUG
-       IF (R(DZ(J)%P)) THEN
-          INFO = -5
-          RETURN
-       ELSE
-#endif
-          R(DZ(J)%P) = .TRUE.
-#ifndef NDEBUG
-       END IF
-       IF (R(DZ(J)%Q) THEN
-          INFO = -5
-          RETURN
-       ELSE
-#endif
-          R(DZ(J)%Q) = .TRUE.
-#ifndef NDEBUG
-       END IF
-#endif
+       R(DZ(J)%P) = .TRUE.
+       R(DZ(J)%Q) = .TRUE.
        J = J + 1
        DO WHILE (J .LE. NN)
           IF ((DZ(J)%W .EQ. DZ(J)%W) .AND. (.NOT. R(DZ(J)%P)) .AND. (.NOT. R(DZ(J)%Q))) EXIT
