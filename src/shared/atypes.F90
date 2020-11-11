@@ -73,13 +73,9 @@ CONTAINS
   !   same magnitude ==> sorting by subdiagonals (bands)
   !     outer bands first
   !       within a band, the lower elements first
-#ifdef _GNU_SOURCE
-  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB, CTX) BIND(C)
-#else
-  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(CTX, PA, PB) BIND(C)
-#endif
+  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB) BIND(C)
     IMPLICIT NONE
-    TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB, CTX
+    TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB
 
     TYPE(AW), POINTER :: A, B
 
@@ -171,11 +167,7 @@ CONTAINS
 
     !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPT,A)
     I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
-#ifdef _GNU_SOURCE
-    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(CMP), C_NULL_PTR)
-#else
-    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_NULL_PTR, C_FUNLOC(CMP))
-#endif
+    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(CMP))
     !$OMP END PARALLEL
 
     DO WHILE (.TRUE.)
@@ -193,11 +185,7 @@ CONTAINS
              K = I
              L = 0
              DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
-#ifdef _GNU_SOURCE
-                C = INT(CMP(C_LOC(A(I)), C_LOC(A(J)), C_NULL_PTR))
-#else
-                C = INT(CMP(C_NULL_PTR, C_LOC(A(I)), C_LOC(A(J))))
-#endif
+                C = INT(CMP(C_LOC(A(I)), C_LOC(A(J))))
                 IF (C .LE. 0) THEN
                    B(K) = A(I)
                    I = I + 1
@@ -258,11 +246,7 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_SYS_US()
-#ifdef _GNU_SOURCE
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP), C_NULL_PTR)
-#else
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_NULL_PTR, C_FUNLOC(CMP))
-#endif
+    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
     INFO = GET_SYS_US() - INFO
   END SUBROUTINE AW_SRT2
 
