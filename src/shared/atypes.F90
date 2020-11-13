@@ -413,7 +413,7 @@ CONTAINS
        MYW = MYWP + MYWN
        L = J + 1
        !$OMP CRITICAL
-       IF ((MYW .GT. W) .OR. ((MYW .EQ. W) .AND. (L .LT. K))) THEN
+       IF ((.NOT. (MYW .LE. W)) .OR. ((MYW .EQ. W) .AND. (L .LT. K))) THEN
           SL = MYSL
           DO I = 1, SL
              STEP(I) = STP(I) + J
