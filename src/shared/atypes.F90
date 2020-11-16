@@ -14,10 +14,10 @@ MODULE ATYPES
   END INTERFACE
 
   TYPE, BIND(C) :: AW
-     REAL(KIND=DWP) :: W ! weight
-     INTEGER :: P ! row
-     INTEGER :: Q ! column
-     INTEGER :: B ! band (Q - P) > 0
+     REAL(KIND=c_double) :: W ! weight
+     INTEGER(KIND=c_int64_t) :: P ! row
+     INTEGER(KIND=c_int64_t) :: Q ! column
+     INTEGER(KIND=c_int64_t) :: B ! band (Q - P) > 0
   END TYPE AW
 
 CONTAINS

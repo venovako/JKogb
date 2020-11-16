@@ -4,7 +4,7 @@ PROGRAM ZJK
   USE ZSTEP
   IMPLICIT NONE
 
-  CHARACTER(LEN=FNL,KIND=c_char) :: FN
+  CHARACTER(LEN=FNL) :: FN
   INTEGER :: N, N_2, ID_NCP, ID_TRU, INFO, NN, NM, NT, TT, FD(3)
   TYPE(ZPROC) :: R
 
@@ -28,7 +28,7 @@ PROGRAM ZJK
   WRITE (ERROR_UNIT,'(A,I11)') '     N=', N
   FLUSH(ERROR_UNIT)
 #endif
-  IF (N .LE. 1) ERROR STOP 'N < 2'
+  IF (N .LE. 2) ERROR STOP 'N should be at least 3 (for N=2 use ztest)'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO

@@ -26,7 +26,7 @@ PROGRAM DJK
   WRITE (ERROR_UNIT,'(A,I11)') '     N=', N
   FLUSH(ERROR_UNIT)
 #endif
-  IF (N .LE. 1) ERROR STOP 'N < 2'
+  IF (N .LE. 2) ERROR STOP 'N should be at least 3 (for N=2 use dtest)'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
