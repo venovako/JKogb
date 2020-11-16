@@ -2,7 +2,9 @@ MODULE ATYPES
   USE OMP_LIB
   USE PARAMS
   USE TIMER
+#ifndef NDEBUG
   USE UTILS
+#endif
   IMPLICIT NONE
 
   ABSTRACT INTERFACE
@@ -13,17 +15,17 @@ MODULE ATYPES
      END SUBROUTINE ATRU
   END INTERFACE
 
-  TYPE, BIND(C) :: AW
-     REAL(KIND=c_double) :: W ! weight
-     INTEGER(KIND=c_int64_t) :: P ! row
-     INTEGER(KIND=c_int64_t) :: Q ! column
-     INTEGER(KIND=c_int64_t) :: B ! band (Q - P) > 0
+  TYPE :: AW
+     REAL(KIND=DWP) :: W ! weight
+     INTEGER :: P ! row
+     INTEGER :: Q ! column
+     INTEGER :: B ! band (Q - P) > 0
   END TYPE AW
 
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#ifndef NDEBUG
   SUBROUTINE AW_OUT(OU, HDR, NN, DZ, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: OU, NN, SL, STEP(SL)
@@ -67,62 +69,129 @@ CONTAINS
 
     INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_OUT
-
+#endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   ! sorting by magnitude
   !   same magnitude ==> sorting by subdiagonals (bands)
   !     outer bands first
   !       within a band, the lower elements first
-  INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB) BIND(C)
+  PURE INTEGER FUNCTION AW_CMP(A, B)
     IMPLICIT NONE
-    TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB
+    TYPE(AW), INTENT(IN) :: A, B
 
-    TYPE(AW), POINTER :: A, B
-
-    AW_CMP = 0_c_int
-    CALL C_F_POINTER(PA, A)
-#ifndef NDEBUG
-    IF (.NOT. ASSOCIATED(A)) RETURN
-#endif
-    CALL C_F_POINTER(PB, B)
-#ifndef NDEBUG
-    IF (.NOT. ASSOCIATED(B)) RETURN
-#endif
-    IF (ASSOCIATED(A, B)) RETURN
+    AW_CMP = 0
 
     IF (A%W .LT. B%W) THEN
-       AW_CMP = 1_c_int
+       AW_CMP = 1
     ELSE IF (A%W .GT. B%W) THEN
-       AW_CMP = -1_c_int
+       AW_CMP = -1
     ELSE IF (A%W .EQ. B%W) THEN
        IF (A%B .LT. B%B) THEN
-          AW_CMP = 2_c_int
+          AW_CMP = 2
        ELSE IF (A%B .GT. B%B) THEN
-          AW_CMP = -2_c_int
+          AW_CMP = -2
        ELSE ! A%B = B%B
           IF (A%P .LT. B%P) THEN
-             AW_CMP = 3_c_int
+             AW_CMP = 3
           ELSE IF (A%P .GT. B%P) THEN
-             AW_CMP = -3_c_int
+             AW_CMP = -3
           ELSE ! A%P = B%P
              IF (A%Q .LT. B%Q) THEN
-                AW_CMP = 4_c_int
+                AW_CMP = 4
              ELSE IF (A%Q .GT. B%Q) THEN
-                AW_CMP = -4_c_int
+                AW_CMP = -4
              ELSE ! A%Q = B%Q
-                AW_CMP = 0_c_int
+                AW_CMP = 0
              END IF
           END IF
        END IF
     ELSE ! NaN magnitude(s)
        IF (B%W .EQ. B%W) THEN
-          AW_CMP = 5_c_int
+          AW_CMP = 5
        ELSE ! NaN(B%W)
-          AW_CMP = -5_c_int
+          AW_CMP = -5
        END IF
     END IF
   END FUNCTION AW_CMP
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AW_MERGE(N, M, A, I, J, B, K)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N, M, I, J, K
+    TYPE(AW), INTENT(IN) :: A(N)
+    TYPE(AW), INTENT(OUT) :: B(N)
+
+    INTEGER :: II, JJ, KK, IL, JL, L
+    LOGICAL :: LI, LJ
+
+    IL = MIN(I + M - 1, N)
+    JL = MIN(J + M - 1, N)
+
+    II = I
+    JJ = J
+    KK = K
+
+    DO WHILE (KK .LE. N)
+       LI = (II .GT. IL)
+       LJ = (JJ .GT. JL)
+       IF (LI .AND. LJ) THEN
+          EXIT
+       ELSE IF (LI) THEN
+          B(KK) = A(JJ)
+          JJ = JJ + 1
+       ELSE IF (LJ) THEN
+          B(KK) = A(II)
+          II = II + 1
+       ELSE ! all in range
+          L = AW_CMP(A(II), A(JJ))
+          IF (L .LE. 0) THEN
+             B(KK) = A(II)
+             II = II + 1
+          ELSE ! .GT. 0
+             B(KK) = A(JJ)
+             JJ = JJ + 1
+          END IF
+       END IF
+       KK = KK + 1
+    END DO
+  END SUBROUTINE AW_MERGE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  PURE SUBROUTINE AW_SORT(N, A, B)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: N
+    TYPE(AW), INTENT(INOUT) :: A(N)
+    TYPE(AW), INTENT(OUT) :: B(N)
+
+    INTEGER :: I, W, W2
+    LOGICAL :: D
+
+    W = 1
+    D = .FALSE.
+    DO WHILE (W .LT. N)
+       W2 = W * 2
+       IF (D) THEN
+          DO I = 1, N, W2
+             CALL AW_MERGE(N, W, B, I, I + W, A, I)
+          END DO
+       ELSE ! A -> B
+          DO I = 1, N, W2
+             CALL AW_MERGE(N, W, A, I, I + W, B, I)
+          END DO
+       END IF
+       W = W2
+       D = (.NOT. D)
+    END DO
+
+    IF (D) THEN
+       DO I = 1, N
+          A(I) = B(I)
+       END DO
+    END IF
+  END SUBROUTINE AW_SORT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -165,9 +234,10 @@ CONTAINS
     ! IEEE Transactions on Computers, C-27(1):84--87, Jan 1978.
     ! doi:10.1109/TC.1978.1674957
 
-    !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPT,A)
+    !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,J) SHARED(EPT,A,B)
     I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
-    CALL C_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(AW_CMP))
+    J = I + EPT - 1
+    CALL AW_SORT(EPT, A(I:J), B(I:J))
     !$OMP END PARALLEL
 
     DO WHILE (.TRUE.)
@@ -185,7 +255,7 @@ CONTAINS
              K = I
              L = 0
              DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
-                C = INT(AW_CMP(C_LOC(A(I)), C_LOC(A(J))))
+                C = AW_CMP(A(I), A(J))
                 IF (C .LE. 0) THEN
                    B(K) = A(I)
                    I = I + 1
@@ -231,7 +301,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: NT, NN, NM
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
-
+    
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -245,7 +315,7 @@ CONTAINS
     IF (NN .EQ. 0) RETURN
 
     INFO = GET_SYS_TIME()
-    CALL C_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(AW_CMP))
+    CALL AW_SORT(NN, DZ, DZ(NN+1))
     INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_SRT2
 
@@ -260,11 +330,6 @@ CONTAINS
     INTEGER :: I, J, K, AP, AQ, BP, BQ
 
     SL = 0
-#ifndef NDEBUG
-    DO I = 1, N_2
-       STEP(I) = 0
-    END DO
-#endif
 
     IF (NT .LE. 0) THEN
        INFO = -1
@@ -329,11 +394,6 @@ CONTAINS
     INTEGER :: I, J
 
     SL = 0
-#ifndef NDEBUG
-    DO I = 1, N_2
-       STEP(I) = 0
-    END DO
-#endif
 
     IF (NT .LE. 0) THEN
        INFO = -1
@@ -436,11 +496,6 @@ CONTAINS
     INTEGER :: I, J, K
 
     SL = 0
-#ifndef NDEBUG
-    DO I = 1, N_2
-       STEP(I) = 0
-    END DO
-#endif
 
     IF (NT .LE. 0) THEN
        INFO = -1

@@ -373,9 +373,7 @@ CONTAINS
 
     SL = 0
     INFO = 0
-#ifndef NDEBUG
-    IF (IsCtrlC()) RETURN
-#endif
+
     WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
     CALL DSTEP_BUILD(NT, S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
@@ -399,9 +397,6 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     IF (SL .LE. 0) RETURN
-#ifndef NDEBUG
-    IF (IsCtrlC()) INFO = 0
-#endif
     IF (INFO .LE. 0) THEN
        WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
             D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
@@ -531,11 +526,7 @@ CONTAINS
     FLUSH(ERROR_UNIT)
 
     S = 0
-#ifdef NDEBUG
     DO WHILE (S .GE. 0)
-#else
-    DO WHILE ((S .GE. 0) .AND. (.NOT. IsCtrlC()))
-#endif
 #ifdef ANIMATE
        INFO = VN_MTXVIS_FRAME(CTX, A, N)
        IF (INFO .NE. 0) THEN

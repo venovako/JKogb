@@ -243,12 +243,6 @@ CONTAINS
     REAL(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
 
-#ifndef NDEBUG
-    IF ((M .LT. 2) .OR. (P .LE. 0) .OR. (P .GT. M) .OR. (Q .LE. P) .OR. (Q .GT. M)) THEN
-       ABODNDF2 = D_MZERO
-       RETURN
-    END IF
-#endif
     ABODNDF2 = DASUM2(X(Q), Y(P))
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
@@ -535,10 +529,6 @@ CONTAINS
     INTEGER :: T
 
     T = J(1) + J(2)
-#ifndef NDEBUG
-    IF (ABS(T) .NE. 2) INFO = -12
-    IF (INFO .LT. 0) RETURN
-#endif
 
     IF (((T .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((T .EQ. -2) .AND. (A(2,2) .LT. A(1,1)))) THEN
        ! swap the rows of U

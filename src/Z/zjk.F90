@@ -17,41 +17,18 @@ PROGRAM ZJK
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
   ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN/MAX do not handle the NaNs properly'
-#ifndef NDEBUG
-  CALL SetCtrlC
-#endif
   CALL READCL(FN, N, N_2, ID_NCP, ID_TRU, INFO)
   IF (INFO .NE. 0) ERROR STOP 'zjk.exe FN N N_2 [ID_NCP [ID_TRU]]'
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,A)')   '    FN=', TRIM(FN)
-  FLUSH(ERROR_UNIT)
-  WRITE (ERROR_UNIT,'(A,I11)') '     N=', N
-  FLUSH(ERROR_UNIT)
-#endif
   IF (N .LE. 2) ERROR STOP 'N should be at least 3 (for N=2 use ztest)'
 
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,I11)') '   N_2=', N_2
-  FLUSH(ERROR_UNIT)
-#endif
   IF (INFO .LE. 0) ERROR STOP 'JSTEP_LEN'
 
   ! number of threads
   NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,I11)') '    NT=', NT
-  FLUSH(ERROR_UNIT)
-#endif
 
   CALL ZPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,I11)') 'ID_NCP=', ID_NCP
-  FLUSH(ERROR_UNIT)
-  WRITE (ERROR_UNIT,'(A,I11)') 'ID_TRU=', ID_TRU
-  FLUSH(ERROR_UNIT)
-#endif
   IF (INFO .NE. 0) ERROR STOP 'ZPROC_INIT'
 
   CALL OPEN_YJ_RO(FN, FD, INFO)
@@ -80,10 +57,6 @@ PROGRAM ZJK
   IF (INFO .GT. 0) INFO = NT - INFO
   NM = 2 * (NN + INFO)
   ALLOCATE(DZ(NM))
-#ifndef NDEBUG
-  WRITE (ERROR_UNIT,'(A,I11)') '    NM=', NM
-  FLUSH(ERROR_UNIT)
-#endif
 
   CALL ZREAD_YJ(FD, A, J, N, N, INFO)
   IF (INFO .NE. 0) THEN

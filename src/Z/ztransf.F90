@@ -149,22 +149,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ! assume that B is not real and |B| .NE. 0
-  ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
-    IMPLICIT NONE
-    COMPLEX(KIND=DWP), INTENT(IN) :: A, B
-#ifdef NDEBUG
-    ZZDIV = A / B
-#else
-    REAL(KIND=DWP) :: F
-
-    F = ABS(B)
-    ZZDIV = ZZMUL(CONJG(B / F), A) / F
-#endif
-  END FUNCTION ZZDIV
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE SUBROUTINE C1A(B, A)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: B(2,2)
@@ -236,13 +220,13 @@ CONTAINS
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(1,2) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = ZZDIV(B(1,2), B(1,1))
+          R1 = B(1,2) / B(1,1)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(2,1) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(2,1), B(2,2))
+             R2 = B(2,1) / B(2,2)
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, Y(I), X(I)) !X(I) + R1 * Y(I)
@@ -255,7 +239,7 @@ CONTAINS
           IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(2,1))
           ELSE ! B(2,1) complex
-             R2 = ZZDIV(B(2,2), B(2,1))
+             R2 = B(2,2) / B(2,1)
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, Y(I), X(I)) !X(I) + R1 * Y(I)
@@ -269,13 +253,13 @@ CONTAINS
        IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(1,2))
        ELSE ! B(1,2) complex
-          R1 = ZZDIV(B(1,1), B(1,2))
+          R1 = B(1,1) / B(1,2)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(2,1) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(2,1), B(2,2))
+             R2 = B(2,1) / B(2,2)
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, X(I), Y(I)) !R1 * X(I) + Y(I)
@@ -288,7 +272,7 @@ CONTAINS
           IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(2,1))
           ELSE ! B(2,1) complex
-             R2 = ZZDIV(B(2,2), B(2,1))
+             R2 = B(2,2) / B(2,1)
           END IF
           DO J = 1, N
              XX = ZZFMA(R1, X(I), Y(I)) !R1 * X(I) + Y(I)
@@ -323,13 +307,13 @@ CONTAINS
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(2,1) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = ZZDIV(B(2,1), B(1,1))
+          R1 = B(2,1) / B(1,1)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(1,2), B(2,2))
+             R2 = B(1,2) / B(2,2)
           END IF
           DO I = 1, M
              XX = ZZFMA(Y(I), R1, X(I)) !X(I) + Y(I) * R1
@@ -341,7 +325,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = ZZDIV(B(2,2), B(1,2))
+             R2 = B(2,2) / B(1,2)
           END IF
           DO I = 1, M
              XX = ZZFMA(Y(I), R1, X(I)) !X(I) + Y(I) * R1
@@ -354,13 +338,13 @@ CONTAINS
        IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(2,1))
        ELSE ! B(2,1) complex
-          R1 = ZZDIV(B(1,1), B(2,1))
+          R1 = B(1,1) / B(2,1)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(1,2), B(2,2))
+             R2 = B(1,2) / B(2,2)
           END IF
           DO I = 1, M
              XX = ZZFMA(X(I), R1, Y(I)) !X(I) * R1 + Y(I)
@@ -372,7 +356,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = ZZDIV(B(2,2), B(1,2))
+             R2 = B(2,2) / B(1,2)
           END IF
           DO I = 1, M
              XX = ZZFMA(X(I), R1, Y(I)) !X(I) * R1 + Y(I)
@@ -398,25 +382,19 @@ CONTAINS
     REAL(KIND=DWP) :: AXI, AXX, AYI, AYY
     INTEGER :: I
 
-#ifndef NDEBUG
-    IF ((M .LT. 2) .OR. (P .LE. 0) .OR. (P .GT. M) .OR. (Q .LE. P) .OR. (Q .GT. M)) THEN
-       ABODNZF2 = D_MZERO
-       RETURN
-    END IF
-#endif
     ABODNZF2 = DASUM4(REAL(Y(P)), AIMAG(Y(P)), REAL(X(Q)), AIMAG(X(Q)))
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
           R1 = B(2,1) / REAL(B(1,1))
        ELSE ! B(1,1) complex
-          R1 = ZZDIV(B(2,1), B(1,1))
+          R1 = B(2,1) / B(1,1)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(1,2), B(2,2))
+             R2 = B(1,2) / B(2,2)
           END IF
           DO I = 1, P-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -452,7 +430,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = ZZDIV(B(2,2), B(1,2))
+             R2 = B(2,2) / B(1,2)
           END IF
           DO I = 1, P-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -489,13 +467,13 @@ CONTAINS
        IF (AIMAG(B(2,1)) .EQ. D_ZERO) THEN
           R1 = B(1,1) / REAL(B(2,1))
        ELSE ! B(2,1) complex
-          R1 = ZZDIV(B(1,1), B(2,1))
+          R1 = B(1,1) / B(2,1)
        END IF
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           IF (AIMAG(B(2,2)) .EQ. D_ZERO) THEN
              R2 = B(1,2) / REAL(B(2,2))
           ELSE ! B(2,2) complex
-             R2 = ZZDIV(B(1,2), B(2,2))
+             R2 = B(1,2) / B(2,2)
           END IF
           DO I = 1, P-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -531,7 +509,7 @@ CONTAINS
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
              R2 = B(2,2) / REAL(B(1,2))
           ELSE ! B(1,2) complex
-             R2 = ZZDIV(B(2,2), B(1,2))
+             R2 = B(2,2) / B(1,2)
           END IF
           DO I = 1, P-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -776,10 +754,6 @@ CONTAINS
     INTEGER :: T
 
     T = J(1) + J(2)
-#ifndef NDEBUG
-    IF (ABS(T) .NE. 2) INFO = -12
-    IF (INFO .LT. 0) RETURN
-#endif
 
     IF (((T .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((T .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1))))) THEN
        ! swap the rows of U

@@ -37,16 +37,6 @@ CONTAINS
        END SELECT
     END DO
 
-#ifndef NDEBUG
-    DO IT = 1, NN
-       P(IT) = 0
-    END DO
-
-    DO IT = 1, NN
-       Q(IT) = 0
-    END DO
-#endif
-
     IT = 1
     IH = NN
     DO IQ = 2, N
@@ -64,21 +54,6 @@ CONTAINS
        END DO
     END DO
 
-#ifndef NDEBUG
-    DO IH = 1, NN
-       IF (P(IH) .EQ. 0) THEN
-          INFO = -4
-          RETURN
-       END IF
-    END DO
-
-    DO IH = 1, NN
-       IF (Q(IH) .EQ. 0) THEN
-          INFO = -5
-          RETURN
-       END IF
-    END DO
-#endif
     INFO = IT - 1
   END SUBROUTINE TRU1
 
@@ -116,16 +91,6 @@ CONTAINS
        END SELECT
     END DO
 
-#ifndef NDEBUG
-    DO IT = 1, NN
-       P(IT) = 0
-    END DO
-
-    DO IT = 1, NN
-       Q(IT) = 0
-    END DO
-#endif
-
     IT = 1
     IH = NN
     DO IP = 1, N-1
@@ -143,21 +108,6 @@ CONTAINS
        END DO
     END DO
 
-#ifndef NDEBUG
-    DO IH = 1, NN
-       IF (P(IH) .EQ. 0) THEN
-          INFO = -4
-          RETURN
-       END IF
-    END DO
-
-    DO IH = 1, NN
-       IF (Q(IH) .EQ. 0) THEN
-          INFO = -5
-          RETURN
-       END IF
-    END DO
-#endif
     INFO = IT - 1
   END SUBROUTINE TRU2
 
