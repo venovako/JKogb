@@ -9,15 +9,15 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libjk$(PROFILE)$(DEBUG).a
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjk$(PROFILE)$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o params.o timer.o utils.o $(MKFS)
 	$(AR) $(ARFLAGS) $@  atypes.o binio.o jstep.o ktransf.o params.o timer.o utils.o
 
-atypes.o atypes.mod: atypes.F90 timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+atypes.o atypes.mod: atypes.F90 params.mod timer.mod utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c atypes.F90
 
-binio.o binio.mod: binio.F90 ../../../JACSD/vn/vn_binio_f.mod $(MKFS)
+binio.o binio.mod: binio.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c binio.F90
 
 jstep.o jstep.mod: jstep.F90 $(MKFS)
@@ -26,10 +26,10 @@ jstep.o jstep.mod: jstep.F90 $(MKFS)
 ktransf.o ktransf.mod: ktransf.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ktransf.F90
 
-params.o params.mod: params.F90 ../../../JACSD/vn/vn_types_f.mod ../../../JACSD/vn/vn_params.F90 $(MKFS)
+params.o params.mod: params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c params.F90
 
-timer.o timer.mod: timer.F90 params.mod ../../../JACSD/vn/vn_timer_f.mod $(MKFS)
+timer.o timer.mod: timer.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c timer.F90
 
 utils.o utils.mod: utils.F90 $(MKFS)

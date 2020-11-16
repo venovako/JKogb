@@ -1,11 +1,11 @@
 PROGRAM DJK
+  USE OMP_LIB
   USE BINIO
   USE DSTEP
-  USE OMP_LIB
   IMPLICIT NONE
 
-  CHARACTER(LEN=FNL,KIND=c_char) :: FN
-  INTEGER :: N, N_2, ID_NCP, ID_TRU, INFO, NN, NM, NT, TT, SZ(3), FD(3)
+  CHARACTER(LEN=FNL) :: FN
+  INTEGER :: N, N_2, ID_NCP, ID_TRU, INFO, NN, NM, NT, TT, FD(3)
   TYPE(DPROC) :: R
 
   REAL(KIND=DWP), ALLOCATABLE, TARGET :: DARR(:,:)
@@ -14,7 +14,7 @@ PROGRAM DJK
   INTEGER, POINTER, CONTIGUOUS :: J(:), P(:), Q(:), STEP(:)
   TYPE(AW), ALLOCATABLE, TARGET :: DZ(:)
 
-  IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN/MAX do not handle the NaNs properly'
+  ! IF (.NOT. VERIFY_MIN_MAX(.FALSE.)) ERROR STOP 'MIN/MAX do not handle the NaNs properly'
 #ifndef NDEBUG
   CALL SetCtrlC
 #endif
@@ -52,11 +52,11 @@ PROGRAM DJK
 #endif
   IF (INFO .NE. 0) ERROR STOP 'DPROC_INIT'
 
-  CALL DOPEN_YJ_RO(FN, N, N, SZ, FD, INFO)
+  CALL OPEN_YJ_RO(FN, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
      FLUSH(ERROR_UNIT)
-     ERROR STOP 'DOPEN_YJ_RO'
+     ERROR STOP 'OPEN_YJ_RO'
   END IF
 
   ALLOCATE(DARR(N, 3 * N + 1))
@@ -81,13 +81,18 @@ PROGRAM DJK
   FLUSH(ERROR_UNIT)
 #endif
 
-  CALL DREAD_YJ(FD, A, J, N, N, SZ, INFO)
+  CALL DREAD_YJ(FD, A, J, N, N, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
      FLUSH(ERROR_UNIT)
      ERROR STOP 'DREAD_YJ'
   END IF
-  CALL BCLOSEN(FD, 3)
+  CALL BCLOSEN(2, FD, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
+     ERROR STOP 'BCLOSEN(RO)'
+  END IF
 
   CALL R%TRU(N, J, NN, P, Q, FD, INFO)
   IF (INFO .LT. 0) THEN
@@ -100,14 +105,16 @@ PROGRAM DJK
   WRITE (OUTPUT_UNIT,'(3(A,I11),A)') 'J has', FD(1), ' +  and', FD(2), ' - signs for <=', TT, ' trig. transfs.'
   FLUSH(OUTPUT_UNIT)
 
-  FD(1) = GET_SYS_US()
+  FD(1) = GET_SYS_TIME()
   CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, TT, INFO)
-  FD(1) = GET_SYS_US() - FD(1)
+  FD(1) = GET_SYS_TIME() - FD(1)
   IF (INFO .GE. 0) THEN
-     WRITE (OUTPUT_UNIT,'(A,I10,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', (FD(1) * DUS2S), ' s'
+     WRITE (OUTPUT_UNIT,'(A,I10,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', &
+          (FD(1) / REAL(GET_SYS_TRES(),DWP)), ' s'
      FLUSH(OUTPUT_UNIT)
   ELSE ! error
-     WRITE (ERROR_UNIT,'(A,I10,A,F13.6,A)') 'ERROR ', INFO, ' after ', (FD(1) * DUS2S), ' s'
+     WRITE (ERROR_UNIT,'(A,I10,A,F13.6,A)') 'ERROR ', INFO, ' after ', &
+          (FD(1) / REAL(GET_SYS_TRES(),DWP)), ' s'
      FLUSH(ERROR_UNIT)
   END IF
 
@@ -118,11 +125,11 @@ PROGRAM DJK
   J => NULL()
   IF (ALLOCATED(IARR)) DEALLOCATE(IARR)
 
-  CALL DOPEN_UZS_RW(FN, N, N, SZ, FD, INFO)
+  CALL OPEN_UZS_WO(FN, FD, INFO)
   IF (INFO .NE. 0) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
      FLUSH(ERROR_UNIT)
-     ERROR STOP 'DOPEN_UZS_RW'
+     ERROR STOP 'OPEN_UZS_WO'
   END IF
 
   CALL DWRITE_UZS(FD, U, Z, S, N, N, INFO)
@@ -132,7 +139,12 @@ PROGRAM DJK
      ERROR STOP 'DWRITE_UZS'
   END IF
 
-  CALL BCLOSEN(FD, 3)
+  CALL BCLOSEN(3, FD, INFO)
+  IF (INFO .NE. 0) THEN
+     WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
+     FLUSH(ERROR_UNIT)
+     ERROR STOP 'BCLOSEN(WO)'
+  END IF
 
   S => NULL()
   Z => NULL()

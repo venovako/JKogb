@@ -10,11 +10,6 @@ arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorit
 
 A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8) or macOS (e.g., Catalina) is needed.
 
-Have the Intel MKL (Math Kernel Library) installed (only required as a JACSD's dependency).
-Other (sequential) BLAS and LAPACK libraries might work with some makefile tweaking, if they support 8-byte INTEGERs.
-
-Then, clone and build [JACSD](https://github.com/venovako/JACSD) in a directory parallel to this one.
-
 ### Make options
 
 Run ``make`` as follows:

@@ -1,19 +1,28 @@
 MODULE UTILS
   USE, INTRINSIC :: ISO_C_BINDING
-#ifndef USE_NVIDIA
+#ifndef NDEBUG
   USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY: ATOMIC_INT_KIND
 #endif
   IMPLICIT NONE
 
-#ifdef USE_NVIDIA
-  INTEGER, PARAMETER :: ATOMIC_INT_KIND = c_int
-#endif
+#ifndef NDEBUG
   INTEGER(KIND=ATOMIC_INT_KIND), VOLATILE, PRIVATE :: CtrlC = 0_ATOMIC_INT_KIND
   INTEGER(KIND=c_int), PARAMETER, PRIVATE :: SigCtrlC = 2_c_int ! SIGINT
   TYPE(c_funptr), PRIVATE :: OldCtrlC = C_NULL_FUNPTR
+#endif
+
+  INTERFACE
+     SUBROUTINE C_QSORT(A, N, SZ, CMP) BIND(C,NAME='qsort')
+       USE, INTRINSIC :: ISO_C_BINDING
+       IMPLICIT NONE
+       TYPE(c_ptr), INTENT(IN), VALUE :: A
+       INTEGER(KIND=c_size_t), INTENT(IN), VALUE :: N, SZ
+       TYPE(c_funptr), INTENT(IN), VALUE :: CMP
+     END SUBROUTINE C_QSORT
+  END INTERFACE
 
 CONTAINS
-
+#ifndef NDEBUG
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   INTEGER FUNCTION OPEN_LOG(FN, S)
@@ -70,5 +79,5 @@ CONTAINS
   END SUBROUTINE SetCtrlC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+#endif
 END MODULE UTILS

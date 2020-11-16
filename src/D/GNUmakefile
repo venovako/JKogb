@@ -9,21 +9,21 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: djk.exe dtest.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 dtransf.o dtransf.mod: dtransf.F90 ../shared/ktransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtransf.F90
 
-dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 ifdef ANIMATE
-dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
+dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/jstep.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
 	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c dstep.F90
 else # !ANIMATE
-dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/utils.mod $(MKFS)
+dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/jstep.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dstep.F90
 endif # ?ANIMATE
-djk.exe: djk.o dstep.o dtransf.o dtypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+djk.exe: djk.o dstep.o dtransf.o dtypes.o $(MKFS)
 	$(FC) $(FFLAGS) djk.o dstep.o dtransf.o dtypes.o -o$@ $(LDFLAGS)
 
 djk.o: djk.F90 bio.F90 ../shared/readcl.F90 dstep.mod ../shared/binio.mod $(MKFS)

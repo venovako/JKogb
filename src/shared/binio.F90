@@ -1,89 +1,347 @@
 MODULE BINIO
-  USE VN_BINIO_F
+  USE PARAMS
   IMPLICIT NONE
 
+  INTEGER, PARAMETER, PRIVATE :: IOMSGLEN = 66
+
 CONTAINS
-  ! _RO: read-only, _RW: read-write, _WO: overwrite
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BOPEN_RO(FN, SZ, FD)
+  SUBROUTINE BIO_OPEN(U, FN, ACT, INFO)
     IMPLICIT NONE
-    CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
-    INTEGER, INTENT(OUT) :: SZ, FD
+    INTEGER, INTENT(INOUT) :: U
+    CHARACTER(LEN=*), INTENT(IN) :: FN, ACT
+    INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER(KIND=c_size_t) :: C_SZ
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    CHARACTER(LEN=9) :: FACT
+    CHARACTER(LEN=7) :: STAT
 
-    FD = INT(VN_BOPEN_RO((TRIM(FN)//c_null_char), C_SZ))
-    SZ = INT(C_SZ)
-  END SUBROUTINE BOPEN_RO
+    IF (U .LT. -1) THEN
+       INFO = -1
+    ELSE IF (LEN_TRIM(FN) .LE. 0) THEN
+       INFO = -2
+    ELSE IF (LEN_TRIM(ACT) .NE. 2) THEN
+       INFO = -3
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    SELECT CASE (ACT(1:1))
+    CASE ('R', 'r')
+       STAT = 'OLD'
+       SELECT CASE (ACT(2:2))
+       CASE ('O', 'o')
+          FACT = 'READ'
+       CASE ('W', 'w')
+          FACT = 'READWRITE'
+       CASE DEFAULT
+          INFO = -3
+       END SELECT
+    CASE ('W', 'w')
+       STAT = 'REPLACE'
+       SELECT CASE (ACT(2:2))
+       CASE ('O', 'o')
+          FACT = 'WRITE'
+       CASE ('R', 'r')
+          FACT = 'READWRITE'
+       CASE DEFAULT
+          INFO = -3
+       END SELECT
+    CASE DEFAULT
+       INFO = -3
+    END SELECT
+    IF (INFO .NE. 0) RETURN
+
+    IF (U .EQ. -1) THEN
+       OPEN(NEWUNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=1, FILE=TRIM(FN), STATUS=TRIM(STAT), ACTION=TRIM(FACT),&
+            ACCESS='STREAM', FORM='UNFORMATTED')
+    ELSE
+       OPEN(UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=1, FILE=TRIM(FN), STATUS=TRIM(STAT), ACTION=TRIM(FACT),&
+            ACCESS='STREAM', FORM='UNFORMATTED')
+    END IF
+    RETURN
+1   WRITE (ERROR_UNIT,'(2A)') 'BIO_OPEN    :', TRIM(MSG)
+  END SUBROUTINE BIO_OPEN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BOPEN_RW(FN, SZ, FD)
+  SUBROUTINE BIO_CLOSE(U, INFO)
     IMPLICIT NONE
-    CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
-    INTEGER, INTENT(INOUT) :: SZ
-    INTEGER, INTENT(OUT) :: FD
+    INTEGER, INTENT(INOUT) :: U
+    INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER(KIND=c_size_t) :: C_SZ
+    CHARACTER(LEN=IOMSGLEN) :: MSG
 
-    C_SZ = INT(SZ, c_size_t)
-    FD = INT(VN_BOPEN_RW((TRIM(FN)//c_null_char), C_SZ))
-    SZ = INT(C_SZ)
-  END SUBROUTINE BOPEN_RW
+    INFO = 0
+    CLOSE(UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=2)
+    U = -1
+    RETURN
+2   WRITE (ERROR_UNIT,'(2A)') 'BIO_CLOSE   :', TRIM(MSG)
+  END SUBROUTINE BIO_CLOSE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BOPEN_WO(FN, SZ, FD)
+  SUBROUTINE BIO_READ_I1(U, M, J, INFO)
     IMPLICIT NONE
-    CHARACTER(LEN=*,KIND=c_char), INTENT(IN) :: FN
-    INTEGER, INTENT(OUT) :: SZ, FD
+    INTEGER, INTENT(IN) :: U, M
+    INTEGER, INTENT(OUT) :: J(M), INFO
 
-    INTEGER(KIND=c_size_t) :: C_SZ
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I
 
-    C_SZ = -1_c_size_t
-    FD = INT(VN_BOPEN_WO((TRIM(FN)//c_null_char), C_SZ))
-    SZ = INT(C_SZ)
-  END SUBROUTINE BOPEN_WO
+    IF (M .LT. 0) THEN
+       INFO = -2
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO I = 1, M
+       READ (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=3) J(I)
+    END DO
+    RETURN
+3   WRITE (ERROR_UNIT,'(2A)') 'BIO_READ_I1 :', TRIM(MSG)
+  END SUBROUTINE BIO_READ_I1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  INTEGER FUNCTION BWRITE(FD, BUF, nB, OFF)
+  SUBROUTINE BIO_WRITE_D1(U, N, A, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: FD, nB, OFF
-    TYPE(c_ptr), INTENT(IN) :: BUF
-    BWRITE = INT(VN_BWRITE(INT(FD,c_int), BUF, INT(nB,c_size_t), INT(OFF,c_size_t)))
-  END FUNCTION BWRITE
+    INTEGER, INTENT(IN) :: U, N
+    REAL(KIND=DWP), INTENT(IN) :: A(N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I
+
+    IF (N .LT. 0) THEN
+       INFO = -2
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO I = 1, N
+       WRITE (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=4) A(I)
+    END DO
+    RETURN
+4   WRITE (ERROR_UNIT,'(2A)') 'BIO_WRITE_D1:', TRIM(MSG)
+  END SUBROUTINE BIO_WRITE_D1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  INTEGER FUNCTION BREAD(FD, BUF, nB, OFF)
+  SUBROUTINE BIO_READ_D2(U, M, N, A, LDA, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: FD, nB, OFF
-    TYPE(c_ptr), INTENT(IN) :: BUF
-    BREAD = INT(VN_BREAD(INT(FD,c_int), BUF, INT(nB,c_size_t), INT(OFF,c_size_t)))
-  END FUNCTION BREAD
+    INTEGER, INTENT(IN) :: U, M, N, LDA
+    REAL(KIND=DWP), INTENT(OUT) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I, J
+
+    IF (M .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .LT. 0) THEN
+       INFO = -3
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -5
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO J = 1, N
+       DO I = 1, M
+          READ (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=5) A(I,J)
+       END DO
+    END DO
+    RETURN
+5   WRITE (ERROR_UNIT,'(2A)') 'BIO_READ_D2 :', TRIM(MSG)
+  END SUBROUTINE BIO_READ_D2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BCLOSE(FD)
+  SUBROUTINE BIO_WRITE_D2(U, M, N, A, LDA, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(INOUT) :: FD
-    IF (FD .GE. 0) FD = INT(VN_BCLOSE(INT(FD,c_int)))
-  END SUBROUTINE BCLOSE
+    INTEGER, INTENT(IN) :: U, M, N, LDA
+    REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I, J
+
+    IF (M .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .LT. 0) THEN
+       INFO = -3
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -5
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO J = 1, N
+       DO I = 1, M
+          WRITE (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=6) A(I,J)
+       END DO
+    END DO
+    RETURN
+6   WRITE (ERROR_UNIT,'(2A)') 'BIO_WRITE_D2:', TRIM(MSG)
+  END SUBROUTINE BIO_WRITE_D2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE BCLOSEN(FD, N)
+  SUBROUTINE BIO_READ_Z2(U, M, N, A, LDA, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: U, M, N, LDA
+    COMPLEX(KIND=DWP), INTENT(OUT) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I, J
+
+    IF (M .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .LT. 0) THEN
+       INFO = -3
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -5
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO J = 1, N
+       DO I = 1, M
+          READ (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=7) A(I,J)
+       END DO
+    END DO
+    RETURN
+7   WRITE (ERROR_UNIT,'(2A)') 'BIO_READ_Z2 :', TRIM(MSG)
+  END SUBROUTINE BIO_READ_Z2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE BIO_WRITE_Z2(U, M, N, A, LDA, INFO)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: U, M, N, LDA
+    COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
+    INTEGER, INTENT(OUT) :: INFO
+
+    CHARACTER(LEN=IOMSGLEN) :: MSG
+    INTEGER :: I, J
+
+    IF (M .LT. 0) THEN
+       INFO = -2
+    ELSE IF (N .LT. 0) THEN
+       INFO = -3
+    ELSE IF (LDA .LT. M) THEN
+       INFO = -5
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    DO J = 1, N
+       DO I = 1, M
+          WRITE (UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=8) A(I,J)
+       END DO
+    END DO
+    RETURN
+8   WRITE (ERROR_UNIT,'(2A)') 'BIO_WRITE_Z2:', TRIM(MSG)
+  END SUBROUTINE BIO_WRITE_Z2
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE OPEN_YJ_RO(FN, FD, INFO)
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: FN
+    INTEGER, INTENT(OUT) :: FD(2), INFO
+
+    FD = -1
+
+    IF (LEN_TRIM(FN) .LE. 0) THEN
+       INFO = -1
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    CALL BIO_OPEN(FD(1), (TRIM(FN)//'.Y'), 'RO', INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = 1
+       RETURN
+    END IF
+
+    CALL BIO_OPEN(FD(2), (TRIM(FN)//'.J'), 'RO', INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = 2
+       RETURN
+    END IF
+  END SUBROUTINE OPEN_YJ_RO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE OPEN_UZS_WO(FN, FD, INFO)
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: FN
+    INTEGER, INTENT(OUT) :: FD(3), INFO
+
+    FD = -1
+
+    IF (LEN_TRIM(FN) .LE. 0) THEN
+       INFO = -1
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
+    CALL BIO_OPEN(FD(1), (TRIM(FN)//'.YU'), 'WO', INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = 1
+       RETURN
+    END IF
+
+    CALL BIO_OPEN(FD(2), (TRIM(FN)//'.ZZ'), 'WO', INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = 2
+       RETURN
+    END IF
+
+    CALL BIO_OPEN(FD(3), (TRIM(FN)//'.SY'), 'WO', INFO)
+    IF (INFO .NE. 0) THEN
+       INFO = 3
+       RETURN
+    END IF
+  END SUBROUTINE OPEN_UZS_WO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE BCLOSEN(N, FD, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N
     INTEGER, INTENT(INOUT) :: FD(N)
+    INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: I
 
+    IF (N .LT. 0) THEN
+       INFO = -1
+    ELSE
+       INFO = 0
+    END IF
+    IF (INFO .NE. 0) RETURN
+
     DO I = N, 1, -1
-       CALL BCLOSE(FD(I))
+       CALL BIO_CLOSE(FD(I), INFO)
+       IF (INFO .NE. 0) THEN
+          INFO = I
+          RETURN
+       END IF
     END DO
   END SUBROUTINE BCLOSEN
 

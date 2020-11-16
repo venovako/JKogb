@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(COMPILER).mk
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 SHARED: $(MKFS)
 ifdef NDEBUG

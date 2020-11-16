@@ -9,21 +9,21 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: zjk.exe ztest.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 ztransf.o ztransf.mod: ztransf.F90 ../shared/ktransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztransf.F90
 
-ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod ../shared/timer.mod ../../../JACSD/vn/vn_sort_f.mod $(MKFS)
+ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztypes.F90
 ifdef ANIMATE
-zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/utils.mod ../../../JACSD/vn/vn_cmplxvis_f.mod $(MKFS)
+zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/jstep.mod ../../../JACSD/vn/vn_cmplxvis_f.mod $(MKFS)
 	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c zstep.F90
 else # !ANIMATE
-zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/utils.mod $(MKFS)
+zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/jstep.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zstep.F90
 endif # ?ANIMATE
-zjk.exe: zjk.o zstep.o ztransf.o ztypes.o ../shared/libjk$(PROFILE)$(DEBUG).a ../../../JACSD/libvn$(PROFILE)$(DEBUG).a $(MKFS)
+zjk.exe: zjk.o zstep.o ztransf.o ztypes.o $(MKFS)
 	$(FC) $(FFLAGS) zjk.o zstep.o ztransf.o ztypes.o -o$@ $(LDFLAGS)
 
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)

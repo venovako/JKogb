@@ -1,7 +1,8 @@
 MODULE ATYPES
   USE OMP_LIB
+  USE PARAMS
   USE TIMER
-  USE VN_SORT_F
+  USE UTILS
   IMPLICIT NONE
 
   ABSTRACT INTERFACE
@@ -43,7 +44,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_SYS_US()
+    INFO = GET_SYS_TIME()
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
@@ -64,7 +65,7 @@ CONTAINS
        END DO
     END IF
 
-    INFO = GET_SYS_US() - INFO
+    INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_OUT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -73,7 +74,7 @@ CONTAINS
   !   same magnitude ==> sorting by subdiagonals (bands)
   !     outer bands first
   !       within a band, the lower elements first
-  RECURSIVE INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB) BIND(C)
+  INTEGER(KIND=c_int) FUNCTION AW_CMP(PA, PB) BIND(C)
     IMPLICIT NONE
     TYPE(c_ptr), INTENT(IN), VALUE :: PA, PB
 
@@ -125,11 +126,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT1(NT, NN, NM, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT1(NT, NN, NM, DZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, NN, NM
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
-    PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: T, TE, I, IE, J, JE, K, L, C, OE
@@ -148,7 +148,7 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
-    INFO = GET_SYS_US()
+    INFO = GET_SYS_TIME()
 
     EPA = NM / 2
     A => DZ(1:EPA)
@@ -167,7 +167,7 @@ CONTAINS
 
     !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPT,A)
     I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
-    CALL VN_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(CMP))
+    CALL C_QSORT(C_LOC(A(I)), INT(EPT,c_size_t), C_SIZEOF(A(I)), C_FUNLOC(AW_CMP))
     !$OMP END PARALLEL
 
     DO WHILE (.TRUE.)
@@ -185,7 +185,7 @@ CONTAINS
              K = I
              L = 0
              DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
-                C = INT(CMP(C_LOC(A(I)), C_LOC(A(J))))
+                C = INT(AW_CMP(C_LOC(A(I)), C_LOC(A(J))))
                 IF (C .LE. 0) THEN
                    B(K) = A(I)
                    I = I + 1
@@ -221,16 +221,15 @@ CONTAINS
        IF (TE .EQ. 0) EXIT
     END DO
 
-    INFO = GET_SYS_US() - INFO
+    INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_SRT1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT2(NT, NN, NM, DZ, CMP, INFO)
+  SUBROUTINE AW_SRT2(NT, NN, NM, DZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, NN, NM
     TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
-    PROCEDURE(VN_QSORT_CMP) :: CMP
     INTEGER, INTENT(OUT) :: INFO
 
     IF (NT .LE. 0) THEN
@@ -245,14 +244,14 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
-    INFO = GET_SYS_US()
-    CALL VN_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(CMP))
-    INFO = GET_SYS_US() - INFO
+    INFO = GET_SYS_TIME()
+    CALL C_QSORT(C_LOC(DZ), INT(NN,c_size_t), C_SIZEOF(DZ(1)), C_FUNLOC(AW_CMP))
+    INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_SRT2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP1(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP1(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -282,7 +281,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_SYS_US()
+    INFO = GET_SYS_TIME()
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
@@ -315,18 +314,18 @@ CONTAINS
        I = K
     END DO
 
-1   INFO = GET_SYS_US() - INFO
+1   INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_NCP1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    LOGICAL, TARGET :: R(N)
+    LOGICAL :: R(N)
     INTEGER :: I, J
 
     SL = 0
@@ -351,7 +350,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_SYS_US()
+    INFO = GET_SYS_TIME()
     IF (N .EQ. 0) GOTO 2
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
@@ -372,19 +371,19 @@ CONTAINS
        IF (J .GT. NN) EXIT
     END DO
 
-2   INFO = GET_SYS_US() - INFO
+2   INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_NCP2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCPT(W, J, N, NN, NM, DZ, N_2, SL, STEP, K)
+  SUBROUTINE AW_NCPT(W, J, N, NN, NM, DZ, N_2, SL, STEP, K)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(INOUT) :: W
     INTEGER, INTENT(IN) :: J, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(INOUT) :: SL, STEP(N_2), K
 
-    INTEGER, TARGET :: STP(N_2)
+    INTEGER :: STP(N_2)
     REAL(KIND=DWP) :: MYW, MYWP, MYWN
     INTEGER :: I, L, MYSL
 
@@ -427,7 +426,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  RECURSIVE SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
@@ -458,7 +457,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
-    INFO = GET_SYS_US()
+    INFO = GET_SYS_TIME()
     IF (N .EQ. 0) GOTO 3
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3
@@ -476,7 +475,7 @@ CONTAINS
     END DO
     !$OMP END PARALLEL DO
 
-3   INFO = GET_SYS_US() - INFO
+3   INFO = GET_SYS_TIME() - INFO
   END SUBROUTINE AW_NCP3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
