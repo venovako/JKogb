@@ -6,21 +6,17 @@ else # DEBUG
 DEBUG=g
 endif # ?NDEBUG
 ifndef FP
-ifdef NDEBUG
 FP=source
-else # DEBUG
-FP=source #strict
-endif # ?NDEBUG
 endif # !FP
 RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -qopenmp-threadprivate=compat -rdynamic
+CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
-FORFLAGS=$(CPUFLAGS) -i8 -standard-semantics -threads
+FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model $(FP) -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check -fimf-arch-consistency=true
@@ -48,7 +44,7 @@ LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel
 endif # ANIMATE
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread
+LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 LDFLAGS += -lpthread -lm -ldl -lmemkind
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)

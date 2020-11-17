@@ -12,10 +12,10 @@ CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp
 ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
-FORFLAGS=-cpp $(CPUFLAGS) -fdefault-integer-8 -ffree-line-length-none -fstack-arrays
+FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
 ifeq ($(ARCH),Darwin)
 ifndef GNU
-GNU=-10
+GNU=-8
 endif # !GNU
 endif # Darwin
 FC=gfortran$(GNU)
@@ -40,7 +40,7 @@ endif # ?Darwin
 OPTFFLAGS=$(OPTFLAGS)
 DBGFFLAGS=$(DBGFLAGS) -fcheck=array-temps -finit-local-zero -finit-real=snan -finit-derived -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all #-fcheck=all
 FPUFLAGS=-ffp-contract=fast
-FPUFFLAGS=$(FPUFLAGS) #-ffpe-trap=invalid,zero,overflow
+FPUFFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 ifdef ANIMATE
@@ -49,12 +49,12 @@ endif # ANIMATE
 LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG)
 ifeq ($(ARCH),Darwin)
 ifdef ANIMATE
-LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core #-lmkl_intel_thread -liomp5
+LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 ifdef ANIMATE
-LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core #-lmkl_gnu_thread -lgomp
+LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 endif # ?Darwin
 ifndef NDEBUG
