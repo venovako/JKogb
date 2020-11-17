@@ -2,6 +2,28 @@ MODULE utils
   USE params
   IMPLICIT NONE
 
+#ifdef MIND
+  INTERFACE
+     PURE FUNCTION C_FMIN(A, B) BIND(C,NAME='fmin')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+       REAL(KIND=c_double) :: C_FMIN
+     END FUNCTION C_FMIN
+  END INTERFACE
+#endif
+
+#ifdef MAXD
+  INTERFACE
+     PURE FUNCTION C_FMAX(A, B) BIND(C,NAME='fmax')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+       REAL(KIND=c_double) :: C_FMAX
+     END FUNCTION C_FMAX
+  END INTERFACE
+#endif
+
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -28,7 +50,9 @@ CONTAINS
   PURE LOGICAL FUNCTION VERIFY_MIN(STRONG)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: STRONG
-
+#ifdef MIND
+    VERIFY_MIN = .TRUE.
+#else
     IF (STRONG) THEN
        VERIFY_MIN = (&
             (MIN(QUIET_NAN(-1), 0.0_DWP) .EQ. 0.0_DWP) .AND. &
@@ -36,6 +60,7 @@ CONTAINS
     ELSE ! weak
        VERIFY_MIN = (MIN(QUIET_NAN(-1), 0.0_DWP) .EQ. 0.0_DWP)
     END IF
+#endif
   END FUNCTION VERIFY_MIN
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -43,7 +68,9 @@ CONTAINS
   PURE LOGICAL FUNCTION VERIFY_MAX(STRONG)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: STRONG
-
+#ifdef MAXD
+    VERIFY_MAX = .TRUE.
+#else
     IF (STRONG) THEN
        VERIFY_MAX = (&
             (MAX(QUIET_NAN(0), -1.0_DWP) .EQ. -1.0_DWP) .AND. &
@@ -51,6 +78,7 @@ CONTAINS
     ELSE ! weak
        VERIFY_MAX = (MAX(QUIET_NAN(0), -1.0_DWP) .EQ. -1.0_DWP)
     END IF
+#endif
   END FUNCTION VERIFY_MAX
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -62,6 +90,32 @@ CONTAINS
     VERIFY_MIN_MAX = (VERIFY_MIN(STRONG) .AND. VERIFY_MAX(STRONG))
   END FUNCTION VERIFY_MIN_MAX
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifdef HYPOT
+  PURE REAL(KIND=DWP) FUNCTION STUPID_HYP(A, B)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: A, B
+
+    REAL(KIND=DWP) :: AA, AB, X, Y, Y_X
+
+    AA = ABS(A)
+    AB = ABS(B)
+    X = MAX(AA, AB)
+    Y = MIN(AA, AB)
+    Y_X = MAX(Y / X, D_ZERO)
+
+    STUPID_HYP = X * SQRT(Y_X * Y_X + D_ONE)
+  END FUNCTION STUPID_HYP
+#endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#ifdef ABSZ
+  PURE REAL(KIND=DWP) FUNCTION STUPID_ABS(A)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A
+
+    STUPID_ABS = STUPID_HYP(REAL(A), AIMAG(A))
+  END FUNCTION STUPID_ABS
+#endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 END MODULE utils

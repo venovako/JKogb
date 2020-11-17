@@ -14,9 +14,13 @@ CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
 ifeq ($(ARCH),Darwin)
-ifndef GNU
+ifdef GNU
+ifneq ($(GNU),-8)
+FORFLAGS += -DMIND=C_FMIN -DMAXD=C_FMAX
+endif # GNU > 8
+else # !GNU
 GNU=-8
-endif # !GNU
+endif # ?GNU
 endif # Darwin
 FC=gfortran$(GNU)
 ifdef NDEBUG

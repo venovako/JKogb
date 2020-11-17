@@ -1,5 +1,8 @@
 MODULE ktransf
-  USE params
+  USE utils
+#ifndef MAXD
+#define MAXD MAX
+#endif
   IMPLICIT NONE
 
 CONTAINS
@@ -13,9 +16,9 @@ CONTAINS
 
     REAL(KIND=DWP) :: X, Y, T2, TU, CU, TZ, CZ
 
-    X = MAX(A(1,2) / A(1,1), D_ZERO)
-    Y = MAX(A(2,2) / A(1,1), D_ZERO)
-    T2 = MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((X - Y) * (X + Y) + D_ONE), D_ZERO), TWOF)
+    X = MAXD(A(1,2) / A(1,1), D_ZERO)
+    Y = MAXD(A(2,2) / A(1,1), D_ZERO)
+    T2 = MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((X - Y) * (X + Y) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
     CU = SQRT(TU * TU + D_ONE) ! D_ONE /
     TZ = Y * TU + X
@@ -45,9 +48,9 @@ CONTAINS
 
     REAL(KIND=DWP) :: X, Y, T2, TU, CU, TZ, CZ
 
-    X = MAX(A(1,2) / A(1,1), D_ZERO)
-    Y = MAX(A(2,2) / A(1,1), D_ZERO)
-    T2 = -MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
+    X = MAXD(A(1,2) / A(1,1), D_ZERO)
+    Y = MAXD(A(2,2) / A(1,1), D_ZERO)
+    T2 = -MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
     TZ = -(Y * TU + X)
     IF (ABS(TZ) .LT. D_ONE) THEN
@@ -81,9 +84,9 @@ CONTAINS
 
     REAL(KIND=DWP) :: X, Y, T2, TU, CU, TZ, CZ
 
-    X = MAX(A(2,1) / A(2,2), D_ZERO)
-    Y = MAX(A(1,1) / A(2,2), D_ZERO)
-    T2 = MIN(MAX((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
+    X = MAXD(A(2,1) / A(2,2), D_ZERO)
+    Y = MAXD(A(1,1) / A(2,2), D_ZERO)
+    T2 = MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / ((Y - X) * (Y + X) + D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(T2 * T2 + D_ONE))
     TZ = Y * TU - X
     IF (ABS(TZ) .LT. D_ONE) THEN

@@ -23,7 +23,7 @@ binio.o binio.mod: binio.F90 params.mod $(MKFS)
 jstep.o jstep.mod: jstep.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c jstep.F90
 
-ktransf.o ktransf.mod: ktransf.F90 params.mod $(MKFS)
+ktransf.o ktransf.mod: ktransf.F90 utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ktransf.F90
 
 params.o params.mod: params.F90 $(MKFS)

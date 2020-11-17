@@ -6,7 +6,7 @@ else # DEBUG
 DEBUG=g
 endif # ?NDEBUG
 ifndef FP
-FP=source
+FP=precise
 endif # !FP
 RM=rm -rfv
 AR=xiar
@@ -17,9 +17,9 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
-FPUFLAGS=-fp-model $(FP) -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high
+FPUFLAGS=-fp-model $(FP) -fimf-precision=high -fimf-arch-consistency=true -fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
-FPUFLAGS += -fp-stack-check -fimf-arch-consistency=true
+FPUFLAGS += -fp-stack-check
 else # !strict
 FPUFLAGS += -fimf-use-svml=true
 endif # ?strict

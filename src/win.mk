@@ -4,7 +4,7 @@ ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
 FC=ifort.exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /Qopenmp
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
-FPUFLAGS=/fp:source /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt /Qimf-precision:high
+FPUFLAGS=/fp:precise /Qimf-precision:high /Qimf-arch-consistency:true /Qfma /Qprotect-parens /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) /QxHost /Qopt-multi-version-aggressive
 OPTFFLAGS=$(OPTFLAGS)
@@ -18,7 +18,7 @@ OPTFLAGS=/O$(DEBUG) /QxHost /Qopt-multi-version-aggressive
 OPTFFLAGS=$(OPTFLAGS)
 DBGFLAGS=/debug:full /debug:inline-debug-info /traceback
 DBGFFLAGS=$(DBGFLAGS) /debug-parameters:all /check:all /warn:all
-FPUFFLAGS=$(FPUFLAGS) /Qfp-stack-check /Qimf-arch-consistency:true
+FPUFFLAGS=$(FPUFLAGS) /Qfp-stack-check
 LIBFLAGS=-I. -I..\shared /libs:dll /threads /dbglibs
 LDFLAGS=/link /DEBUG /LIBPATH:..\shared jk$(DEBUG).lib
 !ENDIF # ?NDEBUG
