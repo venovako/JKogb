@@ -1,4 +1,4 @@
-MODULE JSTEP
+MODULE jstep
   IMPLICIT NONE
 
 CONTAINS
@@ -126,4 +126,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE JSTEP
+END MODULE jstep

@@ -1,5 +1,5 @@
-MODULE KTRANSF
-  USE PARAMS
+MODULE ktransf
+  USE params
   IMPLICIT NONE
 
 CONTAINS
@@ -157,4 +157,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE KTRANSF
+END MODULE ktransf

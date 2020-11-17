@@ -2,8 +2,8 @@ RM=del /F
 AR=xilib.exe
 ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
 FC=ifort.exe
-CPUFLAGS=/DUSE_INTEL /DUSE_X64 /Qopenmp /Qopenmp-threadprivate:compat
-FORFLAGS=/nologo /fpp $(CPUFLAGS) /integer-size:64 /standard-semantics
+CPUFLAGS=/DUSE_INTEL /DUSE_X64 /Qopenmp
+FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
 FPUFLAGS=/fp:source /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt /Qimf-precision:high
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) /QxHost /Qopt-multi-version-aggressive

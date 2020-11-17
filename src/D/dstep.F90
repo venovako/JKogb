@@ -1,8 +1,8 @@
-MODULE DSTEP
-  USE OMP_LIB
-  USE DTRANSF
-  USE DTYPES
-  USE JSTEP
+MODULE dstep
+  USE omp_lib
+  USE dtransf
+  USE dtypes
+  USE jstep
   IMPLICIT NONE
 
 CONTAINS
@@ -134,7 +134,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), NM, TT, N_2
     REAL(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     TYPE(AW) :: X
@@ -362,7 +362,7 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N), W(2,3,N_2)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
 
     INTEGER :: IT, NL
@@ -440,14 +440,14 @@ CONTAINS
 
   SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
 #ifdef ANIMATE
-    USE VN_MTXVIS_F
+    USE vn_mtxvis_f
 #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2, TT
     REAL(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
     REAL(KIND=DWP), INTENT(OUT) :: U(LDU,N), Z(LDZ,N), SIGMA(N), W(2,3,N_2)
     TYPE(DPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S, SL
@@ -562,4 +562,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE DSTEP
+END MODULE dstep

@@ -1,4 +1,4 @@
-MODULE TIMER
+MODULE timer
   IMPLICIT NONE
 
 CONTAINS
@@ -21,4 +21,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE TIMER
+END MODULE timer

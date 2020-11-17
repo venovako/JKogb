@@ -1,8 +1,8 @@
-MODULE ZSTEP
-  USE OMP_LIB
-  USE ZTRANSF
-  USE ZTYPES
-  USE JSTEP
+MODULE zstep
+  USE omp_lib
+  USE ztransf
+  USE ztypes
+  USE jstep
   IMPLICIT NONE
 
 CONTAINS
@@ -136,7 +136,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: NT, S, N, LDA, J(N), NN, P(NN), Q(NN), NM, TT, N_2
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     TYPE(AW) :: X
@@ -365,7 +365,7 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
     REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N)
     TYPE(ZPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
     COMPLEX(KIND=DWP), INTENT(OUT) :: W(2,3,N_2)
 
@@ -450,7 +450,7 @@ CONTAINS
 
   SUBROUTINE ZSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
 #ifdef ANIMATE
-    USE VN_CMPLXVIS_F
+    USE vn_cmplxvis_f
 #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2, TT
@@ -458,7 +458,7 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(OUT) :: U(LDU,N), Z(LDZ,N), W(2,3,N_2)
     REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N)
     TYPE(ZPROC), INTENT(IN) :: R
-    TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(OUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
 
     INTEGER :: S, SL
@@ -573,4 +573,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE ZSTEP
+END MODULE zstep

@@ -1,10 +1,8 @@
-MODULE ATYPES
-  USE OMP_LIB
-  USE PARAMS
-  USE TIMER
-#ifndef NDEBUG
-  USE UTILS
-#endif
+MODULE atypes
+  USE omp_lib
+  USE timer
+  USE utils
+
   IMPLICIT NONE
 
   ABSTRACT INTERFACE
@@ -198,12 +196,12 @@ CONTAINS
   SUBROUTINE AW_SRT1(NT, NN, NM, DZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, NN, NM
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
     INTEGER :: T, TE, I, IE, J, JE, K, L, C, OE
     INTEGER :: EPA, EPT ! elements per array, thread
-    TYPE(AW), POINTER, CONTIGUOUS :: A(:), B(:)
+    ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
 
     IF (NT .LE. 1) THEN
        INFO = -1
@@ -220,13 +218,11 @@ CONTAINS
     INFO = GET_SYS_TIME()
 
     EPA = NM / 2
-    A => DZ(1:EPA)
-    B => DZ(EPA+1:NM)
     EPT = EPA / NT
 
     ! virtual elements
     DO I = NN+1, EPA
-       A(I)%W = QUIET_NAN(I)
+       DZ(I)%W = QUIET_NAN(I)
     END DO
 
     ! Baudet-Stevenson odd-even sort with merge-splitting of the subarrays; see:
@@ -234,17 +230,16 @@ CONTAINS
     ! IEEE Transactions on Computers, C-27(1):84--87, Jan 1978.
     ! doi:10.1109/TC.1978.1674957
 
-    !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,J) SHARED(EPT,A,B)
+    !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPA,EPT,DZ)
     I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
-    J = I + EPT - 1
-    CALL AW_SORT(EPT, A(I:J), B(I:J))
+    CALL AW_SORT(EPT, DZ(I), DZ(I+EPA))
     !$OMP END PARALLEL
 
     DO WHILE (.TRUE.)
        TE = 0
        DO OE = 0, 1
           L = 0
-          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,IE,J,JE,K,C) SHARED(NT,EPT,OE,A,B) REDUCTION(+:L)
+          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,IE,J,JE,K,C) SHARED(NT,EPA,EPT,OE,DZ) REDUCTION(+:L)
           T = INT(OMP_GET_THREAD_NUM())
           IF ((MOD(T, 2) .EQ. OE) .AND. ((T + 1) .LT. NT)) THEN
              ! merge with T + 1
@@ -255,36 +250,36 @@ CONTAINS
              K = I
              L = 0
              DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
-                C = AW_CMP(A(I), A(J))
+                C = AW_CMP(DZ(I), DZ(J))
                 IF (C .LE. 0) THEN
-                   B(K) = A(I)
+                   DZ(K+EPA) = DZ(I)
                    I = I + 1
                    K = K + 1
                 ELSE ! C .GT. 0
-                   B(K) = A(J)
+                   DZ(K+EPA) = DZ(J)
                    J = J + 1
                    K = K + 1
                    L = L + 1
                 END IF
              END DO
              DO WHILE ((I .LE. IE) .AND. (K .LE. JE))
-                B(K) = A(I)
+                DZ(K+EPA) = DZ(I)
                 I = I + 1
                 K = K + 1
              END DO
              DO WHILE ((J .LE. JE) .AND. (K .LE. JE))
-                B(K) = A(J)
+                DZ(K+EPA) = DZ(J)
                 J = J + 1
                 K = K + 1
              END DO
           END IF
           !$OMP END PARALLEL
           TE = TE + L
-          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPT,A,B)
+          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPA,EPT,DZ)
           I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
           IE = I + (EPT - 1)
           DO J = I, IE
-             A(J) = B(J)
+             DZ(J) = DZ(J+EPA)
           END DO
           !$OMP END PARALLEL
        END DO
@@ -299,7 +294,7 @@ CONTAINS
   SUBROUTINE AW_SRT2(NT, NN, NM, DZ, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, NN, NM
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
+    TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
     
     IF (NT .LE. 0) THEN
@@ -535,4 +530,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE ATYPES
+END MODULE atypes

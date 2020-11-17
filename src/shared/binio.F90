@@ -1,5 +1,5 @@
-MODULE BINIO
-  USE PARAMS
+MODULE binio
+  USE params
   IMPLICIT NONE
 
   INTEGER, PARAMETER, PRIVATE :: IOMSGLEN = 66
@@ -349,4 +349,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE BINIO
+END MODULE binio
