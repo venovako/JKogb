@@ -54,7 +54,7 @@ else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
-endif ANIMATE
+endif # ANIMATE
 endif # ?Darwin
 LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)

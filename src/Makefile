@@ -1,5 +1,3 @@
-!INCLUDE win.mk
-
 all: SHARED REAL8 COMPLEX8
 
 help:
