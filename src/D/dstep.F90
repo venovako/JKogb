@@ -1,5 +1,4 @@
 MODULE DSTEP
-  USE, INTRINSIC :: ISO_C_BINDING
   USE OMP_LIB
   USE DTRANSF
   USE DTYPES
@@ -272,25 +271,20 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, INFO)
+  SUBROUTINE DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, W, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, NM, SL, STEP(SL)
+    INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, SL, STEP(SL)
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
-    REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
-    TYPE(AW), INTENT(INOUT), TARGET :: DZ(NM)
+    REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N), W(2,3,SL)
+    TYPE(AW), INTENT(INOUT) :: DZ(NN)
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), B(2,2)
-    REAL(KIND=DWP), POINTER, CONTIGUOUS :: W(:,:,:)
     REAL(KIND=DWP) :: TW
-    INTEGER :: I, P, Q, K(2)
-    INTEGER, POINTER, CONTIGUOUS :: IT(:)
+    INTEGER :: I, L, P, Q, K(2)
 
-    CALL C_F_POINTER(C_LOC(DZ(1+NN)), W, [2,3,SL])
-    CALL C_F_POINTER(C_LOC(SIGMA(1+N/2)), IT, [SL])
     INFO = HUGE(INFO)
-
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,IT,DZ,J,U,A,Z,LDA,W) &
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,SIGMA,DZ,J,U,A,Z,LDA,W) &
     !$OMP& REDUCTION(MIN:INFO)
     DO I = 1, SL
        P = DZ(STEP(I))%P
@@ -303,30 +297,31 @@ CONTAINS
        K(1) = J(P)
        K(2) = J(Q)
 
-       CALL DHSVD2(B, K, V, W(:,:,I), IT(I))
-       INFO = IT(I)
-       IF (IT(I) .GE. 0) THEN
+       CALL DHSVD2(B, K, V, W(:,:,I), INFO)
+       SIGMA(I) = INFO
+       IF (INFO .GE. 0) THEN
           W(1,3,I) = B(1,1)
           W(2,3,I) = B(2,2)
-          IF (IAND(IT(I), 2) .NE. 0) THEN
+          IF (IAND(INFO, 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UT2(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
+          IF (IAND(INFO, 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
        END IF
     END DO
     !$OMP END PARALLEL DO
 
     IF (INFO .GE. 0) THEN
        INFO = 0
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q) SHARED(N,SL,STEP,IT,DZ,A,LDA,W) REDUCTION(+:INFO)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L,P,Q) SHARED(N,SL,STEP,SIGMA,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
 
-          IF (IAND(IT(I), 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
-          IF ((IAND(IT(I), 1) .NE. 0) .AND. ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0))) INFO = INFO + 1
+          L = INT(SIGMA(I))
+          IF (IAND(L, 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
+          IF ((IAND(L, 1) .NE. 0) .AND. ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0))) INFO = INFO + 1
 
           A(P,P) = W(1,3,I)
           A(Q,P) = D_ZERO
@@ -340,9 +335,10 @@ CONTAINS
     P = 0
     Q = 0
     IF (INFO .GE. 0) THEN
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(SL,STEP,DZ,IT,J) REDUCTION(+:TW,P,Q)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L) SHARED(SL,STEP,DZ,SIGMA,J) REDUCTION(+:TW,P,Q)
        DO I = 1, SL
-          IF ((IAND(IT(I), 2) .NE. 0) .OR. (IAND(IT(I), 4) .NE. 0)) THEN
+          L = INT(SIGMA(I))
+          IF ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0)) THEN
              TW = TW + DZ(STEP(I))%W
              IF (J(DZ(STEP(I))%P) .EQ. J(DZ(STEP(I))%Q)) THEN
                 P = P + 1
@@ -360,11 +356,11 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, INFO)
+  SUBROUTINE DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, W, INFO)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, S, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, TT, N_2
     REAL(KIND=DWP), INTENT(INOUT) :: U(LDU,N), A(LDA,N), Z(LDZ,N)
-    REAL(KIND=DWP), INTENT(OUT), TARGET :: SIGMA(N)
+    REAL(KIND=DWP), INTENT(OUT) :: SIGMA(N), W(2,3,N_2)
     TYPE(DPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
@@ -405,7 +401,7 @@ CONTAINS
     END IF
 
     IT = GET_SYS_TIME()
-    CALL DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, NM, DZ, SL, STEP, NL)
+    CALL DSTEP_TRANSF(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, W, NL)
     IT = MAX(GET_SYS_TIME() - IT, 1)
     WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
          (IT / REAL(GET_SYS_TRES(),DWP)), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
@@ -442,14 +438,14 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, TT, INFO)
+  SUBROUTINE DSTEP_LOOP(NT, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
 #ifdef ANIMATE
     USE VN_MTXVIS_F
 #endif
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NT, N, LDU, LDA, LDZ, J(N), NN, P(NN), Q(NN), NM, N_2, TT
     REAL(KIND=DWP), INTENT(INOUT) :: A(LDA,N)
-    REAL(KIND=DWP), INTENT(OUT), TARGET :: U(LDU,N), Z(LDZ,N), SIGMA(N)
+    REAL(KIND=DWP), INTENT(OUT) :: U(LDU,N), Z(LDZ,N), SIGMA(N), W(2,3,N_2)
     TYPE(DPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT), TARGET :: DZ(NM)
     INTEGER, INTENT(OUT) :: STEP(N_2), INFO
@@ -535,7 +531,7 @@ CONTAINS
           RETURN
        END IF
 #endif
-       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, INFO)
+       CALL DSTEP_EXEC(NT, S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, W, INFO)
        IF (INFO .LE. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1
