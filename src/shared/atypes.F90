@@ -216,7 +216,7 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: T, I, J, K, L, OE, TE
+    INTEGER :: T, I, J, K, L, TE
     INTEGER :: EPA, EPT ! elements per array, thread
     ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
 
@@ -240,6 +240,10 @@ CONTAINS
     ! virtual elements
     DO I = NN+1, EPA
        DZ(I)%W = QUIET_NAN(I)
+       DZ(I)%P = 0
+       DZ(I)%Q = 0
+       DZ(I)%B = 0
+       DZ(I)%I = 0
     END DO
 
     ! Baudet-Stevenson odd-even sort with merge-splitting of the subarrays; see:

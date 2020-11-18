@@ -17,6 +17,9 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
+ifdef ANIMATE
+FORFLAGS += -i8
+endif # ANIMATE
 FPUFLAGS=-fp-model $(FP) -fimf-precision=high -fimf-arch-consistency=true -fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check

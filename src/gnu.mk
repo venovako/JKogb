@@ -13,6 +13,9 @@ ifdef PROFILE
 CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
 endif # PROFILE
 FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
+ifdef ANIMATE
+FORFLAGS += -fdefault-integer-8
+endif # ANIMATE
 ifeq ($(ARCH),Darwin)
 ifdef GNU
 ifneq ($(GNU),-8)
