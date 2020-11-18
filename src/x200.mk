@@ -15,7 +15,7 @@ CC=icc
 FC=ifort
 CPUFLAGS=-DUSE_INTEL -DUSE_X200 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
 C18FLAGS=-std=c18 -D_GNU_SOURCE $(CPUFLAGS)
-FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
+FORFLAGS=$(CPUFLAGS) -standard-semantics -threads -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87
 ifdef ANIMATE
 FORFLAGS += -i8
 endif # ANIMATE

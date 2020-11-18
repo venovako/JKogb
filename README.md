@@ -8,17 +8,27 @@ arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorit
 
 ### Prerequisites
 
-A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8) or macOS (e.g., Catalina) is needed.
+A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Catalina), or Windows (e.g., 10) is needed.
+
+If your platform is not Intel 64 (or compatible), take a look at ``src/shared/params.F90`` and make fixes accordingly.
 
 ### Make options
 
-Run ``make`` as follows:
+On Linux or macOS, run ``make`` as follows:
 ```bash
 cd src
 make [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel Fortran compilers to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-If ``COMPILER`` is not set or is ``gnu``, GNU Fortran compilers will be used (version 8 should work, but *not* the later ones).
+Building with recent Intel compilers is possible on Windows as well:
+```bash
+cd src
+nmake [NDEBUG=d|1|2|3|4|5] [all|clean|help]
+```
+
+If ``COMPILER`` is not set or is ``gnu``, GNU Fortran compilers will be used.
+The major version of your GCC in this case should 8, since the later ones will not work (unless a fix is applied as noted in ``src/gnu.mk``).
+Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding the new MIN and MAX intrinsics.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.
