@@ -18,6 +18,7 @@ MODULE atypes
      INTEGER :: P ! row
      INTEGER :: Q ! column
      INTEGER :: B ! band (Q - P) > 0
+     INTEGER :: I ! info
   END TYPE AW
 
 CONTAINS
@@ -115,42 +116,55 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE AW_MERGE(N, M, A, I, J, B, K)
+  PURE SUBROUTINE AW_MERGE(N, M, A, I, J, B, K, L)
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, M, I, J, K
-    TYPE(AW), INTENT(IN) :: A(N)
-    TYPE(AW), INTENT(OUT) :: B(N)
+    TYPE(AW), INTENT(IN) :: A(*)
+    TYPE(AW), INTENT(OUT) :: B(*)
+    INTEGER, INTENT(OUT) :: L
 
-    INTEGER :: II, JJ, KK, IL, JL, L
-    LOGICAL :: LI, LJ
+    INTEGER :: II, JJ, KK, IL, JL, KL, LL
 
-    IL = MIN(I + M - 1, N)
-    JL = MIN(J + M - 1, N)
+    L = 0
+    IL = I + N - 1
+    JL = J + M - 1
+    KL = K + N + M - 1
 
     II = I
     JJ = J
     KK = K
 
-    DO WHILE (KK .LE. N)
-       LI = (II .GT. IL)
-       LJ = (JJ .GT. JL)
-       IF (LI .AND. LJ) THEN
-          EXIT
-       ELSE IF (LI) THEN
-          B(KK) = A(JJ)
-          JJ = JJ + 1
-       ELSE IF (LJ) THEN
-          B(KK) = A(II)
-          II = II + 1
-       ELSE ! all in range
-          L = AW_CMP(A(II), A(JJ))
-          IF (L .LE. 0) THEN
-             B(KK) = A(II)
-             II = II + 1
-          ELSE ! .GT. 0
+    DO WHILE (KK .LE. KL)
+       IF (II .GT. IL) THEN
+          DO WHILE (KK .LE. KL)
              B(KK) = A(JJ)
              JJ = JJ + 1
-          END IF
+             KK = KK + 1
+          END DO
+          EXIT
+       END IF
+       IF (JJ .GT. JL) THEN
+          DO WHILE (KK .LE. KL)
+             B(KK) = A(II)
+             II = II + 1
+             KK = KK + 1
+          END DO
+          EXIT
+       END IF
+       LL = AW_CMP(A(II), A(JJ))
+       IF (LL .LT. 0) THEN
+          B(KK) = A(II)
+          II = II + 1
+       ELSE IF (LL .EQ. 0) THEN
+          B(KK) = A(II)
+          II = II + 1
+          KK = KK + 1
+          B(KK) = A(JJ)
+          JJ = JJ + 1
+       ELSE ! .GT. 0
+          B(KK) = A(JJ)
+          JJ = JJ + 1
+          L = L + 1
        END IF
        KK = KK + 1
     END DO
@@ -164,20 +178,23 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: A(N)
     TYPE(AW), INTENT(OUT) :: B(N)
 
-    INTEGER :: I, W, W2
+    INTEGER :: I, J, M, W, W2
     LOGICAL :: D
 
     W = 1
     D = .FALSE.
     DO WHILE (W .LT. N)
+       M = W
        W2 = W * 2
        IF (D) THEN
           DO I = 1, N, W2
-             CALL AW_MERGE(N, W, B, I, I + W, A, I)
+             J = I + M
+             CALL AW_MERGE(MIN(M, N+1-I), MAX(MIN(M, N+1-J), 0), B, I, J, A, I, W)
           END DO
        ELSE ! A -> B
           DO I = 1, N, W2
-             CALL AW_MERGE(N, W, A, I, I + W, B, I)
+             J = I + M
+             CALL AW_MERGE(MIN(M, N+1-I), MAX(MIN(M, N+1-J), 0), A, I, J, B, I, W)
           END DO
        END IF
        W = W2
@@ -199,7 +216,7 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: T, TE, I, IE, J, JE, K, L, C, OE
+    INTEGER :: T, I, J, K, L, OE, TE
     INTEGER :: EPA, EPT ! elements per array, thread
     ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
 
@@ -237,52 +254,43 @@ CONTAINS
 
     DO WHILE (.TRUE.)
        TE = 0
-       DO OE = 0, 1
+
+       L = 0
+       !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,EPA,EPT,DZ) REDUCTION(+:L)
+       T = INT(OMP_GET_THREAD_NUM())
+       I = T * EPT + 1
+       K = I + EPA
+       IF (MOD(T, 2) .EQ. 0) THEN
+          ! merge with T + 1
+          J = I + EPT
+          CALL AW_MERGE(EPT, MIN(EPT, EPA+1-J), DZ, I, J, DZ, K, L)
+       ELSE ! nothing to do
           L = 0
-          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,IE,J,JE,K,C) SHARED(NT,EPA,EPT,OE,DZ) REDUCTION(+:L)
-          T = INT(OMP_GET_THREAD_NUM())
-          IF ((MOD(T, 2) .EQ. OE) .AND. ((T + 1) .LT. NT)) THEN
-             ! merge with T + 1
-             I = T * EPT + 1
-             IE = I + (EPT - 1)
-             J = IE + 1
-             JE = J + (EPT - 1)
-             K = I
-             L = 0
-             DO WHILE ((I .LE. IE) .AND. (J .LE. JE) .AND. (K .LE. JE))
-                C = AW_CMP(DZ(I), DZ(J))
-                IF (C .LE. 0) THEN
-                   DZ(K+EPA) = DZ(I)
-                   I = I + 1
-                   K = K + 1
-                ELSE ! C .GT. 0
-                   DZ(K+EPA) = DZ(J)
-                   J = J + 1
-                   K = K + 1
-                   L = L + 1
-                END IF
-             END DO
-             DO WHILE ((I .LE. IE) .AND. (K .LE. JE))
-                DZ(K+EPA) = DZ(I)
-                I = I + 1
-                K = K + 1
-             END DO
-             DO WHILE ((J .LE. JE) .AND. (K .LE. JE))
-                DZ(K+EPA) = DZ(J)
-                J = J + 1
-                K = K + 1
-             END DO
-          END IF
-          !$OMP END PARALLEL
-          TE = TE + L
-          !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,IE,J) SHARED(EPA,EPT,DZ)
-          I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
-          IE = I + (EPT - 1)
-          DO J = I, IE
-             DZ(J) = DZ(J+EPA)
+       END IF
+       !$OMP END PARALLEL
+       TE = TE + L
+
+       L = 0
+       !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,NM,EPA,EPT,DZ) REDUCTION(+:L)
+       T = INT(OMP_GET_THREAD_NUM())
+       K = T * EPT + 1
+       I = K + EPA
+       IF (MOD(T, 2) .EQ. 1) THEN
+          ! merge with T + 1
+          J = I + EPT
+          CALL AW_MERGE(EPT, MIN(EPT, NM+1-J), DZ, I, J, DZ, K, L)
+       ELSE IF (T .EQ. 0) THEN
+          L = EPT - 1
+          DO J = 0, L
+             DZ(K+J) = DZ(I+J)
           END DO
-          !$OMP END PARALLEL
-       END DO
+          L = 0
+       ELSE! nothing to do
+          L = 0
+       END IF
+       !$OMP END PARALLEL
+       TE = TE + L
+
        IF (TE .EQ. 0) EXIT
     END DO
 

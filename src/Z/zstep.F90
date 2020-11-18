@@ -185,6 +185,7 @@ CONTAINS
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
+       DZ(I)%I = I
        DZ(I)%W = ZMAGF2T(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .EQ. DZ(I)%W) IT = IT + 1
     END DO
@@ -198,6 +199,7 @@ CONTAINS
        DZ(I)%P = IP
        DZ(I)%Q = IQ
        DZ(I)%B = IQ - IP
+       DZ(I)%I = I
        DZ(I)%W = ZMAGF2H(N, IP, IQ, A, LDA, J)
        IF (DZ(I)%W .LT. -HUGE(DZ(I)%W)) THEN
           ! -\infty removed
@@ -287,8 +289,7 @@ CONTAINS
     INTEGER :: I, L, P, Q, K(2)
 
     INFO = HUGE(INFO)
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,SIGMA,DZ,J,U,A,Z,LDA,W) &
-    !$OMP& REDUCTION(MIN:INFO)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
     DO I = 1, SL
        P = DZ(STEP(I))%P
        Q = DZ(STEP(I))%Q
@@ -301,7 +302,7 @@ CONTAINS
        K(2) = J(Q)
 
        CALL ZHSVD2(B, K, V, W(:,:,I), INFO)
-       SIGMA(I) = INFO
+       DZ(STEP(I))%I = INFO
        IF (INFO .GE. 0) THEN
           W(1,3,I) = REAL(B(1,1))
           W(2,3,I) = REAL(B(2,2))
@@ -317,12 +318,12 @@ CONTAINS
 
     IF (INFO .GE. 0) THEN
        INFO = 0
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L,P,Q) SHARED(N,SL,STEP,SIGMA,DZ,A,LDA,W) REDUCTION(+:INFO)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L,P,Q) SHARED(N,SL,STEP,DZ,A,LDA,W) REDUCTION(+:INFO)
        DO I = 1, SL
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
+          L = DZ(STEP(I))%I
 
-          L = INT(SIGMA(I))
           IF (IAND(L, 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
           IF ((IAND(L, 1) .NE. 0) .AND. ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0))) INFO = INFO + 1
 
@@ -338,9 +339,9 @@ CONTAINS
     P = 0
     Q = 0
     IF (INFO .GE. 0) THEN
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L) SHARED(SL,STEP,DZ,SIGMA,J) REDUCTION(+:TW,P,Q)
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L) SHARED(SL,STEP,DZ,J) REDUCTION(+:TW,P,Q)
        DO I = 1, SL
-          L = INT(SIGMA(I))
+          L = DZ(STEP(I))%I
           IF ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0)) THEN
              TW = TW + DZ(STEP(I))%W
              IF (J(DZ(STEP(I))%P) .EQ. J(DZ(STEP(I))%Q)) THEN
