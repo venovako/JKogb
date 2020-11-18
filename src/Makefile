@@ -1,7 +1,7 @@
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "nmake.exe [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
 
 SHARED: Makefile
 !IFDEF NDEBUG

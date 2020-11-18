@@ -9,14 +9,13 @@ RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
 CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp -rdynamic
-ifdef PROFILE
-CPUFLAGS += -DVN_PROFILE=$(PROFILE) -fno-inline -finstrument-functions
-endif # PROFILE
+C18FLAGS=-std=gnu18 -D_GNU_SOURCE $(CPUFLAGS)
 FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
 ifdef ANIMATE
 FORFLAGS += -fdefault-integer-8
 endif # ANIMATE
 ifeq ($(ARCH),Darwin)
+CPUFLAGS += -DUSE_MACOS
 ifdef GNU
 ifneq ($(GNU),-8)
 FORFLAGS += -DMIND=C_FMIN -DMAXD=C_FMAX
@@ -24,7 +23,11 @@ endif # GNU > 8
 else # !GNU
 GNU=-8
 endif # ?GNU
-endif # Darwin
+else # Linux
+# uncomment MIND and MAXD definitions below if GCC version is above 8
+FORFLAGS += -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87 #-DMIND=C_FMIN -DMAXD=C_FMAX
+endif # ?Darwin
+CC=gcc$(GNU)
 FC=gfortran$(GNU)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller
@@ -53,15 +56,15 @@ LIBFLAGS=-I. -I../shared
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 endif # ANIMATE
-LDFLAGS=-L../shared -ljk$(PROFILE)$(DEBUG)
+LDFLAGS=-L../shared -ljk$(DEBUG)
 ifeq ($(ARCH),Darwin)
 ifdef ANIMATE
-LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 ifdef ANIMATE
-LDFLAGS += -L../../../JACSD -lvn$(PROFILE)$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core
+LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 endif # ?Darwin
 ifndef NDEBUG
@@ -69,3 +72,4 @@ LDFLAGS += -lubsan
 endif # DEBUG
 LDFLAGS += -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
+CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(C18FLAGS) $(FPUFLAGS)

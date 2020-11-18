@@ -1,5 +1,5 @@
 MODULE zstep
-  USE omp_lib
+  !$ USE omp_lib
   USE ztransf
   USE ztypes
   USE jstep
@@ -140,7 +140,8 @@ CONTAINS
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
     TYPE(AW) :: X
-    INTEGER :: IP, IQ, I, II, IT
+    INTEGER :: IP, IQ, I
+    INTEGER, SAVE ::II, IT
 #ifndef NDEBUG
     REAL(KIND=DWP) :: T
 #endif
@@ -285,11 +286,12 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(OUT) :: W(2,3,SL)
 
     COMPLEX(KIND=DWP) :: V(2,2), B(2,2)
-    REAL(KIND=DWP) :: TW
-    INTEGER :: I, L, P, Q, K(2)
+    REAL(KIND=DWP), SAVE :: TW
+    INTEGER :: I, L, K(2)
+    INTEGER, SAVE :: M, P, Q
 
-    INFO = HUGE(INFO)
-    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:INFO)
+    M = HUGE(M)
+    !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:M)
     DO I = 1, SL
        P = DZ(STEP(I))%P
        Q = DZ(STEP(I))%Q
@@ -301,31 +303,31 @@ CONTAINS
        K(1) = J(P)
        K(2) = J(Q)
 
-       CALL ZHSVD2(B, K, V, W(:,:,I), INFO)
-       DZ(STEP(I))%I = INFO
-       IF (INFO .GE. 0) THEN
+       CALL ZHSVD2(B, K, V, W(:,:,I), M)
+       DZ(STEP(I))%I = M
+       IF (M .GE. 0) THEN
           W(1,3,I) = REAL(B(1,1))
           W(2,3,I) = REAL(B(2,2))
-          IF (IAND(INFO, 2) .NE. 0) THEN
+          IF (IAND(M, 2) .NE. 0) THEN
              CALL BA(V, N, A(P,1), A(Q,1), LDA)
              CALL UH2(V)
              CALL AB(V, N, U(1,P), U(1,Q))
           END IF
-          IF (IAND(INFO, 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
+          IF (IAND(M, 4) .NE. 0) CALL AB(W(:,:,I), N, Z(1,P), Z(1,Q))
        END IF
     END DO
     !$OMP END PARALLEL DO
 
-    IF (INFO .GE. 0) THEN
-       INFO = 0
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L,P,Q) SHARED(N,SL,STEP,DZ,A,LDA,W) REDUCTION(+:INFO)
+    IF (M .GE. 0) THEN
+       M = 0
+       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L,P,Q) SHARED(N,SL,STEP,DZ,A,LDA,W) REDUCTION(+:M)
        DO I = 1, SL
           P = DZ(STEP(I))%P
           Q = DZ(STEP(I))%Q
           L = DZ(STEP(I))%I
 
           IF (IAND(L, 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
-          IF ((IAND(L, 1) .NE. 0) .AND. ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0))) INFO = INFO + 1
+          IF ((IAND(L, 1) .NE. 0) .AND. ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0))) M = M + 1
 
           A(P,P) = W(1,3,I)
           A(Q,P) = Z_ZERO
@@ -338,7 +340,7 @@ CONTAINS
     TW = D_MZERO
     P = 0
     Q = 0
-    IF (INFO .GE. 0) THEN
+    IF (M .GE. 0) THEN
        !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I,L) SHARED(SL,STEP,DZ,J) REDUCTION(+:TW,P,Q)
        DO I = 1, SL
           L = DZ(STEP(I))%I
@@ -353,9 +355,11 @@ CONTAINS
        END DO
        !$OMP END PARALLEL DO
     END IF
+
     SIGMA(1) = TW
     SIGMA(2) = P
     SIGMA(3) = Q
+    INFO = M
   END SUBROUTINE ZSTEP_TRANSF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

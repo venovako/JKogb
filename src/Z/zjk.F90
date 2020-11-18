@@ -1,11 +1,12 @@
 PROGRAM zjk
-  USE omp_lib
+  !$ USE omp_lib
   USE binio
   USE zstep
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL) :: FN
-  INTEGER :: N, N_2, ID_NCP, ID_TRU, INFO, NN, NM, NT, TT, FD(3)
+  INTEGER, SAVE :: N, N_2, NN, NM, NT, TT, INFO
+  INTEGER :: ID_NCP, ID_TRU, FD(3)
   TYPE(ZPROC) :: R
 
   COMPLEX(KIND=DWP), ALLOCATABLE :: A(:,:), U(:,:), Z(:,:)
@@ -24,7 +25,8 @@ PROGRAM zjk
   IF (INFO .LE. 0) STOP 'JSTEP_LEN'
 
   ! number of threads
-  NT = MIN(MAX(1, INT(OMP_GET_MAX_THREADS())), N_2)
+  NT = 1
+  !$ NT = MIN(MAX(NT, INT(OMP_GET_MAX_THREADS())), N_2)
 
   CALL ZPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
   IF (INFO .NE. 0) STOP 'ZPROC_INIT'

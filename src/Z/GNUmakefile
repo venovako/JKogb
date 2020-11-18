@@ -29,7 +29,7 @@ zjk.exe: zjk.o zstep.o ztransf.o ztypes.o $(MKFS)
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
 
-ztest.exe: ztest.o ztransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)
+ztest.exe: ztest.o ztransf.o ../shared/libjk$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) ztest.o ztransf.o -o$@ $(LDFLAGS)
 
 ztest.o: ztest.F90 ztransf.mod $(MKFS)

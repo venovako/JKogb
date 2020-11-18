@@ -24,6 +24,19 @@ MODULE utils
   END INTERFACE
 #endif
 
+#ifdef HYPOT
+#ifndef USE_GNU
+  INTERFACE
+     PURE FUNCTION HYPOTwX87(A, B) BIND(C,NAME='HYPOTwX87')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+       REAL(KIND=c_double) :: HYPOTwX87
+     END FUNCTION HYPOTwX87
+  END INTERFACE
+#endif
+#endif
+
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -92,7 +105,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef HYPOT
-  PURE REAL(KIND=DWP) FUNCTION STUPID_HYP(A, B)
+  ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTwFMA(A, B)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: A, B
 
@@ -104,17 +117,43 @@ CONTAINS
     Y = MIN(AA, AB)
     Y_X = MAX(Y / X, D_ZERO)
 
-    STUPID_HYP = X * SQRT(Y_X * Y_X + D_ONE)
-  END FUNCTION STUPID_HYP
+    HYPOTwFMA = X * SQRT(Y_X * Y_X + D_ONE)
+  END FUNCTION HYPOTwFMA
+
+#ifdef USE_GNU
+  ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTwX87(A, B)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: A, B
+
+    REAL(KIND=XWP) :: X, Y
+
+    X = REAL(A,XWP)
+    Y = REAL(B,XWP)
+    X = X * X
+    Y = Y * Y
+    HYPOTwX87 = REAL(SQRT(X + Y),DWP)
+  END FUNCTION HYPOTwX87
+#endif
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef ABSZ
-  PURE REAL(KIND=DWP) FUNCTION STUPID_ABS(A)
+  ELEMENTAL REAL(KIND=DWP) FUNCTION ABSwFMA(A)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A
 
-    STUPID_ABS = STUPID_HYP(REAL(A), AIMAG(A))
-  END FUNCTION STUPID_ABS
+    ABSwFMA = HYPOTwFMA(REAL(A), AIMAG(A))
+  END FUNCTION ABSwFMA
+
+#ifdef USE_GNU
+  ELEMENTAL REAL(KIND=DWP) FUNCTION ABSwX87(A)
+#else
+  PURE REAL(KIND=DWP) FUNCTION ABSwX87(A)
+#endif
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A
+
+    ABSwX87 = HYPOTwX87(REAL(A), AIMAG(A))
+  END FUNCTION ABSwX87
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

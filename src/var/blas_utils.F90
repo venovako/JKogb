@@ -1,15 +1,15 @@
-MODULE BLAS_UTILS
+MODULE blas_utils
 #ifdef USE_MKL
 #ifdef USE_INTEL
 #ifdef USE_X200
-  USE IFCORE
+  USE ifcore
 #endif
-  USE MKL_SERVICE
+  USE mkl_service
 #endif
 #endif
-  USE PARAMS
-  USE VN_BLAS_F
-  USE OMP_LIB
+  USE params
+  USE vn_blas_f
+  !$ USE omp_lib
   IMPLICIT NONE
 
 CONTAINS
@@ -41,4 +41,4 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-END MODULE BLAS_UTILS
+END MODULE blas_utils

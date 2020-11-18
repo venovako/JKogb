@@ -1,5 +1,5 @@
 MODULE atypes
-  USE omp_lib
+  !$ USE omp_lib
   USE timer
   USE utils
 
@@ -216,8 +216,9 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: T, I, J, K, L, TE
-    INTEGER :: EPA, EPT ! elements per array, thread
+    INTEGER :: T, I, J, K, TE
+    ! elements per array, thread, # of + comparisons
+    INTEGER, SAVE :: EPA, EPT, L
     ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
 
     IF (NT .LE. 1) THEN
@@ -252,7 +253,8 @@ CONTAINS
     ! doi:10.1109/TC.1978.1674957
 
     !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(I) SHARED(EPA,EPT,DZ)
-    I = INT(OMP_GET_THREAD_NUM()) * EPT + 1
+    I = 1
+    !$ I = INT(OMP_GET_THREAD_NUM()) * EPT + I
     CALL AW_SORT(EPT, DZ(I), DZ(I+EPA))
     !$OMP END PARALLEL
 
@@ -261,7 +263,8 @@ CONTAINS
 
        L = 0
        !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,EPA,EPT,DZ) REDUCTION(+:L)
-       T = INT(OMP_GET_THREAD_NUM())
+       T = 0
+       !$ T = INT(OMP_GET_THREAD_NUM())
        I = T * EPT + 1
        K = I + EPA
        IF (MOD(T, 2) .EQ. 0) THEN
@@ -276,7 +279,8 @@ CONTAINS
 
        L = 0
        !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,NM,EPA,EPT,DZ) REDUCTION(+:L)
-       T = INT(OMP_GET_THREAD_NUM())
+       T = 0
+       !$ T = INT(OMP_GET_THREAD_NUM())
        K = T * EPT + 1
        I = K + EPA
        IF (MOD(T, 2) .EQ. 1) THEN
@@ -289,7 +293,7 @@ CONTAINS
              DZ(K+J) = DZ(I+J)
           END DO
           L = 0
-       ELSE! nothing to do
+       ELSE ! nothing to do
           L = 0
        END IF
        !$OMP END PARALLEL
@@ -334,7 +338,8 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER :: I, J, K, AP, AQ, BP, BQ
+    INTEGER, SAVE :: I, K, AP, AQ
+    INTEGER :: J, BP, BQ
 
     SL = 0
 
@@ -499,8 +504,9 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    REAL(KIND=DWP) :: W
-    INTEGER :: I, J, K
+    REAL(KIND=DWP), SAVE :: W
+    INTEGER :: I, J
+    INTEGER, SAVE :: K
 
     SL = 0
 

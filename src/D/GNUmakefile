@@ -29,7 +29,7 @@ djk.exe: djk.o dstep.o dtransf.o dtypes.o $(MKFS)
 djk.o: djk.F90 bio.F90 ../shared/readcl.F90 dstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c djk.F90
 
-dtest.exe: dtest.o dtransf.o ../shared/libjk$(PROFILE)$(DEBUG).a $(MKFS)
+dtest.exe: dtest.o dtransf.o ../shared/libjk$(DEBUG).a $(MKFS)
 	$(FC) $(FFLAGS) dtest.o dtransf.o -o$@ $(LDFLAGS)
 
 dtest.o: dtest.F90 dtransf.mod $(MKFS)

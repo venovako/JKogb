@@ -4,7 +4,9 @@ MODULE params
 
   INTEGER, PARAMETER :: SWP = KIND(0E0)
   INTEGER, PARAMETER :: DWP = KIND(0D0)
-  INTEGER, PARAMETER :: QWP = 16
+  INTEGER, PARAMETER :: QWP = 16 ! REAL128
+  ! set XWP to QWP if extended is not available, but quadruple is
+  INTEGER, PARAMETER :: XWP = 10
 
   ! Max file name length.
   INTEGER, PARAMETER :: FNL = 252

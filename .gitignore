@@ -49,3 +49,7 @@ zlo/
 *.bt
 *.plt
 *.png
+
+# Absoft
+absoft.mk
+af.mk
