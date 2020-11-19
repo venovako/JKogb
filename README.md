@@ -27,7 +27,7 @@ nmake [NDEBUG=d|1|2|3|4|5] [all|clean|help]
 ```
 
 If ``COMPILER`` is not set or is ``gnu``, GNU Fortran compilers will be used.
-The major version of your GCC in this case should 8, since the later ones will not work (unless a fix is applied as noted in ``src/gnu.mk``).
+The major version of your GCC in this case should be 8, since the later ones will not work (unless a fix is applied as noted in ``src/gnu.mk``).
 Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding the new MIN and MAX intrinsics.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).

@@ -115,7 +115,7 @@ CONTAINS
     AB = ABS(B)
     X = MAX(AA, AB)
     Y = MIN(AA, AB)
-    Y_X = MAX(Y / X, D_ZERO)
+    Y_X = MAXD(Y / X, D_ZERO)
 
     HYPOTwFMA = X * SQRT(Y_X * Y_X + D_ONE)
   END FUNCTION HYPOTwFMA
