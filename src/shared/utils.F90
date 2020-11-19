@@ -146,6 +146,19 @@ CONTAINS
     HYPOTwX87 = REAL(SQRT(X + Y),DWP)
   END FUNCTION HYPOTwX87
 #endif
+
+  ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTw128(A, B)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: A, B
+
+    REAL(KIND=QWP) :: X, Y
+
+    X = REAL(A,QWP)
+    Y = REAL(B,QWP)
+    X = X * X
+    Y = Y * Y
+    HYPOTw128 = REAL(SQRT(X + Y),DWP)
+  END FUNCTION HYPOTw128
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef ABSZ
@@ -166,6 +179,13 @@ CONTAINS
 
     ABSwX87 = HYPOTwX87(REAL(A), AIMAG(A))
   END FUNCTION ABSwX87
+
+  ELEMENTAL REAL(KIND=DWP) FUNCTION ABSw128(A)
+    IMPLICIT NONE
+    COMPLEX(KIND=DWP), INTENT(IN) :: A
+
+    ABSw128 = HYPOTw128(REAL(A), AIMAG(A))
+  END FUNCTION ABSw128
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
