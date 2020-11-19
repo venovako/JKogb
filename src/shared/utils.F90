@@ -60,6 +60,15 @@ CONTAINS
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION QUIET_NAN(PAYLOAD)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: PAYLOAD
+
+    QUIET_NAN = TRANSFER(IOR(INT(PAYLOAD,DWP), D_QNAN_MASK), 0.0_DWP)
+  END FUNCTION QUIET_NAN
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE LOGICAL FUNCTION VERIFY_MIN(STRONG)
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: STRONG
@@ -115,8 +124,11 @@ CONTAINS
     AB = ABS(B)
     X = MAX(AA, AB)
     Y = MIN(AA, AB)
+#ifdef MAXD
     Y_X = MAXD(Y / X, D_ZERO)
-
+#else
+    Y_X = MAX(Y / X, D_ZERO)
+#endif
     HYPOTwFMA = X * SQRT(Y_X * Y_X + D_ONE)
   END FUNCTION HYPOTwFMA
 

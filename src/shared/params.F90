@@ -26,16 +26,4 @@ MODULE params
   REAL(KIND=DWP), PARAMETER :: MINF = REAL(Z'0000000000000001',DWP)
 
 CONTAINS
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  PURE REAL(KIND=DWP) FUNCTION QUIET_NAN(PAYLOAD)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: PAYLOAD
-
-    QUIET_NAN = TRANSFER(IOR(INT(PAYLOAD,DWP), D_QNAN_MASK), 0.0_DWP)
-  END FUNCTION QUIET_NAN
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 END MODULE params
