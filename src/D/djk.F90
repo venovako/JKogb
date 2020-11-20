@@ -22,11 +22,13 @@ PROGRAM djk
   INFO = JSTEP_LEN(N, N_2)
   N_2 = INFO
   IF (INFO .LE. 0) STOP 'JSTEP_LEN'
-
+  NN = (N * (N - 1)) / 2
   ! number of threads
   NT = 1
-  !$ NT = MIN(MAX(NT, INT(OMP_GET_MAX_THREADS())), N_2)
-
+  !$ NT = MAX(NT, INT(OMP_GET_MAX_THREADS()))
+  INFO = MOD(NN, NT)
+  IF (INFO .GT. 0) INFO = NT - INFO
+  NM = 2 * (NN + INFO)
   CALL DPROC_INIT(NT, ID_NCP, ID_TRU, R, INFO)
   IF (INFO .NE. 0) STOP 'DPROC_INIT'
 
@@ -42,15 +44,9 @@ PROGRAM djk
   ALLOCATE(Z(N,N))
   ALLOCATE(S(N))
   ALLOCATE(J(N))
-
-  NN = (N * (N - 1)) / 2
   ALLOCATE(P(NN))
   ALLOCATE(Q(NN))
   ALLOCATE(STEP(N_2))
-
-  INFO = MOD(NN, NT)
-  IF (INFO .GT. 0) INFO = NT - INFO
-  NM = 2 * (NN + INFO)
   ALLOCATE(DZ(NM))
   ALLOCATE(W(2,3,N_2))
 
@@ -79,7 +75,7 @@ PROGRAM djk
   FLUSH(OUTPUT_UNIT)
 
   FD(1) = GET_SYS_TIME()
-  CALL DSTEP_LOOP(NT, N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
+  CALL DSTEP_LOOP(N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
   FD(1) = GET_SYS_TIME() - FD(1)
   IF (INFO .GE. 0) THEN
      WRITE (OUTPUT_UNIT,'(A,I10,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', &

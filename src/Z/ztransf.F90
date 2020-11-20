@@ -15,18 +15,6 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION DASUM4(X1, X2, X3, X4)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
-
-    DASUM4 = X1 * X1
-    DASUM4 = FMAD(X2, X2, DASUM4)
-    DASUM4 = FMAD(X3, X3, DASUM4)
-    DASUM4 = FMAD(X4, X4, DASUM4)
-  END FUNCTION DASUM4
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)
@@ -866,7 +854,7 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: W(2,2), B(2,2), C(2,2)
-    INTEGER :: S, I, K
+    INTEGER :: S
 
 #ifndef NDEBUG
     IF (ABS(J(1)) .NE. 1) THEN ! error

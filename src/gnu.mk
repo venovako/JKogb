@@ -11,7 +11,7 @@ ARFLAGS=rsv
 # comment out USE_X64 if not on Intel 64
 CPUFLAGS=-DUSE_GNU -DUSE_X64 -fopenmp
 C18FLAGS=-std=gnu18 $(CPUFLAGS)
-FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
+FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87
 ifdef ANIMATE
 FORFLAGS += -fdefault-integer-8
 endif # ANIMATE
@@ -26,7 +26,7 @@ GNU=-8
 endif # ?GNU
 else # Linux
 # uncomment MIND and MAXD definitions below if GCC version is above 8
-FORFLAGS += -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87 #-DMIND=C_FMIN -DMAXD=C_FMAX
+FORFLAGS += #-DMIND=C_FMIN -DMAXD=C_FMAX
 endif # ?Darwin
 CC=gcc$(GNU)
 FC=gfortran$(GNU)

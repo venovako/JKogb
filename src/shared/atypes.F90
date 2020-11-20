@@ -210,23 +210,21 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT1(NT, NN, NM, DZ, INFO)
+  SUBROUTINE AW_SRT1(NN, NM, DZ, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN, NM
+    INTEGER, INTENT(IN) :: NN, NM
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
 
-    INTEGER :: T, I, J, K, TE
+    INTEGER :: NT, T, I, J, K, TE
     ! elements per array, thread, # of + comparisons
     INTEGER, SAVE :: EPA, EPT, L
     ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
 
-    IF (NT .LE. 1) THEN
+    IF (NN .LT. 0) THEN
        INFO = -1
-    ELSE IF (NN .LT. 0) THEN
-       INFO = -2
     ELSE IF (NM .LT. NN) THEN
-       INFO = -3
+       INFO = -2
     ELSE ! all OK
        INFO = 0
     END IF
@@ -236,6 +234,8 @@ CONTAINS
     INFO = GET_SYS_TIME()
 
     EPA = NM / 2
+    NT = 1
+    !$ NT = MIN(EPA, MAX(NT, OMP_GET_MAX_THREADS()))
     EPT = EPA / NT
 
     ! virtual elements
@@ -307,18 +307,16 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_SRT2(NT, NN, NM, DZ, INFO)
+  SUBROUTINE AW_SRT2(NN, NM, DZ, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, NN, NM
+    INTEGER, INTENT(IN) :: NN, NM
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: INFO
     
-    IF (NT .LE. 0) THEN
+    IF (NN .LT. 0) THEN
        INFO = -1
-    ELSE IF (NN .LT. 0) THEN
-       INFO = -2
     ELSE IF (NM .LT. NN) THEN
-       INFO = -3
+       INFO = -2
     ELSE ! all OK
        INFO = 0
     END IF
@@ -332,9 +330,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP1(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP1(N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
+    INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
@@ -343,16 +341,14 @@ CONTAINS
 
     SL = 0
 
-    IF (NT .LE. 0) THEN
+    IF (N .LT. 0) THEN
        INFO = -1
-    ELSE IF (N .LT. 0) THEN
-       INFO = -2
     ELSE IF (NN .LT. 0) THEN
-       INFO = -3
+       INFO = -2
     ELSE IF (NM .LT. NN) THEN
-       INFO = -4
+       INFO = -3
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
+       INFO = -5
     ELSE ! all OK
        INFO = 0
     END IF
@@ -373,7 +369,7 @@ CONTAINS
        AQ = DZ(I)%Q
        K = NN + 1
 
-       !$OMP PARALLEL DO NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(J,BP,BQ) SHARED(I,NN,DZ,AP,AQ) REDUCTION(MIN:K)
+       !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(J,BP,BQ) SHARED(I,NN,DZ,AP,AQ) REDUCTION(MIN:K)
        DO J = I+1, NN
           IF (DZ(J)%W .EQ. DZ(J)%W) THEN
              BP = DZ(J)%P
@@ -396,9 +392,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP2(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP2(N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
+    INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
@@ -407,16 +403,14 @@ CONTAINS
 
     SL = 0
 
-    IF (NT .LE. 0) THEN
+    IF (N .LT. 0) THEN
        INFO = -1
-    ELSE IF (N .LT. 0) THEN
-       INFO = -2
     ELSE IF (NN .LT. 0) THEN
-       INFO = -3
+       INFO = -2
     ELSE IF (NM .LT. NN) THEN
-       INFO = -4
+       INFO = -3
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
+       INFO = -5
     ELSE ! all OK
        INFO = 0
     END IF
@@ -459,7 +453,7 @@ CONTAINS
     REAL(KIND=DWP) :: MYW, MYWP, MYWN
     INTEGER :: I, L, MYSL
 
-    CALL AW_NCP2(1, N, NN, NM, DZ, N_2, MYSL, STP, I)
+    CALL AW_NCP2(N, NN, NM, DZ, N_2, MYSL, STP, I)
     IF (I .LT. 0) RETURN
 
     IF (MYSL .GE. 1) THEN
@@ -498,9 +492,9 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE AW_NCP3(NT, N, NN, NM, DZ, N_2, SL, STEP, INFO)
+  SUBROUTINE AW_NCP3(N, NN, NM, DZ, N_2, SL, STEP, INFO)
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT, N, NN, NM, N_2
+    INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
@@ -510,16 +504,14 @@ CONTAINS
 
     SL = 0
 
-    IF (NT .LE. 0) THEN
+    IF (N .LT. 0) THEN
        INFO = -1
-    ELSE IF (N .LT. 0) THEN
-       INFO = -2
     ELSE IF (NN .LT. 0) THEN
-       INFO = -3
+       INFO = -2
     ELSE IF (NM .LT. NN) THEN
-       INFO = -4
+       INFO = -3
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -6
+       INFO = -5
     ELSE ! all OK
        INFO = 0
     END IF

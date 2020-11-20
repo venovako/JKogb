@@ -5,6 +5,9 @@ MODULE utils
 #endif
 #endif
   USE params
+#ifndef FMAD
+#define FMAD(a,b,c) ((a)*(b)+(c))
+#endif
   IMPLICIT NONE
 
 #ifndef USE_INTEL
@@ -41,7 +44,6 @@ MODULE utils
 #endif
 
 #ifdef HYPOT
-#ifndef USE_GNU
   INTERFACE
      PURE FUNCTION HYPOTwX87(A, B) BIND(C,NAME='HYPOTwX87')
        USE, INTRINSIC :: iso_c_binding
@@ -51,7 +53,24 @@ MODULE utils
      END FUNCTION HYPOTwX87
   END INTERFACE
 #endif
-#endif
+
+  INTERFACE
+     PURE FUNCTION DASUM2(A, B) BIND(C,NAME='DASUM2')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+       REAL(KIND=c_double) :: DASUM2
+     END FUNCTION DASUM2
+  END INTERFACE
+
+  INTERFACE
+     PURE FUNCTION DASUM4(A, B, C, D) BIND(C,NAME='DASUM4')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B, C, D
+       REAL(KIND=c_double) :: DASUM4
+     END FUNCTION DASUM4
+  END INTERFACE
 
 CONTAINS
 
@@ -130,7 +149,7 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef HYPOT
-  ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTwFMA(A, B)
+  PURE REAL(KIND=DWP) FUNCTION HYPOTwFMA(A, B)
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: A, B
 
@@ -145,23 +164,8 @@ CONTAINS
 #else
     Y_X = MAX(Y / X, D_ZERO)
 #endif
-    HYPOTwFMA = X * SQRT(Y_X * Y_X + D_ONE)
+    HYPOTwFMA = X * SQRT(FMAD(Y_X, Y_X, D_ONE))
   END FUNCTION HYPOTwFMA
-
-#ifdef USE_GNU
-  ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTwX87(A, B)
-    IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(IN) :: A, B
-
-    REAL(KIND=XWP) :: X, Y
-
-    X = REAL(A,XWP)
-    Y = REAL(B,XWP)
-    X = X * X
-    Y = Y * Y
-    HYPOTwX87 = REAL(SQRT(X + Y),DWP)
-  END FUNCTION HYPOTwX87
-#endif
 
   ELEMENTAL REAL(KIND=DWP) FUNCTION HYPOTw128(A, B)
     IMPLICIT NONE
@@ -178,18 +182,14 @@ CONTAINS
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #ifdef ABSZ
-  ELEMENTAL REAL(KIND=DWP) FUNCTION ABSwFMA(A)
+  PURE REAL(KIND=DWP) FUNCTION ABSwFMA(A)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A
 
     ABSwFMA = HYPOTwFMA(REAL(A), AIMAG(A))
   END FUNCTION ABSwFMA
 
-#ifdef USE_GNU
-  ELEMENTAL REAL(KIND=DWP) FUNCTION ABSwX87(A)
-#else
   PURE REAL(KIND=DWP) FUNCTION ABSwX87(A)
-#endif
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A
 
