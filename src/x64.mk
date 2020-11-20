@@ -13,37 +13,37 @@ AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icc
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp -rdynamic
-C18FLAGS=-std=c18 -D_GNU_SOURCE $(CPUFLAGS)
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp
+C18FLAGS=-std=c18 $(CPUFLAGS)
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87
 ifdef ANIMATE
 FORFLAGS += -i8
 endif # ANIMATE
-FPUFLAGS=-fp-model $(FP) -fimf-precision=high -fimf-arch-consistency=true -fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
+FPUFLAGS=-fp-model $(FP) -fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check
 else # !strict
-FPUFLAGS += -fimf-use-svml=true
+FPUFLAGS += #-fimf-use-svml=true
 endif # ?strict
 FPUFFLAGS=$(FPUFLAGS)
 ifeq ($(FP),strict)
 FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xHost -qopt-zmm-usage=high
+OPTFLAGS=-O$(NDEBUG) -xHost
 OPTFFLAGS=$(OPTFLAGS)
-DBGFLAGS=-DNDEBUG -qopt-report=5 -traceback -diag-disable=10397
+DBGFLAGS=-DNDEBUG -qopt-report=5
 DBGFFLAGS=$(DBGFLAGS)
 else # DEBUG
-OPTFLAGS=-O0 -xHost -qopt-zmm-usage=high
+OPTFLAGS=-O0 -xHost
 OPTFFLAGS=$(OPTFLAGS)
-DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -traceback -diag-disable=10397
+DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames
 ifneq ($(ARCH),Darwin)
 DBGFLAGS += -debug parallel
 endif # Linux
 DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
 endif # ?NDEBUG
-LIBFLAGS=-I. -I../shared
+LIBFLAGS=-I. -I../shared -static-libgcc
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 endif # ANIMATE
@@ -53,11 +53,10 @@ ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 else # Linux
-LIBFLAGS += -D_GNU_SOURCE
+C18FLAGS += -D_GNU_SOURCE
 ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 endif # ?Darwin
-LDFLAGS += -lpthread -lm -ldl
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(C18FLAGS) $(FPUFLAGS)

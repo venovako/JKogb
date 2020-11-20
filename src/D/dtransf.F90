@@ -1,5 +1,8 @@
 MODULE dtransf
   USE ktransf
+#ifndef FMAD
+#define FMAD(a,b,c) ((a)*(b)+(c))
+#endif
   IMPLICIT NONE
 
 CONTAINS
@@ -19,10 +22,10 @@ CONTAINS
        IF (X(1) .EQ. D_ZERO) THEN
           DASUM2 = D_ZERO
        ELSE ! X(1) .GT. D_ZERO
-          DASUM2 = ((X(2) / X(1)) * X(2) + X(1)) * X(1)
+          DASUM2 = FMAD(X(2), (X(2) / X(1)), X(1)) * X(1)
        END IF
     ELSE ! X(1) .LT. X(2)
-       DASUM2 = (X(2) + X(1) * (X(1) / X(2))) * X(2)
+       DASUM2 = FMAD(X(1), (X(1) / X(2)), X(2)) * X(2)
     END IF
   END FUNCTION DASUM2
 
@@ -66,8 +69,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: C(2)
 
-    C(1) = (A(1) + B(1,2) * A(2)) / B(1,1)
-    C(2) = (B(2,1) * A(1) + A(2)) / B(2,2)
+    C(1) = FMAD(B(1,2), A(2), A(1)) / B(1,1)
+    C(2) = FMAD(B(2,1), A(1), A(2)) / B(2,2)
     A = C
   END SUBROUTINE C1A
 
@@ -82,8 +85,8 @@ CONTAINS
     INTEGER :: J
 
     DO J = 1, 2
-       C(1,J) = (A(1,J) + B(1,2) * A(2,J)) / B(1,1)
-       C(2,J) = (B(2,1) * A(1,J) + A(2,J)) / B(2,2)
+       C(1,J) = FMAD(B(1,2), A(2,J), A(1,J)) / B(1,1)
+       C(2,J) = FMAD(B(2,1), A(1,J), A(2,J)) / B(2,2)
     END DO
     A = C
   END SUBROUTINE C2A
@@ -99,8 +102,8 @@ CONTAINS
     INTEGER :: I
 
     DO I = 1, 2
-       C(I,1) = (A(I,1) + A(I,2) * B(2,1)) / B(1,1)
-       C(I,2) = (A(I,1) * B(1,2) + A(I,2)) / B(2,2)
+       C(I,1) = FMAD(A(I,2), B(2,1), A(I,1)) / B(1,1)
+       C(I,2) = FMAD(A(I,1), B(1,2), A(I,2)) / B(2,2)
     END DO
     A = C
   END SUBROUTINE A2C
@@ -131,8 +134,8 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
           DO J = 1, N
-             XX = X(I) + R1 * Y(I)
-             YY = R2 * X(I) + Y(I)
+             XX = FMAD(R1, Y(I), X(I))
+             YY = FMAD(R2, X(I), Y(I))
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
              I = I + LDA
@@ -140,8 +143,8 @@ CONTAINS
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
           DO J = 1, N
-             XX = X(I) + R1 * Y(I)
-             YY = X(I) + R2 * Y(I)
+             XX = FMAD(R1, Y(I), X(I))
+             YY = FMAD(R2, Y(I), X(I))
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,1)
              I = I + LDA
@@ -152,8 +155,8 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(2,1))) THEN
           R2 = B(2,1) / B(2,2)
           DO J = 1, N
-             XX = R1 * X(I) + Y(I)
-             YY = R2 * X(I) + Y(I)
+             XX = FMAD(R1, X(I), Y(I))
+             YY = FMAD(R2, X(I), Y(I))
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,2)
              I = I + LDA
@@ -161,8 +164,8 @@ CONTAINS
        ELSE ! ABS(B(2,2)) .LT. ABS(B(2,1))
           R2 = B(2,2) / B(2,1)
           DO J = 1, N
-             XX = R1 * X(I) + Y(I)
-             YY = X(I) + R2 * Y(I)
+             XX = FMAD(R1, X(I), Y(I))
+             YY = FMAD(R2, Y(I), X(I))
              X(I) = XX * B(1,2)
              Y(I) = YY * B(2,1)
              I = I + LDA
@@ -194,16 +197,16 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, M
-             XX = X(I) + Y(I) * R1
-             YY = X(I) * R2 + Y(I)
+             XX = FMAD(Y(I), R1, X(I))
+             YY = FMAD(X(I), R2, Y(I))
              X(I) = XX * B(1,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, M
-             XX = X(I) + Y(I) * R1
-             YY = X(I) + Y(I) * R2
+             XX = FMAD(Y(I), R1, X(I))
+             YY = FMAD(Y(I), R2, X(I))
              X(I) = XX * B(1,1)
              Y(I) = YY * B(1,2)
           END DO
@@ -213,16 +216,16 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, M
-             XX = X(I) * R1 + Y(I)
-             YY = X(I) * R2 + Y(I)
+             XX = FMAD(X(I), R1, Y(I))
+             YY = FMAD(X(I), R2, Y(I))
              X(I) = XX * B(2,1)
              Y(I) = YY * B(2,2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, M
-             XX = X(I) * R1 + Y(I)
-             YY = X(I) + Y(I) * R2
+             XX = FMAD(X(I), R1, Y(I))
+             YY = FMAD(Y(I), R2, X(I))
              X(I) = XX * B(2,1)
              Y(I) = YY * B(1,2)
           END DO
@@ -250,42 +253,42 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, P-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = Q+1, M
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, P-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = Q+1, M
-             XX = (X(I) + Y(I) * R1) * B(1,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(Y(I), R1, X(I)) * B(1,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
@@ -293,42 +296,42 @@ CONTAINS
        IF (ABS(B(2,2)) .GE. ABS(B(1,2))) THEN
           R2 = B(1,2) / B(2,2)
           DO I = 1, P-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = Q+1, M
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) * R2 + Y(I)) * B(2,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(X(I), R2, Y(I)) * B(2,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           R2 = B(2,2) / B(1,2)
           DO I = 1, P-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = P+1, Q-1
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
           DO I = Q+1, M
-             XX = (X(I) * R1 + Y(I)) * B(2,1)
-             YY = (X(I) + Y(I) * R2) * B(1,2)
-             ABODNDF2 = ABODNDF2 + (X(I) - XX) * (X(I) + XX)
-             ABODNDF2 = ABODNDF2 + (Y(I) - YY) * (Y(I) + YY)
+             XX = FMAD(X(I), R1, Y(I)) * B(2,1)
+             YY = FMAD(Y(I), R2, X(I)) * B(1,2)
+             ABODNDF2 = FMAD((X(I) - XX), (X(I) + XX), ABODNDF2)
+             ABODNDF2 = FMAD((Y(I) - YY), (Y(I) + YY), ABODNDF2)
           END DO
        END IF
     END IF
@@ -434,7 +437,7 @@ CONTAINS
     ! S is tangent here, |S| <= 1
     IF (.NOT. D) THEN
        S = A(2,1) / A(1,1)
-       C = SQRT(S * S + D_ONE) ! D_ONE /
+       C = SQRT(FMAD(S, S, D_ONE)) ! D_ONE /
        Q(1,1) =  C
        Q(2,1) = -S
        Q(1,2) =  S
@@ -569,76 +572,29 @@ CONTAINS
   PURE SUBROUTINE DSCALEA(A, S)
     IMPLICIT NONE
 
-    REAL(KIND=DWP), PARAMETER :: TOOBIG = HUGE(TOOBIG) / 2
-    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(TOOSMALL)
-
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(OUT) :: S
 
-    REAL(KIND=DWP) :: AA, AX
-    INTEGER :: DS, US, I, J
+    INTEGER :: I, J
 
-    DS = 0
-    US = 0
-
+    S = HUGE(S)
     DO J = 1, 2
        DO I = 1, 2
-          AA = ABS(A(I,J))
-          IF (.NOT. (AA .LE. HUGE(AA))) THEN
-             ! -2 <= S <= -5
-             S = -((J - 1) * 2 + I + 1)
+          IF (.NOT. (ABS(A(I,J)) .LE. HUGE(D_ZERO))) THEN
+             ! -3 <= S <= -6
+             S = -(J * 2 + I)
              RETURN
           END IF
-          ! DS cannot be less than -1, but...
-          IF (AA .GE. TOOBIG) DS = MIN(DS, -1)
+          S = MIN(S, (EH - EXPONENT(A(I,J)) - 2))
        END DO
     END DO
 
-    IF (DS .NE. 0) THEN
+    IF (S .NE. 0) THEN
        DO J = 1, 2
           DO I = 1, 2
-             A(I,J) = SCALE(A(I,J), DS)
+             A(I,J) = SCALE(A(I,J), S)
           END DO
        END DO
-
-       S = DS
-    ELSE ! might perform upscaling
-       AX = D_ZERO
-
-       DO J = 1, 2
-          DO I = 1, 2
-             AA = ABS(A(I,J))
-             IF (AA .GT. AX) AX = AA
-             IF (AA .LT. TOOSMALL) US = MAX(US, (EXPONENT(TOOSMALL) - EXPONENT(AA)))
-          END DO
-       END DO
-
-       ! how much room there is between AX and TOOBIG
-       DS = EXPONENT(TOOBIG) - EXPONENT(AX)
-       IF (DS .LE. 0) THEN
-          ! DS cannot be less than 0, but...
-          US = 0
-       ELSE IF (US .GE. DS) THEN
-          ! now DS > 0
-          IF (SCALE(AX, DS) .GE. TOOBIG) THEN
-             ! can only be .LE., but it must not be .EQ.
-             US = DS - 1
-          ELSE ! cannot reach TOOBIG
-             US = DS
-          END IF
-       ELSE ! US .LT. DS, so US is fine
-          CONTINUE
-       END IF
-
-       IF (US .NE. 0) THEN
-          DO J = 1, 2
-             DO I = 1, 2
-                A(I,J) = SCALE(A(I,J), US)
-             END DO
-          END DO
-       END IF
-
-       S = US
     END IF
   END SUBROUTINE DSCALEA
 
@@ -656,18 +612,18 @@ CONTAINS
 
 #ifndef NDEBUG
     IF (ABS(J(1)) .NE. 1) THEN ! error
-       INFO = -5
+       INFO = -1
     ELSE IF (ABS(J(2)) .NE. 1) THEN ! error
-       INFO = -6
+       INFO = -2
     ELSE ! J OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
 #endif
     CALL DSCALEA(A, S)
-    IF (S .LT. -1) THEN
+    IF (S .LE. -3) THEN
        ! A has NaNs and/or infinities
-       INFO = S + 1
+       INFO = S
        RETURN
 #ifdef NDEBUG
     ELSE ! A OK
@@ -688,15 +644,16 @@ CONTAINS
     Z(2,2) = D_ONE
 
     CALL DHSVD2T(A, J, U, Z, INFO)
-    IF (INFO .GT. 0) CALL KHSVD2(A, J, B, C, INFO)
+    IF (INFO .GT. 0) THEN
+       CALL KHSVD2(A, J, B, C, S, INFO)
+    ELSE IF (INFO .EQ. 0) THEN
+       A(1,1) = SCALE(A(1,1), -S)
+       A(2,2) = SCALE(A(2,2), -S)
+    END IF
     IF (INFO .LT. 0) RETURN
     IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
-    END IF
-    IF (S .NE. 0) THEN
-       A(1,1) = SCALE(A(1,1), -S)
-       A(2,2) = SCALE(A(2,2), -S)
     END IF
     CALL DHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE DHSVD2

@@ -3,6 +3,9 @@ MODULE ztransf
 #ifndef ABSZ
 #define ABSZ ABS
 #endif
+#ifndef FMAD
+#define FMAD(a,b,c) ((a)*(b)+(c))
+#endif
 #ifndef MIND
 #define MIND MIN
 #endif
@@ -16,11 +19,10 @@ CONTAINS
     IMPLICIT NONE
     REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
 
-    DASUM4 = D_ZERO
-    DASUM4 = X1 * X1 + DASUM4
-    DASUM4 = X2 * X2 + DASUM4
-    DASUM4 = X3 * X3 + DASUM4
-    DASUM4 = X4 * X4 + DASUM4
+    DASUM4 = X1 * X1
+    DASUM4 = FMAD(X2, X2, DASUM4)
+    DASUM4 = FMAD(X3, X3, DASUM4)
+    DASUM4 = FMAD(X4, X4, DASUM4)
   END FUNCTION DASUM4
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -69,7 +71,7 @@ CONTAINS
     R = REAL(Z)
     I = AIMAG(Z)
     A = HYPOT(R, I)
-    C = SIGN(MIND(ABS(R) / A, D_ONE), R)
+    C = SIGN(MIND((ABS(R) / A), D_ONE), R)
     S = I / MAX(A, MINF)
     E = CMPLX(C, S, DWP)
   END SUBROUTINE ZPOLAR
@@ -83,8 +85,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: R, I
 
-    R = A * REAL(B) + REAL(C)
-    I = A * AIMAG(B) + AIMAG(C)
+    R = FMAD(A, REAL(B), REAL(C))
+    I = FMAD(A, AIMAG(B), AIMAG(C))
 
     ZDFMA = CMPLX(R, I, DWP)
   END FUNCTION ZDFMA
@@ -98,8 +100,8 @@ CONTAINS
 
     REAL(KIND=DWP) :: R, I
 
-    R = REAL(C) - A * AIMAG(B)
-    I = A * REAL(B) + AIMAG(C)
+    R = FMAD(-A, AIMAG(B), REAL(C))
+    I = FMAD( A, REAL(B), AIMAG(C))
 
     ZJFMA = CMPLX(R, I, DWP)
   END FUNCTION ZJFMA
@@ -114,10 +116,10 @@ CONTAINS
 
     REAL(KIND=DWP) :: F, R, I
 
-    F = REAL(C) - AIMAG(A) * AIMAG(B)
-    R = REAL(A) * REAL(B) + F
-    F = AIMAG(A) * REAL(B) + AIMAG(C)
-    I = REAL(A) * AIMAG(B) + F
+    F = FMAD(-AIMAG(A), AIMAG(B), REAL(C))
+    R = FMAD(REAL(A), REAL(B), F)
+    F = FMAD(AIMAG(A), REAL(B), AIMAG(C))
+    I = FMAD(REAL(A), AIMAG(B), F)
 
     ZZFMA = CMPLX(R, I, DWP)
   END FUNCTION ZZFMA
@@ -146,9 +148,9 @@ CONTAINS
     REAL(KIND=DWP) :: F, R, I
 
     F = AIMAG(A) * AIMAG(B)
-    R = REAL(A) * REAL(B) - F
+    R = FMAD(REAL(A), REAL(B), -F)
     F = AIMAG(A) * REAL(B)
-    I = REAL(A) * AIMAG(B) + F
+    I = FMAD(REAL(A), AIMAG(B), F)
 
     ZZMUL = CMPLX(R, I, DWP)
   END FUNCTION ZZMUL
@@ -159,11 +161,8 @@ CONTAINS
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A
     REAL(KIND=DWP), INTENT(IN) :: B
-#ifdef NDEBUG
-    ZDDIV = A / B
-#else
+
     ZDDIV = CMPLX(REAL(A) / B, AIMAG(A) / B, DWP)
-#endif
   END FUNCTION ZDDIV
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -172,14 +171,10 @@ CONTAINS
   ELEMENTAL COMPLEX(KIND=DWP) FUNCTION ZZDIV(A, B)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(IN) :: A, B
-#ifdef NDEBUG
-    ZZDIV = A / B
-#else
     REAL(KIND=DWP) :: F
 
     F = ABSZ(B)
     ZZDIV = ZDDIV(ZZMUL(CONJG(ZDDIV(B, F)), A), F)
-#endif
   END FUNCTION ZZDIV
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -438,8 +433,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -448,8 +443,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -458,8 +453,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
@@ -474,8 +469,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -484,8 +479,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(Y(I), R1, X(I)), B(1,1)) !(X(I) + Y(I) * R1) * B(1,1)
@@ -494,8 +489,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
        END IF
     ELSE ! ABS(B(1,1)) .LT. ABS(B(2,1))
@@ -517,8 +512,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -527,8 +522,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -537,8 +532,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
        ELSE ! ABS(B(2,2)) .LT. ABS(B(1,2))
           IF (AIMAG(B(1,2)) .EQ. D_ZERO) THEN
@@ -553,8 +548,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = P+1, Q-1
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -563,8 +558,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
           DO I = Q+1, M
              XX = ZZMUL(ZZFMA(X(I), R1, Y(I)), B(2,1)) !(X(I) * R1 + Y(I)) * B(2,1)
@@ -573,8 +568,8 @@ CONTAINS
              AXX = ABSZ(XX)
              AYI = ABSZ(Y(I))
              AYY = ABSZ(YY)
-             ABODNZF2 = ABODNZF2 + (AXI - AXX) * (AXI + AXX)
-             ABODNZF2 = ABODNZF2 + (AYI - AYY) * (AYI + AYY)
+             ABODNZF2 = FMAD((AXI - AXX), (AXI + AXX), ABODNZF2)
+             ABODNZF2 = FMAD((AYI - AYY), (AYI + AYY), ABODNZF2)
           END DO
        END IF
     END IF
@@ -686,7 +681,7 @@ CONTAINS
 
     IF (.NOT. D) THEN
        T = REAL(A(2,1)) / REAL(A(1,1))
-       C = SQRT(T * T + D_ONE) ! D_ONE /
+       C = SQRT(FMAD(T, T, D_ONE)) ! D_ONE /
        Q(1,1) =  C
        Q(2,1) = -T
        Q(1,2) =  T
@@ -826,81 +821,40 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DSCALEW(W, S)
+  PURE SUBROUTINE DSCALEA(A, S)
     IMPLICIT NONE
 
-    REAL(KIND=DWP), PARAMETER :: TOOBIG = HUGE(TOOBIG) / 2
-    REAL(KIND=DWP), PARAMETER :: TOOSMALL = TINY(TOOSMALL)
-
-    REAL(KIND=DWP), INTENT(INOUT) :: W(2,2)
+    COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(OUT) :: S
 
-    REAL(KIND=DWP) :: AA, AX
-    INTEGER :: DS, US, I, J
+    INTEGER :: I, J
 
-    DS = 0
-    US = 0
-
+    S = HUGE(S)
     DO J = 1, 2
        DO I = 1, 2
-          AA = W(I,J)
-          IF (.NOT. (AA .LE. HUGE(AA))) THEN
-             ! -2 <= S <= -5
-             S = -((J - 1) * 2 + I + 1)
+          IF (.NOT. (ABS(REAL(A(I,J))) .LE. HUGE(D_ZERO))) THEN
+             ! -3 <= S <= -6
+             S = -(J * 2 + I)
              RETURN
           END IF
-          ! DS cannot be less than -1, but...
-          IF (AA .GE. TOOBIG) DS = MIN(DS, -1)
+          S = MIN(S, (EH - EXPONENT(REAL(A(I,J))) - 2))
+          IF (.NOT. (ABS(AIMAG(A(I,J))) .LE. HUGE(D_ZERO))) THEN
+             ! -3 <= S <= -6
+             S = -(J * 2 + I)
+             RETURN
+          END IF
+          S = MIN(S, (EH - EXPONENT(AIMAG(A(I,J))) - 2))
        END DO
     END DO
 
-    IF (DS .NE. 0) THEN
+    IF (S .NE. 0) THEN
        DO J = 1, 2
           DO I = 1, 2
-             W(I,J) = SCALE(W(I,J), DS)
+             A(I,J) = CMPLX(SCALE(REAL(A(I,J)),S), SCALE(AIMAG(A(I,J)),S), DWP)
           END DO
        END DO
-
-       S = DS
-    ELSE ! might perform upscaling
-       AX = D_ZERO
-
-       DO J = 1, 2
-          DO I = 1, 2
-             AA = W(I,J)
-             IF (AA .GT. AX) AX = AA
-             IF (AA .LT. TOOSMALL) US = MAX(US, (EXPONENT(TOOSMALL) - EXPONENT(AA)))
-          END DO
-       END DO
-
-       ! how much room there is between AX and TOOBIG
-       DS = EXPONENT(TOOBIG) - EXPONENT(AX)
-       IF (DS .LE. 0) THEN
-          ! DS cannot be less than 0, but...
-          US = 0
-       ELSE IF (US .GE. DS) THEN
-          ! now DS > 0
-          IF (SCALE(AX, DS) .GE. TOOBIG) THEN
-             ! can only be .LE., but it must not be .EQ.
-             US = DS - 1
-          ELSE ! cannot reach TOOBIG
-             US = DS
-          END IF
-       ELSE ! US .LT. DS, so US is fine
-          CONTINUE
-       END IF
-
-       IF (US .NE. 0) THEN
-          DO J = 1, 2
-             DO I = 1, 2
-                W(I,J) = SCALE(W(I,J), US)
-             END DO
-          END DO
-       END IF
-
-       S = US
     END IF
-  END SUBROUTINE DSCALEW
+  END SUBROUTINE DSCALEA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -916,70 +870,24 @@ CONTAINS
 
 #ifndef NDEBUG
     IF (ABS(J(1)) .NE. 1) THEN ! error
-       INFO = -5
+       INFO = -1
     ELSE IF (ABS(J(2)) .NE. 1) THEN ! error
-       INFO = -6
+       INFO = -2
     ELSE ! J OK
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
 #endif
 
-    W(1,1) = ABSZ(A(1,1))
-    W(2,1) = ABSZ(A(2,1))
-    W(1,2) = ABSZ(A(1,2))
-    W(2,2) = ABSZ(A(2,2))
-
-    S = 0
-    DO K = 1, 2
-       DO I = 1, 2
-          IF (.NOT. (W(I,K) .LE. HUGE(D_ZERO))) THEN
-             IF ((ABS(REAL(A(I,K))) .LE. HUGE(D_ZERO)) .AND. (ABS(AIMAG(A(I,K))) .LE. HUGE(D_ZERO))) THEN
-                S = -1
-                GOTO 1
-             END IF
-             INFO = -((K - 1) * 2 + I)
-             RETURN
-          END IF
-       END DO
-    END DO
-
-    ! prescale A
-1   IF (S .NE. 0) THEN
-       A(1,1) = CMPLX(SCALE(REAL(A(1,1)), S), SCALE(AIMAG(A(1,1)), S), DWP)
-       A(2,1) = CMPLX(SCALE(REAL(A(2,1)), S), SCALE(AIMAG(A(2,1)), S), DWP)
-       A(1,2) = CMPLX(SCALE(REAL(A(1,2)), S), SCALE(AIMAG(A(1,2)), S), DWP)
-       A(2,2) = CMPLX(SCALE(REAL(A(2,2)), S), SCALE(AIMAG(A(2,2)), S), DWP)
-
-       W(1,1) = ABSZ(A(1,1))
-       W(2,1) = ABSZ(A(2,1))
-       W(1,2) = ABSZ(A(1,2))
-       W(2,2) = ABSZ(A(2,2))
-    END IF
-    K = S
-    S = 0
-
-    ! scale W as A would be scaled in the real case
-    CALL DSCALEW(W, S)
-    IF (S .LT. -1) THEN
-       ! W has NaNs and/or infinities
-       INFO = S + 1
+    CALL DSCALEA(A, S)
+    IF (S .LE. -3) THEN
+       ! A has NaNs and/or infinities
+       INFO = S
        RETURN
 #ifdef NDEBUG
     ELSE
        INFO = 0
 #endif
-    END IF
-
-    ! scale A
-    IF (S .NE. 0) THEN
-       A(1,1) = CMPLX(SCALE(REAL(A(1,1)), S), SCALE(AIMAG(A(1,1)), S), DWP)
-       A(2,1) = CMPLX(SCALE(REAL(A(2,1)), S), SCALE(AIMAG(A(2,1)), S), DWP)
-       A(1,2) = CMPLX(SCALE(REAL(A(1,2)), S), SCALE(AIMAG(A(1,2)), S), DWP)
-       A(2,2) = CMPLX(SCALE(REAL(A(2,2)), S), SCALE(AIMAG(A(2,2)), S), DWP)
-       S = S + K
-    ELSE ! S .EQ. 0
-       S = K
     END IF
 
     ! U = I
@@ -995,23 +903,23 @@ CONTAINS
     Z(2,2) = Z_ONE
 
     CALL ZHSVD2T(A, J, U, Z, INFO)
-    W(1,1) = REAL(A(1,1))
-    W(2,1) = REAL(A(2,1))
-    W(1,2) = REAL(A(1,2))
-    W(2,2) = REAL(A(2,2))
-    IF (INFO .GT. 0) CALL KHSVD2(W, J, B, C, INFO)
+    IF (INFO .GT. 0) THEN
+       W(1,1) = REAL(A(1,1))
+       W(2,1) = REAL(A(2,1))
+       W(1,2) = REAL(A(1,2))
+       W(2,2) = REAL(A(2,2))
+       CALL KHSVD2(W, J, B, C, S, INFO)
+    ELSE IF (INFO .EQ. 0) THEN
+       W(1,1) = SCALE(REAL(A(1,1)), -S)
+       W(2,2) = SCALE(REAL(A(2,2)), -S)
+    END IF
     IF (INFO .LT. 0) RETURN
     IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
     END IF
-    IF (S .NE. 0) THEN
-       A(1,1) = CMPLX(SCALE(W(1,1), -S), D_ZERO, DWP)
-       A(2,2) = CMPLX(SCALE(W(2,2), -S), D_ZERO, DWP)
-    ELSE ! no scaling
-       A(1,1) = CMPLX(W(1,1), D_ZERO, DWP)
-       A(2,2) = CMPLX(W(2,2), D_ZERO, DWP)
-    END IF
+    A(1,1) = CMPLX(W(1,1), D_ZERO, DWP)
+    A(2,2) = CMPLX(W(2,2), D_ZERO, DWP)
     CALL ZHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 

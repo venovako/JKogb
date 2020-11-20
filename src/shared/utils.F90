@@ -1,6 +1,32 @@
 MODULE utils
+#ifdef USE_INTEL
+#ifdef FMAD
+  USE, INTRINSIC :: ieee_arithmetic, ONLY: IEEE_FMA !, IEEE_MAX_NUM, IEEE_MIN_NUM
+#endif
+#endif
   USE params
   IMPLICIT NONE
+
+#ifndef USE_INTEL
+  INTERFACE
+     PURE FUNCTION C_FMA(A, B, C) BIND(C,NAME='fma')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B, C
+       REAL(KIND=c_double) :: C_FMA
+     END FUNCTION C_FMA
+  END INTERFACE
+
+#ifdef MAXD
+  INTERFACE
+     PURE FUNCTION C_FMAX(A, B) BIND(C,NAME='fmax')
+       USE, INTRINSIC :: iso_c_binding
+       IMPLICIT NONE
+       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+       REAL(KIND=c_double) :: C_FMAX
+     END FUNCTION C_FMAX
+  END INTERFACE
+#endif
 
 #ifdef MIND
   INTERFACE
@@ -12,16 +38,6 @@ MODULE utils
      END FUNCTION C_FMIN
   END INTERFACE
 #endif
-
-#ifdef MAXD
-  INTERFACE
-     PURE FUNCTION C_FMAX(A, B) BIND(C,NAME='fmax')
-       USE, INTRINSIC :: iso_c_binding
-       IMPLICIT NONE
-       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
-       REAL(KIND=c_double) :: C_FMAX
-     END FUNCTION C_FMAX
-  END INTERFACE
 #endif
 
 #ifdef HYPOT

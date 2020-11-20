@@ -8,8 +8,9 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fno-omit-frame-pointer -fopenmp -rdynamic
-C18FLAGS=-std=gnu18 -D_GNU_SOURCE $(CPUFLAGS)
+# comment out USE_X64 if not on Intel 64
+CPUFLAGS=-DUSE_GNU -DUSE_X64 -fopenmp
+C18FLAGS=-std=gnu18 $(CPUFLAGS)
 FORFLAGS=-cpp $(CPUFLAGS) -ffree-line-length-none -fstack-arrays
 ifdef ANIMATE
 FORFLAGS += -fdefault-integer-8
@@ -52,7 +53,7 @@ DBGFFLAGS=$(DBGFLAGS) -fcheck=array-temps -finit-local-zero -finit-real=snan -fi
 FPUFLAGS=-ffp-contract=fast
 FPUFFLAGS=$(FPUFLAGS)
 endif # ?NDEBUG
-LIBFLAGS=-I. -I../shared
+LIBFLAGS=-I. -I../shared -static-libgcc -static-libgfortran
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 endif # ANIMATE
@@ -62,7 +63,7 @@ ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Wl,-rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
 else # Linux
-LIBFLAGS += -D_GNU_SOURCE
+C18FLAGS += -D_GNU_SOURCE
 ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib/intel64 -Wl,-rpath=${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_gf_ilp64 -lmkl_sequential -lmkl_core
 endif # ANIMATE
@@ -70,6 +71,5 @@ endif # ?Darwin
 ifndef NDEBUG
 LDFLAGS += -lubsan
 endif # DEBUG
-LDFLAGS += -lpthread -lm -ldl $(shell if [ -L /usr/lib64/libmemkind.so ]; then echo '-lmemkind'; fi)
 FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(C18FLAGS) $(FPUFLAGS)
