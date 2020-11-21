@@ -71,7 +71,7 @@ CONTAINS
     T2 = -MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / FMAD((Y - X), (Y + X), D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(FMAD(T2, T2, D_ONE)))
     TZ = -FMAD(Y, TU, X)
-    IF (ABS(TZ) .LT. D_ONE) THEN
+    IF (ABS(TZ) .LT. TH1FIX) THEN
        CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
        CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
 
@@ -98,7 +98,7 @@ CONTAINS
        Z(2,1) =  TZ
        Z(1,2) =  TZ
        Z(2,2) =  CZ
-    ELSE ! |tanh| >= 1
+    ELSE ! |tanh| >= TH1FIX
        INFO = -10
     END IF
   END SUBROUTINE KHSVD2U
@@ -120,7 +120,7 @@ CONTAINS
     T2 = MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / FMAD((Y - X), (Y + X), D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(FMAD(T2, T2, D_ONE)))
     TZ = FMAD(Y, TU, -X)
-    IF (ABS(TZ) .LT. D_ONE) THEN
+    IF (ABS(TZ) .LT. TH1FIX) THEN
        CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
        CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
 
@@ -147,7 +147,7 @@ CONTAINS
        Z(2,1) =  TZ
        Z(1,2) =  TZ
        Z(2,2) =  CZ
-    ELSE ! |tanh| >= 1
+    ELSE ! |tanh| >= TH1FIX
        INFO = -11
     END IF
   END SUBROUTINE KHSVD2L
