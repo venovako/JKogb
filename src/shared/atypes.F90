@@ -233,9 +233,11 @@ CONTAINS
 
     INFO = GET_SYS_TIME()
 
-    EPA = NM / 2
     NT = 1
-    !$ NT = MIN(EPA, MAX(NT, OMP_GET_MAX_THREADS()))
+    !$ NT = MAX(NT, OMP_GET_MAX_THREADS())
+    I = MOD(NN, NT)
+    IF (I .GT. 0) I = NT - I
+    EPA = NN + I
     EPT = EPA / NT
 
     ! virtual elements
@@ -278,7 +280,7 @@ CONTAINS
        TE = TE + L
 
        L = 0
-       !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,NM,EPA,EPT,DZ) REDUCTION(+:L)
+       !$OMP PARALLEL NUM_THREADS(NT) DEFAULT(NONE) PRIVATE(T,I,J,K) SHARED(NT,EPA,EPT,DZ) REDUCTION(+:L)
        T = 0
        !$ T = INT(OMP_GET_THREAD_NUM())
        K = T * EPT + 1
@@ -286,7 +288,7 @@ CONTAINS
        IF (MOD(T, 2) .EQ. 1) THEN
           ! merge with T + 1
           J = I + EPT
-          CALL AW_MERGE(EPT, MIN(EPT, NM+1-J), DZ, I, J, DZ, K, L)
+          CALL AW_MERGE(EPT, MIN(EPT, 2*EPA+1-J), DZ, I, J, DZ, K, L)
        ELSE IF (T .EQ. 0) THEN
           L = EPT - 1
           DO J = 0, L
