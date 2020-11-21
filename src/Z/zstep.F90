@@ -215,22 +215,23 @@ CONTAINS
        ! remove NaN weights
        I = 1
        II = NN
-       DO WHILE (.NOT. (DZ(II)%W .EQ. DZ(II)%W))
-          II = II - 1
-       END DO
        DO WHILE (I .LT. II)
-          IF (DZ(I)%W .EQ. DZ(I)%W) THEN
-             I = I + 1
-          ELSE ! NaN
-             X = DZ(I)
-             DZ(I) = DZ(II)
-             DZ(II) = X
-             I = I + 1
+          DO WHILE (.NOT. (DZ(II)%W .EQ. DZ(II)%W))
              II = II - 1
-             DO WHILE (.NOT. (DZ(II)%W .EQ. DZ(II)%W))
+             IF (II .LE. I) EXIT
+          END DO
+          DO WHILE (I .LT. II)
+             IF (DZ(I)%W .EQ. DZ(I)%W) THEN
+                I = I + 1
+             ELSE ! NaN
+                X = DZ(I)
+                DZ(I) = DZ(II)
+                DZ(II) = X
                 II = II - 1
-             END DO
-          END IF
+                I = I + 1
+                EXIT
+             END IF
+          END DO
        END DO
     END IF
 #ifndef NDEBUG
