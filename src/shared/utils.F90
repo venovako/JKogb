@@ -54,23 +54,23 @@ MODULE utils
   END INTERFACE
 #endif
 
-  INTERFACE
-     PURE FUNCTION DASUM2(A, B) BIND(C,NAME='DASUM2')
-       USE, INTRINSIC :: iso_c_binding
-       IMPLICIT NONE
-       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
-       REAL(KIND=c_double) :: DASUM2
-     END FUNCTION DASUM2
-  END INTERFACE
+  ! INTERFACE
+  !    PURE FUNCTION DASUM2(A, B) BIND(C,NAME='DASUM2')
+  !      USE, INTRINSIC :: iso_c_binding
+  !      IMPLICIT NONE
+  !      REAL(KIND=c_double), INTENT(IN), VALUE :: A, B
+  !      REAL(KIND=c_double) :: DASUM2
+  !    END FUNCTION DASUM2
+  ! END INTERFACE
 
-  INTERFACE
-     PURE FUNCTION DASUM4(A, B, C, D) BIND(C,NAME='DASUM4')
-       USE, INTRINSIC :: iso_c_binding
-       IMPLICIT NONE
-       REAL(KIND=c_double), INTENT(IN), VALUE :: A, B, C, D
-       REAL(KIND=c_double) :: DASUM4
-     END FUNCTION DASUM4
-  END INTERFACE
+  ! INTERFACE
+  !    PURE FUNCTION DASUM4(A, B, C, D) BIND(C,NAME='DASUM4')
+  !      USE, INTRINSIC :: iso_c_binding
+  !      IMPLICIT NONE
+  !      REAL(KIND=c_double), INTENT(IN), VALUE :: A, B, C, D
+  !      REAL(KIND=c_double) :: DASUM4
+  !    END FUNCTION DASUM4
+  ! END INTERFACE
 
 CONTAINS
 

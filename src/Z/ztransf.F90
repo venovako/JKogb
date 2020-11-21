@@ -15,6 +15,67 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  PURE REAL(KIND=DWP) FUNCTION DASUM4(X1, X2, X3, X4)
+    IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: X1, X2, X3, X4
+
+    REAL(KIND=DWP) :: X(4), Y(4)
+
+    X(1) = ABS(X1)
+    X(2) = ABS(X2)
+    X(3) = ABS(X3)
+    X(4) = ABS(X4)
+
+    IF (X(1) .LE. X(2)) THEN
+       Y(1) = X(1)
+       Y(2) = X(2)
+    ELSE
+       Y(1) = X(2)
+       Y(2) = X(1)
+    END IF
+
+    IF (X(3) .LE. X(4)) THEN
+       Y(3) = X(3)
+       Y(4) = X(4)
+    ELSE
+       Y(3) = X(4)
+       Y(4) = X(3)
+    END IF
+
+    IF (Y(1) .LE. Y(3)) THEN
+       X(1) = Y(1)
+       X(2) = Y(3)
+    ELSE
+       X(1) = Y(3)
+       X(2) = Y(1)
+    END IF
+
+    IF (Y(2) .LE. Y(4)) THEN
+       X(3) = Y(2)
+       X(4) = Y(4)
+    ELSE
+       X(3) = Y(4)
+       X(4) = Y(2)
+    END IF
+
+    Y(1) = X(1)
+    IF (X(2) .LE. X(3)) THEN
+       Y(2) = X(2)
+       Y(3) = X(3)
+    ELSE
+       Y(2) = X(3)
+       Y(3) = X(2)
+    END IF
+    Y(4) = X(4)
+
+    DASUM4 = Y(1) * Y(1)
+    DASUM4 = FMAD(Y(2), Y(2), DASUM4)
+    DASUM4 = FMAD(Y(3), Y(3), DASUM4)
+    DASUM4 = FMAD(Y(4), Y(4), DASUM4)
+  END FUNCTION DASUM4
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   PURE SUBROUTINE UH2(U)
     IMPLICIT NONE
     COMPLEX(KIND=DWP), INTENT(INOUT) :: U(2,2)

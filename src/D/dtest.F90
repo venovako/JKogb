@@ -6,6 +6,10 @@ PROGRAM dtest
   REAL(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
+#ifndef USE_TEST
+  WRITE (ERROR_UNIT,'(A)') 'dtest.exe should have been compiled with USE_TEST macro defined'
+#endif
+
   A = D_ZERO
   U = D_ZERO
   Z = D_ZERO

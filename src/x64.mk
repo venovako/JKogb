@@ -15,7 +15,7 @@ CC=icc
 FC=ifort
 CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp
 C18FLAGS=-std=c18 $(CPUFLAGS)
-FORFLAGS=$(CPUFLAGS) -standard-semantics -threads -DHYPOT=HYPOTwX87 -DABSZ=ABSwX87
+FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 ifdef ANIMATE
 FORFLAGS += -i8
 endif # ANIMATE
@@ -23,26 +23,25 @@ FPUFLAGS=-fp-model $(FP) -fma -fprotect-parens -no-ftz -no-complex-limited-range
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check
 else # !strict
-FPUFLAGS += #-fimf-use-svml=true
+FPUFLAGS += -fimf-use-svml=true
 endif # ?strict
 FPUFFLAGS=$(FPUFLAGS)
 ifeq ($(FP),strict)
 FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xHost
-OPTFFLAGS=$(OPTFLAGS)
-DBGFLAGS=-DNDEBUG -qopt-report=5
+OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -qopt-report=5
+DBGFLAGS=-DNDEBUG
 DBGFFLAGS=$(DBGFLAGS)
 else # DEBUG
-OPTFLAGS=-O0 -xHost
-OPTFFLAGS=$(OPTFLAGS)
+OPTFLAGS=-O0 -xHost -qopt-multi-version-aggressive -qopt-report=5
 DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames
 ifneq ($(ARCH),Darwin)
 DBGFLAGS += -debug parallel
 endif # Linux
 DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
 endif # ?NDEBUG
+OPTFFLAGS=$(OPTFLAGS)
 LIBFLAGS=-I. -I../shared -static-libgcc
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include

@@ -6,6 +6,10 @@ PROGRAM ztest
   COMPLEX(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
+#ifndef USE_TEST
+  WRITE (ERROR_UNIT,'(A)') 'ztest.exe should have been compiled with USE_TEST macro defined'
+#endif
+
   A = Z_ZERO
   U = Z_ZERO
   Z = Z_ZERO
