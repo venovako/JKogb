@@ -11,8 +11,8 @@ all: libjk$(DEBUG).a
 help:
 	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libjk$(DEBUG).a: atypes.o binio.o cutils.o jstep.o ktransf.o params.o timer.o utils.o $(MKFS)
-	$(AR) $(ARFLAGS) $@ atypes.o binio.o cutils.o jstep.o ktransf.o params.o timer.o utils.o
+libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o utils.o params.o timer.o cutils.o $(MKFS)
+	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o utils.o params.o timer.o cutils.o
 
 atypes.o atypes.mod: atypes.F90 timer.mod utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c atypes.F90

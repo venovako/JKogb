@@ -46,7 +46,7 @@ LIBFLAGS=-I. -I../shared -static-libgcc
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 endif # ANIMATE
-LDFLAGS=-L../shared -ljk$(DEBUG)
+LDFLAGS=-L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifeq ($(ARCH),Darwin)
 ifdef ANIMATE
 LDFLAGS += -L../../../JACSD -lvn$(DEBUG) -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core

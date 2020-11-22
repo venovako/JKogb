@@ -139,10 +139,8 @@ CONTAINS
 
     TYPE(AW) :: X
     INTEGER :: IP, IQ, I
-    INTEGER, SAVE :: II, IT
-#ifndef NDEBUG
-    REAL(KIND=DWP) :: T
-#endif
+    INTEGER :: II, IT
+    !$ SAVE :: II, IT
 
     SL = 0
 #ifndef NDEBUG
@@ -169,7 +167,10 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
+
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
@@ -242,9 +243,8 @@ CONTAINS
     END IF
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       T = II / REAL(GET_SYS_TRES(),DWP)
+       WRITE (I,'(A,F12.6,A)') 'SRT: ', (II / REAL(GET_SYS_TRES(),DWP)), ' s'
        CALL AW_OUT(I, '', IT, DZ, 0, STEP, II)
-       WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'SORT: ', T, ' s, '
     END IF
 #endif
 
@@ -254,17 +254,17 @@ CONTAINS
        RETURN
     END IF
 #ifndef NDEBUG
-    IF (I .NE. -1) THEN
-       T = II / REAL(GET_SYS_TRES(),DWP)
-       WRITE (I,'(A,F12.6,A)',ADVANCE='NO') 'NCP: ', T, ' s, '
-    END IF
+    IF (I .NE. -1) WRITE (I,'(A,F12.6,A)') 'NCP: ', (II / REAL(GET_SYS_TRES(),DWP)), ' s'
 #endif
 
-1   INFO = MAX(GET_SYS_TIME() - INFO, 1)
+1   CONTINUE
+#ifndef USE_FAST
+    INFO = GET_SYS_TIME() - INFO
+#endif
+
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       T = INFO / REAL(GET_SYS_TRES(),DWP)
-       WRITE (I,'(A,F12.6,A)') 'BUILD: ', T, ' s'
+       WRITE (I,'(A,F12.6,A)') 'ALL: ', (INFO / REAL(GET_SYS_TRES(),DWP)), ' s'
        CALL AW_OUT(I, '', IT, DZ, SL, STEP, II)
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
@@ -282,9 +282,10 @@ CONTAINS
     INTEGER, INTENT(OUT) :: INFO
 
     REAL(KIND=DWP) :: V(2,2), B(2,2)
-    REAL(KIND=DWP), SAVE :: TW
     INTEGER :: I, L, K(2)
-    INTEGER, SAVE :: M, P, Q
+    REAL(KIND=DWP) :: TW
+    INTEGER :: M, P, Q
+    !$ SAVE :: TW, M, P, Q
 
     M = HUGE(M)
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(I,P,Q,V,B,K) SHARED(N,SL,STEP,DZ,J,U,A,Z,LDA,W) REDUCTION(MIN:M)
@@ -374,18 +375,21 @@ CONTAINS
     SL = 0
     INFO = 0
 
+#ifndef USE_FAST
     WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
+#endif
     CALL DSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
-    IF (INFO .LE. 0) THEN
+    IF (INFO .LT. 0) THEN
        IT = INFO
     ELSE
        IT = SL
     END IF
+#ifndef USE_FAST
     WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') IT, ','
     FLUSH(ERROR_UNIT)
 
-    IF (INFO .LE. 0) THEN
+    IF (INFO .LT. 0) THEN
        WRITE (ERROR_UNIT,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
             D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE IF (SL .LE. 0) THEN
@@ -395,24 +399,33 @@ CONTAINS
        WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (INFO / REAL(GET_SYS_TRES(),DWP)), ','
     END IF
     FLUSH(ERROR_UNIT)
+#endif
 
     IF (SL .LE. 0) RETURN
-    IF (INFO .LE. 0) THEN
+    IF (INFO .LT. 0) THEN
+#ifndef USE_FAST
        WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
             D_MZERO, ',', -1, ',', D_MZERO, ',',0,',',0
        FLUSH(ERROR_UNIT)
+#endif
        RETURN
     END IF
 
+#ifndef USE_FAST
     IT = GET_SYS_TIME()
+#endif
     CALL DSTEP_TRANSF(N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, W, NL)
-    IT = MAX(GET_SYS_TIME() - IT, 1)
+#ifndef USE_FAST
+    IT = GET_SYS_TIME() - IT
     WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
          (IT / REAL(GET_SYS_TRES(),DWP)), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ERROR_UNIT)
+#endif
 
     SL = MIN(SL, NL)
+#ifndef USE_FAST
     INFO = INFO + IT
+#endif
   END SUBROUTINE DSTEP_EXEC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -520,8 +533,10 @@ CONTAINS
     INFO = 0
 #endif
 
+#ifndef USE_FAST
     WRITE (ERROR_UNIT,'(A)') '"STEP","OLDLEN","BUILDs","TRANSFs","NEWLEN","NORMF2D","TRIG","HYP"'
     FLUSH(ERROR_UNIT)
+#endif
 
     S = 0
     DO WHILE (S .GE. 0)
@@ -534,7 +549,7 @@ CONTAINS
        END IF
 #endif
        CALL DSTEP_EXEC(S, N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, P, Q, R, NM, DZ, TT, N_2, STEP, SL, W, INFO)
-       IF (INFO .LE. 0) EXIT
+       IF (INFO .LT. 0) EXIT
        IF (SL .LE. 0) EXIT
        S = S + 1
     END DO

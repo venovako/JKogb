@@ -1,7 +1,6 @@
 ifndef COMPILER
 COMPILER=gnu
 endif # !COMPILER
-include $(COMPILER).mk
 MKFS=GNUmakefile $(COMPILER).mk
 
 .PHONY: all help clean SHARED REAL8 COMPLEX8

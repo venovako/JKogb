@@ -11,12 +11,12 @@ FPUFLAGS=/fp:precise /Qfma /Qprotect-parens /Qftz- /Qcomplex-limited-range- /Qfa
 LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
 !IFDEF NDEBUG
-OPTFLAGS=/O$(NDEBUG) $(OPTFLAGS)
+OPTFLAGS=/O$(NDEBUG) $(OPTFLAGS) #/DUSE_FAST
 DBGFLAGS=/DNDEBUG
 DBGFFLAGS=$(DBGFLAGS) #/DUSE_TEST
 FPUFLAGS=$(FPUFLAGS) /Qimf-use-svml:true
 C18FLAGS=$(C18FLAGS) /MD
-LDFLAGS=$(LDFLAGS) /RELEASE /LIBPATH:..\shared jk.lib
+LDFLAGS=$(LDFLAGS) /RELEASE /LIBPATH:. $(TYPE)jk.lib /LIBPATH:..\shared jk.lib
 !ELSE # DEBUG
 OPTFLAGS=/O$(DEBUG) $(OPTFLAGS)
 DBGFLAGS=/debug:full /debug:inline-debug-info
@@ -24,7 +24,7 @@ DBGFFLAGS=$(DBGFLAGS) /debug-parameters:all /check:all /warn:all
 FPUFLAGS=$(FPUFLAGS) /Qfp-stack-check
 LIBFLAGS=$(LIBFLAGS) /dbglibs
 C18FLAGS=$(C18FLAGS) /MDd
-LDFLAGS=$(LDFLAGS) /DEBUG /LIBPATH:..\shared jk$(DEBUG).lib
+LDFLAGS=$(LDFLAGS) /DEBUG /LIBPATH:. $(TYPE)jk$(DEBUG).lib /LIBPATH:..\shared jk$(DEBUG).lib
 !ENDIF # ?NDEBUG
 OPTFFLAGS=$(OPTFLAGS)
 FPUFFLAGS=$(FPUFLAGS)

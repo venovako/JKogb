@@ -1,29 +1,34 @@
+TYPE=z
 !INCLUDE ..\win.mk
+MKFS=Makefile ..\win.mk
 
-all: zjk.exe ztest.exe
+all: zjk$(DEBUG).lib zjk.exe ztest.exe
 
 help:
-	@echo "nmake.exe [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
 
-ztransf.obj ztransf.mod: ztransf.F90 ..\shared\ktransf.mod Makefile
-	$(FC) $(FFLAGS) /c ztransf.F90
+zjk$(DEBUG).lib: zstep.obj ztransf.obj ztypes.obj $(MKFS)
+	$(AR) $(ARFLAGS) /OUT:$@ zstep.obj ztransf.obj ztypes.obj
 
-ztypes.obj ztypes.mod: ztypes.F90 ..\shared\atypes.mod Makefile
-	$(FC) $(FFLAGS) /c ztypes.F90
-
-zstep.obj zstep.mod: zstep.F90 ztransf.mod ztypes.mod ..\shared\jstep.mod Makefile
+zstep.obj zstep.mod: zstep.F90 ztransf.mod ztypes.mod ..\shared\jstep.mod $(MKFS)
 	$(FC) $(FFLAGS) /c zstep.F90
 
-zjk.exe: zjk.obj zstep.obj ztransf.obj ztypes.obj Makefile
-	$(FC) $(FFLAGS) zjk.obj zstep.obj ztransf.obj ztypes.obj /Fe$@ $(LDFLAGS)
+ztransf.obj ztransf.mod: ztransf.F90 ..\shared\ktransf.mod $(MKFS)
+	$(FC) $(FFLAGS) /c ztransf.F90
 
-zjk.obj: zjk.F90 bio.F90 ..\shared\readcl.F90 zstep.mod ..\shared\binio.mod Makefile
+ztypes.obj ztypes.mod: ztypes.F90 ..\shared\atypes.mod $(MKFS)
+	$(FC) $(FFLAGS) /c ztypes.F90
+
+zjk.exe: zjk.obj zjk$(DEBUG).lib ..\shared\jk$(DEBUG).lib $(MKFS)
+	$(FC) $(FFLAGS) zjk.obj /Fe$@ $(LDFLAGS)
+
+zjk.obj: zjk.F90 bio.F90 ..\shared\readcl.F90 zstep.mod ..\shared\binio.mod $(MKFS)
 	$(FC) $(FFLAGS) /c zjk.F90
 
-ztest.exe: ztest.obj ztransf.obj ..\shared\jk$(DEBUG).lib Makefile
-	$(FC) $(FFLAGS) ztest.obj ztransf.obj /Fe$@ $(LDFLAGS)
+ztest.exe: ztest.obj zjk$(DEBUG).lib ..\shared\jk$(DEBUG).lib $(MKFS)
+	$(FC) $(FFLAGS) ztest.obj /Fe$@ $(LDFLAGS)
 
-ztest.obj: ztest.F90 ztransf.mod Makefile
+ztest.obj: ztest.F90 ztransf.mod $(MKFS)
 	$(FC) $(FFLAGS) /c ztest.F90
 
 clean:

@@ -1,6 +1,8 @@
 MODULE atypes
   !$ USE omp_lib
+#ifndef USE_FAST
   USE timer
+#endif
   USE utils
 
   IMPLICIT NONE
@@ -45,7 +47,9 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
 
     IF (LEN_TRIM(HDR) .GT. 0) THEN
        WRITE (OU,'(A)') TRIM(HDR)
@@ -66,7 +70,9 @@ CONTAINS
        END DO
     END IF
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_OUT
 #endif
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -218,8 +224,9 @@ CONTAINS
 
     INTEGER :: NT, T, I, J, K, TE
     ! elements per array, thread, # of + comparisons
-    INTEGER, SAVE :: EPA, EPT, L
     ! A => DZ(1:EPA), B => DZ(EPA+1:NM)
+    INTEGER :: EPA, EPT, L
+    !$ SAVE :: EPA, EPT, L
 
     IF (NN .LT. 0) THEN
        INFO = -1
@@ -231,7 +238,9 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
 
     NT = 1
     !$ NT = MAX(NT, OMP_GET_MAX_THREADS())
@@ -304,7 +313,9 @@ CONTAINS
        IF (TE .EQ. 0) EXIT
     END DO
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_SRT1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -325,9 +336,13 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
     IF (NN .EQ. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
     CALL AW_SORT(NN, DZ, DZ(NN+1))
+#ifndef USE_FAST
     INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_SRT2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -338,8 +353,9 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    INTEGER, SAVE :: I, K, AP, AQ
     INTEGER :: J, BP, BQ
+    INTEGER :: I, K, AP, AQ
+    !$ SAVE :: I, K, AP, AQ
 
     SL = 0
 
@@ -356,7 +372,9 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
@@ -389,7 +407,10 @@ CONTAINS
        I = K
     END DO
 
-1   INFO = GET_SYS_TIME() - INFO
+1   CONTINUE
+#ifndef USE_FAST
+    INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_NCP1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -418,7 +439,9 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
     IF (N .EQ. 0) GOTO 2
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
@@ -439,7 +462,10 @@ CONTAINS
        IF (J .GT. NN) EXIT
     END DO
 
-2   INFO = GET_SYS_TIME() - INFO
+2   CONTINUE
+#ifndef USE_FAST
+    INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_NCP2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -500,9 +526,10 @@ CONTAINS
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
 
-    REAL(KIND=DWP), SAVE :: W
     INTEGER :: I, J
-    INTEGER, SAVE :: K
+    REAL(KIND=DWP) :: W
+    INTEGER :: K
+    !$ SAVE :: W, K
 
     SL = 0
 
@@ -519,7 +546,9 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 
+#ifndef USE_FAST
     INFO = GET_SYS_TIME()
+#endif
     IF (N .EQ. 0) GOTO 3
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3
@@ -537,7 +566,10 @@ CONTAINS
     END DO
     !$OMP END PARALLEL DO
 
-3   INFO = GET_SYS_TIME() - INFO
+3   CONTINUE
+#ifndef USE_FAST
+    INFO = GET_SYS_TIME() - INFO
+#endif
   END SUBROUTINE AW_NCP3
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

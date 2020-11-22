@@ -1,11 +1,15 @@
 PROGRAM zjk
   !$ USE omp_lib
   USE binio
+#ifdef USE_FAST
+  USE timer
+#endif
   USE zstep
   IMPLICIT NONE
 
   CHARACTER(LEN=FNL) :: FN
-  INTEGER, SAVE :: N, N_2, NN, NM, NT, TT, INFO
+  INTEGER :: N, N_2, NN, NM, NT, TT, INFO
+  !$ SAVE :: N, N_2, NN, NM, NT, TT, INFO
   INTEGER :: ID_NCP, ID_TRU, FD(3)
   TYPE(ZPROC) :: R
 

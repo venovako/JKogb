@@ -560,11 +560,9 @@ CONTAINS
     IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 2
     ! check if Z is identity and record in INFO if it is not
     IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 4
-#ifndef NDEBUG
     ! check for overflow
     ! IF (A(1,1) .GT. HUGE(D_ZERO)) INFO = INFO + 8
     ! IF (A(2,2) .GT. HUGE(D_ZERO)) INFO = INFO + 16
-#endif
   END SUBROUTINE DHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
