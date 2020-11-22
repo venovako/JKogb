@@ -1,10 +1,18 @@
 MODULE params
+#ifdef USE_NVIDIA
+  USE, INTRINSIC :: iso_fortran_env, ONLY: INPUT_UNIT, OUTPUT_UNIT, ERROR_UNIT
+#else
   USE, INTRINSIC :: iso_fortran_env, ONLY: INPUT_UNIT, OUTPUT_UNIT, ERROR_UNIT, REAL128
+#endif
   IMPLICIT NONE
 
   INTEGER, PARAMETER :: SWP = KIND(0E0)
   INTEGER, PARAMETER :: DWP = KIND(0D0)
+#ifdef USE_NVIDIA
+  INTEGER, PARAMETER :: QWP = 8
+#else
   INTEGER, PARAMETER :: QWP = REAL128
+#endif
 
   ! Max file name length.
   INTEGER, PARAMETER :: FNL = 252
@@ -28,7 +36,7 @@ MODULE params
   REAL(KIND=DWP), PARAMETER :: TH1FIX = 4.0_DWP / 5
 #endif
 
-#ifdef USE_ABSOFT
+#if defined(USE_ABSOFT) || defined(USE_NVIDIA)
   INTEGER, PARAMETER :: EH =  1024
   INTEGER, PARAMETER :: ET = -1021
 #else
