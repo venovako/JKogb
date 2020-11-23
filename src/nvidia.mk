@@ -8,7 +8,7 @@ RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
 CPUFLAGS=-DUSE_NVIDIA -DUSE_TEST -DUSE_X64 -m64 -mp -Minfo
-FORFLAGS=$(CPUFLAGS) -Mdclchk -Mstack_arrays
+FORFLAGS=$(CPUFLAGS) -Mdclchk -Mstack_arrays -DMIND=C_FMIN -DMAXD=C_FMAX
 C11FLAGS=$(CPUFLAGS) -c11 -D_GNU_SOURCE
 CC=nvc
 FC=nvfortran

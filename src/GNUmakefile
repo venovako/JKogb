@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 ifndef COMPILER
 COMPILER=gnu
 endif # !COMPILER

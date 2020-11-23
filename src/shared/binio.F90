@@ -56,8 +56,14 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 
     IF (U .EQ. -1) THEN
+#ifdef USE_SUN
+       U = 1 ! TODO: dirty hack
+       OPEN(UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=1, FILE=TRIM(FN), STATUS=TRIM(STAT), ACTION=TRIM(FACT),&
+            ACCESS='STREAM', FORM='UNFORMATTED')
+#else
        OPEN(NEWUNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=1, FILE=TRIM(FN), STATUS=TRIM(STAT), ACTION=TRIM(FACT),&
             ACCESS='STREAM', FORM='UNFORMATTED')
+#endif
     ELSE
        OPEN(UNIT=U, IOSTAT=INFO, IOMSG=MSG, ERR=1, FILE=TRIM(FN), STATUS=TRIM(STAT), ACTION=TRIM(FACT),&
             ACCESS='STREAM', FORM='UNFORMATTED')
@@ -264,7 +270,13 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: FN
     INTEGER, INTENT(OUT) :: FD(2), INFO
 
-    FD = -1
+#ifdef USE_SUN
+    FD(1) = 1
+    FD(2) = 2
+#else
+    FD(1) = -1
+    FD(2) = -1
+#endif
 
     IF (LEN_TRIM(FN) .LE. 0) THEN
        INFO = -1
@@ -293,7 +305,15 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: FN
     INTEGER, INTENT(OUT) :: FD(3), INFO
 
-    FD = -1
+#ifdef USE_SUN
+    FD(1) = 1
+    FD(2) = 2
+    FD(3) = 3
+#else
+    FD(1) = -1
+    FD(2) = -1
+    FD(3) = -1
+#endif
 
     IF (LEN_TRIM(FN) .LE. 0) THEN
        INFO = -1
