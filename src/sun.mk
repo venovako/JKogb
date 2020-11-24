@@ -1,0 +1,32 @@
+SHELL=/bin/bash
+ifdef NDEBUG
+DEBUG=
+else # DEBUG
+DEBUG=g
+endif # ?NDEBUG
+RM=rm -rfv
+AR=ar
+ARFLAGS=rsv
+# comment out USE_X64 if not on Intel 64
+CPUFLAGS=-DUSE_SUN -DUSE_X64 -m64 -xarch=native
+C11FLAGS=-std=gnu11 $(CPUFLAGS)
+FORFLAGS=$(CPUFLAGS) -u
+# FORFLAGS += -DMIND=C_FMIN -DMAXD=C_FMAX
+FPUFLAGS=-fma=fused -ftrap=%none
+CC=cc
+FC=f95
+ifdef NDEBUG
+OPTFLAGS=-O$(NDEBUG) -xopenmp=parallel
+DBGFLAGS=-DNDEBUG
+DBGFFLAGS=$(DBGFLAGS)
+else # DEBUG
+OPTFLAGS=-xopenmp=noopt
+DBGFLAGS=-$(DEBUG)
+DBGFFLAGS=$(DBGFLAGS) -C -xcheck=%all -xcommonchk=yes
+endif # ?NDEBUG
+OPTFFLAGS=$(OPTFLAGS)
+FPUFFLAGS=$(FPUFLAGS)
+LIBFLAGS=-I. -I../shared
+LDFLAGS=-L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
+FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
+CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(C11FLAGS) $(FPUFLAGS)

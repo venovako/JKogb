@@ -97,6 +97,9 @@ CONTAINS
        END IF
     END IF
 
+#ifdef USE_SUN
+    R%NCP = ID_NCP
+#else
     SELECT CASE (ID_NCP)
     CASE (1)
        R%NCP => AW_NCP1
@@ -108,8 +111,12 @@ CONTAINS
        R%NCP => NULL()
        INFO = -2
     END SELECT
+#endif
 
     IF (ID_TRU .EQ. 0) ID_TRU = 1
+#ifdef USE_SUN
+    R%TRU = ID_TRU
+#else
     SELECT CASE (ID_TRU)
     CASE (1)
        R%TRU => TRU1
@@ -119,11 +126,20 @@ CONTAINS
        R%TRU => NULL()
        INFO = -3
     END SELECT
+#endif
 
     IF (NT .GT. 1) THEN
+#ifdef USE_SUN
+       R%SRT = 1
+#else
        R%SRT => AW_SRT1
+#endif
     ELSE ! <= 1 (single-threaded)
+#ifdef USE_SUN
+       R%SRT = 2
+#else
        R%SRT => AW_SRT2
+#endif
     END IF
   END SUBROUTINE DPROC_INIT
 
@@ -236,7 +252,18 @@ CONTAINS
 #ifndef NDEBUG
     I = OPEN_LOG('DSTEP_BUILD', S)
 #endif
+#ifdef USE_SUN
+    SELECT CASE (R%SRT)
+    CASE (1)
+       CALL AW_SRT1(IT, NM, DZ, II)
+    CASE (2)
+       CALL AW_SRT2(IT, NM, DZ, II)
+    CASE DEFAULT
+       STOP 'R%SRT'
+    END SELECT
+#else
     CALL R%SRT(IT, NM, DZ, II)
+#endif
     IF (II .LT. 0) THEN
        INFO = -11
        RETURN
@@ -248,7 +275,20 @@ CONTAINS
     END IF
 #endif
 
+#ifdef USE_SUN
+    SELECT CASE (R%NCP)
+    CASE (1)
+       CALL AW_NCP1(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+    CASE (2)
+       CALL AW_NCP2(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+    CASE (3)
+       CALL AW_NCP3(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+    CASE DEFAULT
+       STOP 'R%NCP'
+    END SELECT
+#else
     CALL R%NCP(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+#endif
     IF (II .LT. 0) THEN
        INFO = -13
        RETURN

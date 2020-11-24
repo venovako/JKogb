@@ -30,13 +30,13 @@ dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 
 djk.exe: djk.o libdjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) djk.o -o$@ $(LDFLAGS)
+	$(FC) $(FFLAGS) djk.o -o $@ $(LDFLAGS)
 
 djk.o: djk.F90 bio.F90 ../shared/readcl.F90 dstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c djk.F90
 
 dtest.exe: dtest.o libdjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) dtest.o -o$@ $(LDFLAGS)
+	$(FC) $(FFLAGS) dtest.o -o $@ $(LDFLAGS)
 
 dtest.o: dtest.F90 dtransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtest.F90

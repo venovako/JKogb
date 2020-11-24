@@ -30,13 +30,13 @@ ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztypes.F90
 
 zjk.exe: zjk.o libzjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) zjk.o -o$@ $(LDFLAGS)
+	$(FC) $(FFLAGS) zjk.o -o $@ $(LDFLAGS)
 
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
 
 ztest.exe: ztest.o libzjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
-	$(FC) $(FFLAGS) ztest.o -o$@ $(LDFLAGS)
+	$(FC) $(FFLAGS) ztest.o -o $@ $(LDFLAGS)
 
 ztest.o: ztest.F90 ztransf.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztest.F90
