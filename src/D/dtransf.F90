@@ -573,17 +573,19 @@ CONTAINS
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(OUT) :: S
 
+    REAL(KIND=DWP) :: AA
     INTEGER :: I, J
 
     S = HUGE(S)
     DO J = 1, 2
        DO I = 1, 2
-          IF (.NOT. (ABS(A(I,J)) .LE. HUGE(D_ZERO))) THEN
+          AA = ABS(A(I,J))
+          IF (.NOT. (AA .LE. HUGE(D_ZERO))) THEN
              ! -3 <= S <= -6
              S = -(J * 2 + I)
              RETURN
           END IF
-          S = MIN(S, (EH - EXPONENT(A(I,J)) - 2))
+          S = MIN(S, (EH - EXPONENT(MAX(AA,MINF)) - 2))
        END DO
     END DO
 

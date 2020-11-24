@@ -868,29 +868,33 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DSCALEA(A, S)
+  PURE SUBROUTINE ZSCALEA(A, S)
     IMPLICIT NONE
 
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(OUT) :: S
 
+    REAL(KIND=DWP) :: AA
     INTEGER :: I, J
 
     S = HUGE(S)
     DO J = 1, 2
        DO I = 1, 2
-          IF (.NOT. (ABS(REAL(A(I,J))) .LE. HUGE(D_ZERO))) THEN
+          AA = ABS(REAL(A(I,J)))
+          IF (.NOT. (AA .LE. HUGE(D_ZERO))) THEN
              ! -3 <= S <= -6
              S = -(J * 2 + I)
              RETURN
           END IF
-          S = MIN(S, (EH - EXPONENT(REAL(A(I,J))) - 2))
-          IF (.NOT. (ABS(AIMAG(A(I,J))) .LE. HUGE(D_ZERO))) THEN
+          S = MIN(S, (EH - EXPONENT(MAX(AA,MINF)) - 2))
+
+          AA = ABS(AIMAG(A(I,J)))
+          IF (.NOT. (AA .LE. HUGE(D_ZERO))) THEN
              ! -3 <= S <= -6
              S = -(J * 2 + I)
              RETURN
           END IF
-          S = MIN(S, (EH - EXPONENT(AIMAG(A(I,J))) - 2))
+          S = MIN(S, (EH - EXPONENT(MAX(AA,MINF)) - 2))
        END DO
     END DO
 
@@ -901,7 +905,7 @@ CONTAINS
           END DO
        END DO
     END IF
-  END SUBROUTINE DSCALEA
+  END SUBROUTINE ZSCALEA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -926,7 +930,7 @@ CONTAINS
     IF (INFO .NE. 0) RETURN
 #endif
 
-    CALL DSCALEA(A, S)
+    CALL ZSCALEA(A, S)
     IF (S .LE. -3) THEN
        ! A has NaNs and/or infinities
        INFO = S
