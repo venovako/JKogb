@@ -61,17 +61,17 @@ CONTAINS
 
     IF (SL .EQ. 0) THEN
        DO J = 1, NN
-          WRITE (OU,'(I10,A,ES25.17E3,3(A,I10))') J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
+          WRITE (OU,'(I11,A,ES25.17E3,3(A,I11))') J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
        END DO
     ELSE ! SL > 0
        DO I = 1, SL
           J = STEP(I)
-          WRITE (OU,'(2(I10,A),ES25.17E3,3(A,I10))') I, ',', J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
+          WRITE (OU,'(2(I11,A),ES25.17E3,3(A,I11))') I, ',', J, ',', DZ(J)%W, ',', DZ(J)%P, ',', DZ(J)%Q, ',', DZ(J)%B
        END DO
     END IF
 
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_OUT
 #endif
@@ -314,7 +314,7 @@ CONTAINS
     END DO
 
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_SRT1
 
@@ -341,7 +341,7 @@ CONTAINS
 #endif
     CALL AW_SORT(NN, DZ, DZ(NN+1))
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_SRT2
 
@@ -409,7 +409,7 @@ CONTAINS
 
 1   CONTINUE
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_NCP1
 
@@ -464,7 +464,7 @@ CONTAINS
 
 2   CONTINUE
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_NCP2
 
@@ -568,7 +568,7 @@ CONTAINS
 
 3   CONTINUE
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
   END SUBROUTINE AW_NCP3
 

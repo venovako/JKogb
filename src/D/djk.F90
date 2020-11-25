@@ -91,13 +91,13 @@ PROGRAM djk
 
   FD(1) = GET_SYS_TIME()
   CALL DSTEP_LOOP(N, U, N, A, N, Z, N, J, S, NN, P, Q, R, NM, DZ, N_2, STEP, TT, W, INFO)
-  FD(1) = GET_SYS_TIME() - FD(1)
+  FD(1) = MAX(GET_SYS_TIME() - FD(1), 0)
   IF (INFO .GE. 0) THEN
-     WRITE (OUTPUT_UNIT,'(A,I10,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', &
+     WRITE (OUTPUT_UNIT,'(A,I11,A,F13.6,A)') 'Executed ', INFO, ' steps with transformations in ', &
           (FD(1) / REAL(GET_SYS_TRES(),DWP)), ' s'
      FLUSH(OUTPUT_UNIT)
   ELSE ! error
-     WRITE (ERROR_UNIT,'(A,I10,A,F13.6,A)') 'ERROR ', INFO, ' after ', &
+     WRITE (ERROR_UNIT,'(A,I11,A,F13.6,A)') 'ERROR ', INFO, ' after ', &
           (FD(1) / REAL(GET_SYS_TRES(),DWP)), ' s'
      FLUSH(ERROR_UNIT)
   END IF

@@ -300,7 +300,7 @@ CONTAINS
 
 1   CONTINUE
 #ifndef USE_FAST
-    INFO = GET_SYS_TIME() - INFO
+    INFO = MAX(GET_SYS_TIME() - INFO, 0)
 #endif
 
 #ifndef NDEBUG
@@ -419,7 +419,7 @@ CONTAINS
     INFO = 0
 
 #ifndef USE_FAST
-    WRITE (ERROR_UNIT,'(I10,A)',ADVANCE='NO') S, ','
+    WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
 #endif
     CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
@@ -459,7 +459,7 @@ CONTAINS
 #endif
     CALL ZSTEP_TRANSF(N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, W, NL)
 #ifndef USE_FAST
-    IT = GET_SYS_TIME() - IT
+    IT = MAX(GET_SYS_TIME() - IT, 0)
     WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
          (IT / REAL(GET_SYS_TRES(),DWP)), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ERROR_UNIT)
