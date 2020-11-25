@@ -38,6 +38,7 @@ data
 *.J
 
 # Output
+ani/
 dlo/
 zlo/
 *.LY
