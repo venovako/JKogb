@@ -2,6 +2,8 @@
 
 int main(int argc, char *argv[])
 {
+  static wpqb_info w;
+
   if (4 != argc) {
     (void)fprintf(stderr, "%s n n_s r\n", *argv);
     return EXIT_FAILURE;
@@ -32,7 +34,6 @@ int main(int argc, char *argv[])
   if (!s)
     return EXIT_FAILURE;
 
-  wpqb_info w;
   wpqb_ncp(n, n_a, a, n_s, s, &w);
 
 #ifdef _WIN32

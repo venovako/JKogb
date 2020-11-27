@@ -7,15 +7,15 @@ RM=del /F
 AR=xilib.exe
 ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
 CC=icl.exe
-C11FLAGS=/nologo /Qstd=c11 /Quse-intel-optimized-headers /Qlong-double /Qopenmp /Qrestrict /Qvla
+C18FLAGS=/nologo /Qstd=c18 /Quse-intel-optimized-headers /Qlong-double /Qopenmp /Qrestrict /Qvla
 OPT=/QxHost /Qopt-multi-version-aggressive /Qprotect-parens
-DBG=/traceback /Wall /Wcheck
-FPU=/Qimf-precision:high /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
+DBG=/Wall /Wcheck
+FPU=/Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
 LNK=/LIBPATH:. jk$(DEBUG).lib
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) $(OPT)
 DBGFLAGS=/DNDEBUG /Qopt-report:5 $(DBG)
-FPUFLAGS=/fp:source $(FPU)
+FPUFLAGS=/fp:precise $(FPU) /Qimf-use-svml:true
 LDFLAGS=/link /RELEASE $(LNK)
 !ELSE # DEBUG
 OPTFLAGS=/O$(DEBUG) $(OPT)
@@ -24,12 +24,12 @@ FPUFLAGS=/fp:strict /Qfp-stack-check $(FPU)
 LDFLAGS=/link /DEBUG $(LNK)
 !ENDIF # ?NDEBUG
 LIBFLAGS=/I. /MD$(DEBUG)
-CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C11FLAGS) $(FPUFLAGS)
+CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUFLAGS)
 
 all: jk$(DEBUG).lib common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
 
 help:
-	@echo "nmake.exe [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
 
 jk$(DEBUG).lib: common.obj j2apq.obj tweight.obj wpqb.obj Makefile
 	$(AR) $(ARFLAGS) /OUT:$@ common.obj j2apq.obj tweight.obj wpqb.obj

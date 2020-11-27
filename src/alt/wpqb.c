@@ -48,11 +48,15 @@ int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1])
 #ifdef _OPENMP
 static void wpqb_sort1(const uint32_t n_a, wpqb a[static 1])
 {
+  static uint32_t oe, na, s;
   if (!n_a)
     return;
-  const uint32_t na = (n_a - 1u);
 
-  for (uint32_t swps = ~0u, s = 0u, oe = 0u; swps; (oe ^= 1u), (swps = s), (s = 0u)) {
+  oe = 0u;
+  na = (n_a - 1u);
+  s = 0u;
+
+  for (uint32_t swps = ~0u; swps; (oe ^= 1u), (swps = s), (s = 0u)) {
     // odd-even sort
 #pragma omp parallel for default(none) shared(oe,na,a) reduction(+:s)
     for (uint32_t i = oe; i < na; i += 2u) {
