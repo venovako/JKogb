@@ -30,8 +30,8 @@ ifeq ($(FP),strict)
 FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -qopt-report=5
-DBGFLAGS=-DNDEBUG
+OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -qopt-report=5 -DUSE_FAST
+DBGFLAGS=-DNDEBUG #-DUSE_TEST
 DBGFFLAGS=$(DBGFLAGS)
 else # DEBUG
 OPTFLAGS=-O0 -xHost -qopt-multi-version-aggressive -qopt-report=5

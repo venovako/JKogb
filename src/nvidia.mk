@@ -8,15 +8,15 @@ endif # ?NDEBUG
 RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
-CPUFLAGS=-DUSE_NVIDIA -DUSE_TEST -DUSE_X64 -m64 -mp -Minfo
+CPUFLAGS=-DUSE_NVIDIA -DUSE_X64 -m64 -mp -Minfo
 FORFLAGS=$(CPUFLAGS) -Mdclchk -Mstack_arrays
 C11FLAGS=$(CPUFLAGS) -c11 -D_GNU_SOURCE
 CC=nvc
 FC=nvfortran
 FPUFLAGS=-Kieee -Mfma -Mnodaz -Mnoflushz -Mnofpapprox -Mnofprelaxed
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG)
-DBGFLAGS=-DNDEBUG
+OPTFLAGS=-O$(NDEBUG) #-DUSE_FAST
+DBGFLAGS=-DNDEBUG #-DUSE_TEST
 else # DEBUG
 OPTFLAGS=-O0
 DBGFLAGS=-g -Mbounds -Mchkstk

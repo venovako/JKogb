@@ -7,7 +7,7 @@ typedef union {
   struct {
     uint8_t a[10];
     // p, q, b are stored in the highest, unused 2+2+2=6 bytes of w
-    uint16_t p, q, b;
+    uint16_t b, p, q;
   } i;
 } wpqb;
 
@@ -26,9 +26,9 @@ static inline void wpqb_init(wpqb a[static 1], const long double w, const uint16
 {
   assert(p < q);
   a->w = w;
+  a->i.b = (uint16_t)(q - p);
   a->i.p = p;
   a->i.q = q;
-  a->i.b = (uint16_t)(q - p);
 }
 
 extern int wpqb_cmp(const wpqb a[static 1], const wpqb b[static 1]);

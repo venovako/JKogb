@@ -11,8 +11,8 @@ all: libjk$(DEBUG).a
 help:
 	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o utils.o params.o timer.o cutils.o $(MKFS)
-	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o utils.o params.o timer.o cutils.o
+libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o $(MKFS) #cutils.o
+	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o #cutils.o
 
 atypes.o atypes.mod: atypes.F90 timer.mod utils.mod $(MKFS)
 	$(FC) $(FFLAGS) -c atypes.F90
@@ -29,14 +29,14 @@ ktransf.o ktransf.mod: ktransf.F90 utils.mod $(MKFS)
 params.o params.mod: params.F90 $(MKFS)
 	$(FC) $(FFLAGS) -c params.F90
 
-timer.o timer.mod: timer.F90 $(MKFS)
+timer.o timer.mod: timer.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c timer.F90
 
 utils.o utils.mod: utils.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) -c utils.F90
 
-cutils.o: cutils.c cutils.h $(MKFS)
-	$(CC) $(CFLAGS) -c cutils.c
+# cutils.o: cutils.c cutils.h $(MKFS)
+# 	$(CC) $(CFLAGS) -c cutils.c
 
 clean:
 	-$(RM) *.mod

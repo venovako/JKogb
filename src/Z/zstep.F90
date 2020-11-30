@@ -153,9 +153,11 @@ CONTAINS
     COMPLEX(KIND=DWP), INTENT(IN) :: A(LDA,N)
     TYPE(ZPROC), INTENT(IN) :: R
     TYPE(AW), INTENT(OUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2)
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     TYPE(AW) :: X
+    INTEGER(KIND=DWP) :: ID
     INTEGER :: IP, IQ, I
     INTEGER ::II, IT
     !$ SAVE ::II, IT
@@ -165,25 +167,25 @@ CONTAINS
     I = -1
 #endif
     IF (S .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (N .LT. 0) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE IF (LDA .LT. N) THEN
-       INFO = -4
+       INFO = -4_DWP
     ELSE IF (NN .LT. 0) THEN
-       INFO = -6
+       INFO = -6_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -10
+       INFO = -10_DWP
     ELSE IF (TT .LT. 0) THEN
-       INFO = -12
+       INFO = -12_DWP
     ELSE IF (TT .GT. NN) THEN
-       INFO = -12
+       INFO = -12_DWP
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -13
+       INFO = -13_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
 
 #ifndef USE_FAST
     INFO = GET_SYS_TIME()
@@ -256,57 +258,57 @@ CONTAINS
 #ifdef USE_SUN
     SELECT CASE (R%SRT)
     CASE (1)
-       CALL AW_SRT1(IT, NM, DZ, II)
+       CALL AW_SRT1(IT, NM, DZ, ID)
     CASE (2)
-       CALL AW_SRT2(IT, NM, DZ, II)
+       CALL AW_SRT2(IT, NM, DZ, ID)
     CASE DEFAULT
        STOP 'R%SRT'
     END SELECT
 #else
-    CALL R%SRT(IT, NM, DZ, II)
+    CALL R%SRT(IT, NM, DZ, ID)
 #endif
-    IF (II .LT. 0) THEN
-       INFO = -11
+    IF (ID .LT. 0_DWP) THEN
+       INFO = -11_DWP
        RETURN
     END IF
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
-       WRITE (I,'(A,F12.6,A)') 'SRT: ', (II / REAL(GET_SYS_TRES(),DWP)), ' s'
-       CALL AW_OUT(I, '', IT, DZ, 0, STEP, II)
+       WRITE (I,'(A,F12.6,A)') 'SRT: ', (ID / REAL(GET_SYS_TRES(),DWP)), ' s'
+       CALL AW_OUT(I, '', IT, DZ, 0, STEP, ID)
     END IF
 #endif
 
 #ifdef USE_SUN
     SELECT CASE (R%NCP)
     CASE (1)
-       CALL AW_NCP1(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+       CALL AW_NCP1(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, ID)
     CASE (2)
-       CALL AW_NCP2(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+       CALL AW_NCP2(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, ID)
     CASE (3)
-       CALL AW_NCP3(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+       CALL AW_NCP3(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, ID)
     CASE DEFAULT
        STOP 'R%NCP'
     END SELECT
 #else
-    CALL R%NCP(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, II)
+    CALL R%NCP(N, IT, NM, DZ, MIN(IT, N_2), SL, STEP, ID)
 #endif
-    IF (II .LT. 0) THEN
-       INFO = -13
+    IF (ID .LT. 0_DWP) THEN
+       INFO = -13_DWP
        RETURN
     END IF
 #ifndef NDEBUG
-    IF (I .NE. -1) WRITE (I,'(A,F12.6,A)') 'NCP: ', (II / REAL(GET_SYS_TRES(),DWP)), ' s'
+    IF (I .NE. -1) WRITE (I,'(A,F12.6,A)') 'NCP: ', (ID / REAL(GET_SYS_TRES(),DWP)), ' s'
 #endif
 
 1   CONTINUE
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
 
 #ifndef NDEBUG
     IF (I .NE. -1) THEN
        WRITE (I,'(A,F12.6,A)') 'ALL: ', (INFO / REAL(GET_SYS_TRES(),DWP)), ' s'
-       CALL AW_OUT(I, '', IT, DZ, SL, STEP, II)
+       CALL AW_OUT(I, '', IT, DZ, SL, STEP, ID)
        CLOSE(UNIT=I, IOSTAT=II)
     END IF
 #endif
@@ -413,23 +415,28 @@ CONTAINS
     INTEGER, INTENT(OUT) :: STEP(N_2), SL, INFO
     COMPLEX(KIND=DWP), INTENT(OUT) :: W(2,3,N_2)
 
-    INTEGER :: IT, NL
-
-    SL = 0
-    INFO = 0
+    INTEGER(KIND=DWP) :: IB, IT
+    INTEGER :: NL
 
 #ifndef USE_FAST
     WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') S, ','
     FLUSH(ERROR_UNIT)
 #endif
-    CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, INFO)
-    IF (INFO .LT. 0) THEN
-       IT = INFO
-    ELSE
-       IT = SL
+
+    SL = 0
+    CALL ZSTEP_BUILD(S, N, A, LDA, J, NN, P, Q, R, NM, DZ, TT, N_2, SL, STEP, IB)
+    IF (IB .LT. 0_DWP) THEN
+       INFO = INT(IB)
+    ELSE ! IB .GE. 0
+       INFO = 0
     END IF
+
 #ifndef USE_FAST
-    WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') IT, ','
+    IF (INFO .LT. 0) THEN
+       WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') INFO, ','
+    ELSE ! INFO .GE. 0
+       WRITE (ERROR_UNIT,'(I11,A)',ADVANCE='NO') SL, ','
+    END IF
     FLUSH(ERROR_UNIT)
 
     IF (INFO .LT. 0) THEN
@@ -437,9 +444,9 @@ CONTAINS
             D_MZERO, ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE IF (SL .LE. 0) THEN
        WRITE (ERROR_UNIT,'(F12.6,A,F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
-            (INFO / REAL(GET_SYS_TRES(),DWP)), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
+            (IB / REAL(GET_SYS_TRES(),DWP)), ',', D_ZERO, ',', -1, ',', D_MZERO, ',',0,',',0
     ELSE ! default
-       WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (INFO / REAL(GET_SYS_TRES(),DWP)), ','
+       WRITE (ERROR_UNIT,'(F12.6,A)',ADVANCE='NO') (IB / REAL(GET_SYS_TRES(),DWP)), ','
     END IF
     FLUSH(ERROR_UNIT)
 #endif
@@ -459,16 +466,13 @@ CONTAINS
 #endif
     CALL ZSTEP_TRANSF(N, U, LDU, A, LDA, Z, LDZ, J, SIGMA, NN, DZ, SL, STEP, W, NL)
 #ifndef USE_FAST
-    IT = MAX(GET_SYS_TIME() - IT, 0)
+    IT = GET_SYS_TLAP(IT)
     WRITE (ERROR_UNIT,'(F12.6,A,I11,A,ES25.17E3,2(A,I11))') &
          (IT / REAL(GET_SYS_TRES(),DWP)), ',', NL, ',', SIGMA(1), ',',INT(SIGMA(2)),',',INT(SIGMA(3))
     FLUSH(ERROR_UNIT)
 #endif
 
     SL = MIN(SL, NL)
-#ifndef USE_FAST
-    INFO = INFO + IT
-#endif
   END SUBROUTINE ZSTEP_EXEC
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

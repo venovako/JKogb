@@ -32,20 +32,20 @@ CONTAINS
     INTEGER, INTENT(IN) :: OU, NN, SL, STEP(SL)
     CHARACTER(LEN=*), INTENT(IN) :: HDR
     TYPE(AW), INTENT(IN) :: DZ(NN)
-    INTEGER, INTENT(OUT) :: INFO
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     INTEGER :: I, J
 
     IF (OU .EQ. -1) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
-       INFO = -3
+       INFO = -3_DWP
     ELSE IF (SL .LT. 0) THEN
-       INFO = -5
+       INFO = -5_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
 
 #ifndef USE_FAST
     INFO = GET_SYS_TIME()
@@ -71,7 +71,7 @@ CONTAINS
     END IF
 
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_OUT
 #endif
@@ -220,7 +220,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN, NM
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: INFO
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     INTEGER :: NT, T, I, J, K, TE
     ! elements per array, thread, # of + comparisons
@@ -229,13 +229,13 @@ CONTAINS
     !$ SAVE :: EPA, EPT, L
 
     IF (NN .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
     IF (NN .EQ. 0) RETURN
 
 #ifndef USE_FAST
@@ -314,7 +314,7 @@ CONTAINS
     END DO
 
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_SRT1
 
@@ -324,16 +324,16 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: NN, NM
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: INFO
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
     
     IF (NN .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
     IF (NN .EQ. 0) RETURN
 
 #ifndef USE_FAST
@@ -341,7 +341,7 @@ CONTAINS
 #endif
     CALL AW_SORT(NN, DZ, DZ(NN+1))
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_SRT2
 
@@ -351,7 +351,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2)
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     INTEGER :: J, BP, BQ
     INTEGER :: I, K, AP, AQ
@@ -360,17 +361,17 @@ CONTAINS
     SL = 0
 
     IF (N .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -3
+       INFO = -3_DWP
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -5
+       INFO = -5_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
 
 #ifndef USE_FAST
     INFO = GET_SYS_TIME()
@@ -409,7 +410,7 @@ CONTAINS
 
 1   CONTINUE
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_NCP1
 
@@ -419,7 +420,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2)
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     LOGICAL :: R(N)
     INTEGER :: I, J
@@ -427,17 +429,17 @@ CONTAINS
     SL = 0
 
     IF (N .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -3
+       INFO = -3_DWP
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -5
+       INFO = -5_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
 
 #ifndef USE_FAST
     INFO = GET_SYS_TIME()
@@ -464,7 +466,7 @@ CONTAINS
 
 2   CONTINUE
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_NCP2
 
@@ -479,10 +481,11 @@ CONTAINS
 
     INTEGER :: STP(N_2)
     REAL(KIND=DWP) :: MYW, MYWP, MYWN
+    INTEGER(KIND=DWP) :: ID
     INTEGER :: I, L, MYSL
 
-    CALL AW_NCP2(N, NN, NM, DZ, N_2, MYSL, STP, I)
-    IF (I .LT. 0) RETURN
+    CALL AW_NCP2(N, NN, NM, DZ, N_2, MYSL, STP, ID)
+    IF (ID .LT. 0_DWP) RETURN
 
     IF (MYSL .GE. 1) THEN
        L = 0
@@ -524,7 +527,8 @@ CONTAINS
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: N, NN, NM, N_2
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
-    INTEGER, INTENT(OUT) :: SL, STEP(N_2), INFO
+    INTEGER, INTENT(OUT) :: SL, STEP(N_2)
+    INTEGER(KIND=DWP), INTENT(OUT) :: INFO
 
     INTEGER :: I, J
     REAL(KIND=DWP) :: W
@@ -534,17 +538,17 @@ CONTAINS
     SL = 0
 
     IF (N .LT. 0) THEN
-       INFO = -1
+       INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
-       INFO = -2
+       INFO = -2_DWP
     ELSE IF (NM .LT. NN) THEN
-       INFO = -3
+       INFO = -3_DWP
     ELSE IF (N_2 .LT. 0) THEN
-       INFO = -5
+       INFO = -5_DWP
     ELSE ! all OK
-       INFO = 0
+       INFO = 0_DWP
     END IF
-    IF (INFO .NE. 0) RETURN
+    IF (INFO .NE. 0_DWP) RETURN
 
 #ifndef USE_FAST
     INFO = GET_SYS_TIME()
@@ -568,7 +572,7 @@ CONTAINS
 
 3   CONTINUE
 #ifndef USE_FAST
-    INFO = MAX(GET_SYS_TIME() - INFO, 0)
+    INFO = GET_SYS_TLAP(INFO)
 #endif
   END SUBROUTINE AW_NCP3
 
