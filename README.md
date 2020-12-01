@@ -17,14 +17,14 @@ On Linux or macOS, run ``make`` (GNU make assumed) or ``gmake`` as follows:
 cd src
 make [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
-where ``COMPILER`` should be set for the Intel Fortran compilers to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-Building with recent Intel Fortran and C compilers is possible on Windows as well:
+where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
+Building with a recent Intel Fortran is possible on Windows as well:
 ```bash
 cd src
 nmake [NDEBUG=d|1|2|3|4|5] [all|clean|help]
 ```
 
-If ``COMPILER`` is not set or is ``gnu``, GNU Fortran and C compilers will be used.
+If ``COMPILER`` is not set or is ``gnu``, the GNU Fortran compiler will be used.
 The major version of your GCC in this case should be 8, since the later ones will not work unless a fix is applied as noted in ``src/gnu.mk``.
 Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding the new MIN and MAX intrinsics.
 
