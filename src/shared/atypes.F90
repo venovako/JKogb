@@ -36,6 +36,9 @@ CONTAINS
 
     INTEGER :: I, J
 
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (OU .EQ. -1) THEN
        INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
@@ -46,8 +49,6 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
-
-#ifndef USE_FAST
     INFO = GET_SYS_TIME()
 #endif
 
@@ -84,8 +85,6 @@ CONTAINS
   PURE INTEGER FUNCTION AW_CMP(A, B)
     IMPLICIT NONE
     TYPE(AW), INTENT(IN) :: A, B
-
-    AW_CMP = 0
 
     IF (A%W .LT. B%W) THEN
        AW_CMP = 1
@@ -228,6 +227,9 @@ CONTAINS
     INTEGER :: EPA, EPT, L
     !$ SAVE :: EPA, EPT, L
 
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (NN .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (NM .LT. NN) THEN
@@ -236,6 +238,7 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
+#endif
     IF (NN .EQ. 0) RETURN
 
 #ifndef USE_FAST
@@ -252,10 +255,12 @@ CONTAINS
     ! virtual elements
     DO I = NN+1, EPA
        DZ(I)%W = QUIET_NAN(I)
+#ifndef NDEBUG
        DZ(I)%P = 0
        DZ(I)%Q = 0
        DZ(I)%B = 0
        DZ(I)%I = 0
+#endif
     END DO
 
     ! Baudet-Stevenson odd-even sort with merge-splitting of the subarrays; see:
@@ -325,7 +330,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: NN, NM
     TYPE(AW), INTENT(INOUT) :: DZ(NM)
     INTEGER(KIND=DWP), INTENT(OUT) :: INFO
-    
+
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (NN .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (NM .LT. NN) THEN
@@ -334,6 +342,7 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
+#endif
     IF (NN .EQ. 0) RETURN
 
 #ifndef USE_FAST
@@ -360,6 +369,9 @@ CONTAINS
 
     SL = 0
 
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (N .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
@@ -372,10 +384,9 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
-
-#ifndef USE_FAST
     INFO = GET_SYS_TIME()
 #endif
+
     IF (N .EQ. 0) GOTO 1
     IF (NN .EQ. 0) GOTO 1
     IF (N_2 .EQ. 0) GOTO 1
@@ -428,6 +439,9 @@ CONTAINS
 
     SL = 0
 
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (N .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
@@ -440,10 +454,9 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
-
-#ifndef USE_FAST
     INFO = GET_SYS_TIME()
 #endif
+
     IF (N .EQ. 0) GOTO 2
     IF (NN .EQ. 0) GOTO 2
     IF (N_2 .EQ. 0) GOTO 2
@@ -490,7 +503,7 @@ CONTAINS
     IF (MYSL .GE. 1) THEN
        L = 0
        DO I = MYSL, 1, -1
-          IF (.NOT. (DZ(STP(I))%W .LT. D_ZERO)) THEN
+          IF (DZ(STP(I))%W .GT. D_ZERO) THEN
              L = I
              EXIT
           END IF
@@ -537,6 +550,9 @@ CONTAINS
 
     SL = 0
 
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (N .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (NN .LT. 0) THEN
@@ -549,10 +565,9 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
-
-#ifndef USE_FAST
     INFO = GET_SYS_TIME()
 #endif
+
     IF (N .EQ. 0) GOTO 3
     IF (NN .EQ. 0) GOTO 3
     IF (N_2 .EQ. 0) GOTO 3

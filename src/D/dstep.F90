@@ -78,6 +78,9 @@ CONTAINS
     TYPE(DPROC), INTENT(OUT) :: R
     INTEGER, INTENT(OUT) :: INFO
 
+#ifdef USE_FAST
+    INFO = 0
+#else
     IF (NT .LE. 0) THEN
        INFO = -1
     ELSE IF (ID_NCP .LT. 0) THEN
@@ -88,6 +91,7 @@ CONTAINS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+#endif
 
     IF (ID_NCP .EQ. 0) THEN
        IF (NT .GT. 1) THEN
@@ -164,6 +168,10 @@ CONTAINS
 #ifndef NDEBUG
     I = -1
 #endif
+
+#ifdef USE_FAST
+    INFO = 0_DWP
+#else
     IF (S .LT. 0) THEN
        INFO = -1_DWP
     ELSE IF (N .LT. 0) THEN
@@ -184,8 +192,6 @@ CONTAINS
        INFO = 0_DWP
     END IF
     IF (INFO .NE. 0_DWP) RETURN
-
-#ifndef USE_FAST
     INFO = GET_SYS_TIME()
 #endif
 
@@ -519,6 +525,9 @@ CONTAINS
     TYPE(c_ptr) :: CTX
 #endif
 
+#ifdef USE_FAST
+    INFO = 0
+#else
     IF (N .LT. 3) THEN
        INFO = -1
     ELSE IF (LDU .LT. N) THEN
@@ -541,6 +550,7 @@ CONTAINS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+#endif
 
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(S,INFO) SHARED(N,U)
     DO S = 1, N
@@ -614,8 +624,10 @@ CONTAINS
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
     DO S = 1, N
        SIGMA(S) = A(S,S)
+#ifndef USE_FAST
        ! for a simple calculation of ||off(A)||
        A(S,S) = D_ZERO
+#endif
     END DO
     !$OMP END PARALLEL DO
     CALL JZTJ(N, Z, LDZ, J, NN, P, Q)

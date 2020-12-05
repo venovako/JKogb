@@ -19,13 +19,21 @@ CONTAINS
     X(2) = ABS(X2)
 
     IF (X(1) .GE. X(2)) THEN
+#ifdef USE_TEST
+       DASUM2 = FMAD(X(1), X(1), X(2) * X(2))
+#else
        IF (X(1) .EQ. D_ZERO) THEN
           DASUM2 = D_ZERO
        ELSE ! X(1) .GT. D_ZERO
           DASUM2 = FMAD(X(2), (X(2) / X(1)), X(1)) * X(1)
        END IF
+#endif
     ELSE ! X(1) .LT. X(2)
+#ifdef USE_TEST
+       DASUM2 = FMAD(X(2), X(2), X(1) * X(1))
+#else
        DASUM2 = FMAD(X(1), (X(1) / X(2)), X(2)) * X(2)
+#endif
     END IF
   END FUNCTION DASUM2
 
@@ -620,6 +628,7 @@ CONTAINS
     END IF
     IF (INFO .NE. 0) RETURN
 #endif
+
     CALL DSCALEA(A, S)
     IF (S .LE. -3) THEN
        ! A has NaNs and/or infinities

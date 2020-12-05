@@ -39,8 +39,6 @@ data
 
 # Output
 ani/
-dlo/
-zlo/
 *.LY
 *.YU
 *.SY

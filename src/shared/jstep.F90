@@ -15,6 +15,9 @@ CONTAINS
 
     PN = 0
 
+#ifdef USE_FAST
+    INFO = 0
+#else
     IF (N .LT. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -23,6 +26,7 @@ CONTAINS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+#endif
     IF (N .LE. 1) RETURN
 
     DO IT = 1, N
@@ -69,6 +73,9 @@ CONTAINS
 
     PN = 0
 
+#ifdef USE_FAST
+    INFO = 0
+#else
     IF (N .LT. 0) THEN
        INFO = -1
     ELSE IF (NN .LT. 0) THEN
@@ -77,6 +84,7 @@ CONTAINS
        INFO = 0
     END IF
     IF (INFO .NE. 0) RETURN
+#endif
     IF (N .LE. 1) RETURN
 
     DO IT = 1, N
