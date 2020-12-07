@@ -48,29 +48,13 @@ wpqb_test.exe: wpqb_test.c wpqb.h common.h libjk$(DEBUG)$(GNU).a $(MKFS)
 clean:
 ifdef NDEBUG
 ifeq ($(COMPILER),intel)
-	-$(RM) wpqb_test.optrpt
-	-$(RM) tweight_test.optrpt
-	-$(RM) j2apq_test.optrpt
-	-$(RM) common_test.optrpt
-	-$(RM) wpqb.optrpt
-	-$(RM) tweight.optrpt
-	-$(RM) j2apq.optrpt
-	-$(RM) common.optrpt
+	-$(RM) *.optrpt
 endif # intel
 else # DEBUG
 ifeq ($(ARCH),Darwin)
-	-$(RM) wpqb_test.exe.dSYM
-	-$(RM) tweight_test.exe.dSYM
-	-$(RM) j2apq_test.exe.dSYM
-	-$(RM) common_test.exe.dSYM
+	-$(RM) *.exe.dSYM
 endif # Darwin
 endif # ?NDEBUG
-	-$(RM) wpqb_test.exe
-	-$(RM) tweight_test.exe
-	-$(RM) j2apq_test.exe
-	-$(RM) common_test.exe
+	-$(RM) *.exe
+	-$(RM) *.obj
 	-$(RM) libjk$(DEBUG)$(GNU).a
-	-$(RM) wpqb.o
-	-$(RM) tweight.o
-	-$(RM) j2apq.o
-	-$(RM) common.o

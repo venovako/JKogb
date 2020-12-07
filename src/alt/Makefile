@@ -60,27 +60,10 @@ wpqb_test.exe: wpqb_test.c wpqb.h common.h jk$(DEBUG).lib Makefile
 
 clean:
 !IFDEF NDEBUG
-	-$(RM) wpqb_test.optrpt
-	-$(RM) tweight_test.optrpt
-	-$(RM) j2apq_test.optrpt
-	-$(RM) common_test.optrpt
-	-$(RM) wpqb.optrpt
-	-$(RM) tweight.optrpt
-	-$(RM) j2apq.optrpt
-	-$(RM) common.optrpt
+	-$(RM) *.optrpt
 !ELSE # DEBUG
 	-$(RM) *.pdb
 !ENDIF # ?NDEBUG
-	-$(RM) wpqb_test.exe
-	-$(RM) wpqb_test.obj
-	-$(RM) tweight_test.exe
-	-$(RM) tweight_test.obj
-	-$(RM) j2apq_test.exe
-	-$(RM) j2apq_test.obj
-	-$(RM) common_test.exe
-	-$(RM) common_test.obj
+	-$(RM) *.exe
+	-$(RM) *.obj
 	-$(RM) jk$(DEBUG).lib
-	-$(RM) wpqb.obj
-	-$(RM) tweight.obj
-	-$(RM) j2apq.obj
-	-$(RM) common.obj

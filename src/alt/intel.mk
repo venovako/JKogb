@@ -1,14 +1,14 @@
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 CC=icc 
-C18FLAGS=-std=c18 -fPIC -fexceptions -fno-omit-frame-pointer -qopenmp
+C18FLAGS=-std=c18 -qopenmp
 OPT=-xHost -qopt-zmm-usage=high
-DBG=-traceback -w3 -diag-disable=1572,2547,10397
-FPU=-fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt -fimf-precision=high -fimf-use-svml=true
+DBG=-w3 -diag-disable=1572,2547,10397
+FPU=-fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) $(OPT)
 DBGFLAGS=-DNDEBUG -qopt-report=5 $(DBG)
-FPUFLAGS=-fp-model source $(FPU) -fimf-use-svml=true
+FPUFLAGS=-fp-model precise $(FPU) -fimf-use-svml=true
 else # DEBUG
 OPTFLAGS=-O0 $(OPT)
 DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -check=stack,uninit
@@ -22,5 +22,5 @@ LIBFLAGS=-I.
 ifneq ($(ARCH),Darwin)
 LIBFLAGS += -D_GNU_SOURCE
 endif # Linux
-LDFLAGS=-rdynamic -L. -ljk$(DEBUG) -lm
+LDFLAGS=-L. -ljk$(DEBUG)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUCFLAGS)

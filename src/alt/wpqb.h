@@ -6,7 +6,7 @@ typedef union {
   long double w;
   struct {
     uint8_t a[10];
-    // p, q, b are stored in the highest, unused 2+2+2=6 bytes of w
+    // b, p, q are stored in the highest, unused 2+2+2=6 bytes of w
     uint16_t b, p, q;
   } i;
 } wpqb;

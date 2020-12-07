@@ -4,9 +4,6 @@
 #ifdef __INTEL_COMPILER
 #include <mathimf.h>
 #else /* !__INTEL_COMPILER */
-#ifdef _OPENMP
-#error OpenMP variant requires a recent Intel C compiler
-#endif /* _OPENMP */
 #include <complex.h>
 #include <math.h>
 #endif /* __INTEL_COMPILER */

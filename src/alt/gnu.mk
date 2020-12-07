@@ -6,7 +6,7 @@ endif # Darwin
 AR=ar
 ARFLAGS=rsv
 CC=gcc$(GNU)
-C18FLAGS=-std=gnu18 -fPIC -fexceptions -fno-omit-frame-pointer -pthread
+C18FLAGS=-std=gnu18 -pthread
 OPT=-march=native
 DBG=-pedantic -Wall -Wextra
 FPUFLAGS=-ffp-contract=fast
@@ -18,22 +18,13 @@ FPUFLAGS += -fno-math-errno
 endif # Linux
 else # DEBUG
 OPTFLAGS=-O$(DEBUG) $(OPT)
-DBGFLAGS=-$(DEBUG) -fsanitize=address -fsanitize=undefined
-ifneq ($(ARCH),Darwin)
-DBGFLAGS += -fsanitize=leak
-endif # Linux
-DBGFLAGS += $(DBG)
+DBGFLAGS=-$(DEBUG) -ftrapv $(DBG)
 endif # ?NDEBUG
+LIBFLAGS=-I.
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
-endif # Darwin
-LIBFLAGS=-I.
-ifneq ($(ARCH),Darwin)
+else # Linux
 LIBFLAGS += -D_GNU_SOURCE
-endif # Linux
-LDFLAGS=-rdynamic -L. -ljk$(DEBUG)$(GNU)
-ifndef NDEBUG
-LDFLAGS += -lubsan
-endif # DEBUG
-LDFLAGS += -lm
+endif # ?Darwin
+LDFLAGS=-L. -ljk$(DEBUG)$(GNU)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUFLAGS)
