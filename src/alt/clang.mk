@@ -21,5 +21,5 @@ OPTFLAGS += -integrated-as
 else # Linux
 LIBFLAGS += -D_GNU_SOURCE
 endif # ? Darwin
-LDFLAGS=-L. -ljk$(DEBUG)
+LDFLAGS=-L. -lajk$(DEBUG)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUFLAGS)

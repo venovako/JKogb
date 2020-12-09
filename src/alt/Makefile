@@ -11,7 +11,7 @@ C18FLAGS=/nologo /Qstd=c18 /Quse-intel-optimized-headers /Qlong-double /Qopenmp 
 OPT=/QxHost /Qopt-multi-version-aggressive /Qprotect-parens
 DBG=/Wall /Wcheck
 FPU=/Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
-LNK=/LIBPATH:. jk$(DEBUG).lib
+LNK=/LIBPATH:. ajk$(DEBUG).lib
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) $(OPT)
 DBGFLAGS=/DNDEBUG /Qopt-report:5 $(DBG)
@@ -26,12 +26,12 @@ LDFLAGS=/link /DEBUG $(LNK)
 LIBFLAGS=/I. /MD$(DEBUG)
 CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(C18FLAGS) $(FPUFLAGS)
 
-all: jk$(DEBUG).lib common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
+all: ajk$(DEBUG).lib common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
 
 help:
 	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
 
-jk$(DEBUG).lib: common.obj j2apq.obj tweight.obj wpqb.obj Makefile
+ajk$(DEBUG).lib: common.obj j2apq.obj tweight.obj wpqb.obj Makefile
 	$(AR) $(ARFLAGS) /OUT:$@ common.obj j2apq.obj tweight.obj wpqb.obj
 
 common.obj: common.c common.h Makefile
@@ -46,16 +46,16 @@ tweight.obj: tweight.c tweight.h common.h Makefile
 wpqb.obj: wpqb.c wpqb.h common.h Makefile
 	$(CC) $(CFLAGS) /c wpqb.c /Fo$@
 
-common_test.exe: common_test.c common.h jk$(DEBUG).lib Makefile
+common_test.exe: common_test.c common.h ajk$(DEBUG).lib Makefile
 	$(CC) $(CFLAGS) common_test.c /Fe$@ $(LDFLAGS)
 
-j2apq_test.exe: j2apq_test.c j2apq.h wpqb.h common.h jk$(DEBUG).lib Makefile
+j2apq_test.exe: j2apq_test.c j2apq.h wpqb.h common.h ajk$(DEBUG).lib Makefile
 	$(CC) $(CFLAGS) j2apq_test.c /Fe$@ $(LDFLAGS)
 
-tweight_test.exe: tweight_test.c tweight.h common.h jk$(DEBUG).lib Makefile
+tweight_test.exe: tweight_test.c tweight.h common.h ajk$(DEBUG).lib Makefile
 	$(CC) $(CFLAGS) tweight_test.c /Fe$@ $(LDFLAGS)
 
-wpqb_test.exe: wpqb_test.c wpqb.h common.h jk$(DEBUG).lib Makefile
+wpqb_test.exe: wpqb_test.c wpqb.h common.h ajk$(DEBUG).lib Makefile
 	$(CC) $(CFLAGS) wpqb_test.c /Fe$@ $(LDFLAGS)
 
 clean:
@@ -64,6 +64,6 @@ clean:
 !ELSE # DEBUG
 	-$(RM) *.pdb
 !ENDIF # ?NDEBUG
+	-$(RM) ajk$(DEBUG).lib
 	-$(RM) *.exe
 	-$(RM) *.obj
-	-$(RM) jk$(DEBUG).lib

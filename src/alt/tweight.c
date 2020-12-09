@@ -2,24 +2,23 @@
 
 long double dfn2(const double a, const double b)
 {
-  if (a == 0.0)
-    return ((b == 0.0) ? 0.0L : (b * (long double)b));
-  else if (b == 0.0)
-    return (a * (long double)a);
-  else {
-    const double a_ = fabs(a);
-    const double b_ = fabs(b);
-    double M, m;
-    if (a_ <= b_) {
-      M = b_;
-      m = a_;
-    }
-    else {
-      M = a_;
-      m = b_;
-    }
-    return fmal(M, M, m * (long double)m);
+  const double a_ = fabs(a);
+  const double b_ = fabs(b);
+  double M, m;
+  if (a_ <= b_) {
+    M = b_;
+    m = a_;
   }
+  else {
+    M = a_;
+    m = b_;
+  }
+  if (m == 0.0) {
+    if (M == 0.0)
+      return 0.0L;
+    return (m * (long double)m);
+  }
+  return fmal(M, M, m * (long double)m);
 }
 
 long double zfn2(const double _Complex a, const double _Complex b)
