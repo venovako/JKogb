@@ -42,7 +42,10 @@ endif # Linux
 DBGFFLAGS=$(DBGFLAGS) -debug-parameters all -check all -warn all
 endif # ?NDEBUG
 OPTFFLAGS=$(OPTFLAGS)
-LIBFLAGS=-I. -I../shared -static-libgcc
+LIBFLAGS=-I. -I../shared
+ifneq ($(ARCH),Darwin)
+LIBFLAGS += -static-libgcc
+endif # Linux
 ifdef ANIMATE
 LIBFLAGS += -DUSE_MKL -DMKL_ILP64 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
 endif # ANIMATE
