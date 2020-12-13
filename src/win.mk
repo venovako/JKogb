@@ -7,7 +7,7 @@ CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
 C18FLAGS=/nologo /Qstd=c18 /Qlong-double
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
 OPTFLAGS=/QxHost /Qopt-multi-version-aggressive /Qopt-report:5
-FPUFLAGS=/fp:precise /Qfma /Qprotect-parens /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
+FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
 LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
 !IFDEF NDEBUG

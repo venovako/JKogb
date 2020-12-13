@@ -19,7 +19,7 @@ FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 ifdef ANIMATE
 FORFLAGS += -i8
 endif # ANIMATE
-FPUFLAGS=-fp-model $(FP) -fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
+FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check
 else # !strict
