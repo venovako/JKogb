@@ -33,6 +33,7 @@ MODULE params
 #ifdef USE_TEST
   REAL(KIND=DWP), PARAMETER :: TH1FIX = D_ONE
 #else
+  ! approx. 0.8, or for harder cases, try lowering to 0.75, e.g.
   REAL(KIND=DWP), PARAMETER :: TH1FIX = 4.0_DWP / 5
 #endif
 
