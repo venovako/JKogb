@@ -2,13 +2,14 @@
 The J-Kogbetliantz algorithm for the hyperbolic singular value decomposition (HSVD)
 
 This software is a supplementary material for the paper
-arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorithm for the hyperbolic SVD") \[math.NA\].
+doi:[10.1007/s11075-021-01197-4](https://doi.org/10.1007/s11075-021-01197-4 "A Kogbetliantz-type algorithm for the hyperbolic SVD")
+(arXiv:[2003.06701](https://arxiv.org/abs/2003.06701 "A Kogbetliantz-type algorithm for the hyperbolic SVD") \[math.NA\]).
 
 ## Building
 
 ### Prerequisites
 
-A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Catalina), or Windows (e.g., 10) is needed.
+A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Big Sur), or Windows (e.g., 10) is needed.
 
 ### Make options
 
