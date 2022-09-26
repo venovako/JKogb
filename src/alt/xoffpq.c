@@ -1,3 +1,4 @@
+/* This routine only works with the long double type being the Intel's 80-bit extended precision. */
 #include "xoffpq.h"
 #include "xoffsq.h"
 #ifdef __cplusplus

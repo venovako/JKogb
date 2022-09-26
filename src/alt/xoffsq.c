@@ -66,7 +66,7 @@ xoffsq_
   assert(info);
   const size_t _n = (size_t)((*n < 0) ? -*n : *n);
   const size_t _ldA = (size_t)((*ldA < 0) ? -*ldA : *ldA);
-  if (*info = ((_n > _ldA) ? -1 : 0))
+  if ((*info = ((_n > _ldA) ? -1 : 0)))
     return;
   long double s = 0.0L;
   if (*n < 0) {
