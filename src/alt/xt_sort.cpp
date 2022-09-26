@@ -48,7 +48,13 @@ static bool cmp(const long double &a, const long double &b) throw()
   return false;
 }
 
-void xt_sort_(const MKL_INT *const n, long double *const x) throw()
+void
+#ifdef _WIN32
+XT_SORT
+#else /* !_WIN32 */
+xt_sort_
+#endif /* ?_WIN32 */
+(const F_INT *const n, long double *const x) throw()
 {
   if (x) {
     if (*n > 0)

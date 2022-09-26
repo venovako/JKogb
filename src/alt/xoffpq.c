@@ -9,7 +9,7 @@ XOFFPQ
 #else /* !_WIN32 */
 xoffpq_
 #endif /* ?_WIN32 */
-(const MKL_INT *const n, const double *const A, const MKL_INT *const ldA, const MKL_UINT *const p, const MKL_UINT *const q, const MKL_UINT *const b, long double *const x, MKL_INT *const info) throw()
+(const F_INT *const n, const double *const A, const F_INT *const ldA, const F_UINT *const p, const F_UINT *const q, const F_UINT *const b, long double *const x, F_INT *const info) throw()
 #else /* !__cplusplus */
 #include <assert.h>
 #include <stddef.h>
@@ -19,7 +19,7 @@ XOFFPQ
 #else /* !_WIN32 */
 xoffpq_
 #endif /* ?_WIN32 */
-(const MKL_INT n[static 1], const double A[static restrict 1], const MKL_INT ldA[static 1], const MKL_UINT p[static 1], const MKL_UINT q[static 1], const MKL_UINT b[static 1], long double x[static restrict 1], MKL_INT info[static restrict 1])
+(const F_INT n[static 1], const double A[static restrict 1], const F_INT ldA[static 1], const F_UINT p[static 1], const F_UINT q[static 1], const F_UINT b[static 1], long double x[static restrict 1], F_INT info[static restrict 1])
 #endif /* ?__cplusplus */
 {
   assert(n);
@@ -31,13 +31,13 @@ xoffpq_
   assert(x);
   assert(info);
   const size_t _ldA = (size_t)((*ldA < 0) ? -*ldA : *ldA);
-  const MKL_UINT _n = (MKL_UINT)((*n < 0) ? -*n : *n);
-  MKL_UINT _b = (*b << 1u);
+  const F_UINT _n = (F_UINT)((*n < 0) ? -*n : *n);
+  F_UINT _b = (*b << 1u);
   if (!_b || (_b > _n) || (_n % *b)) {
     *info = -6;
     return;
   }
-  const MKL_UINT n_b = _n / *b;
+  const F_UINT n_b = _n / *b;
   *info = 0;
   if (*q >= n_b)
     *info = -5;
@@ -47,18 +47,18 @@ xoffpq_
     *info = -1;
   if (*info)
     return;
-  const MKL_UINT bp = *b * *p;
+  const F_UINT bp = *b * *p;
   const double *const App = A + bp * _ldA + bp;
   if (*q == (*p + 1u))
-    xoffsq_((const MKL_INT*)&_b, App, ldA, x, info);
+    xoffsq_((const F_INT*)&_b, App, ldA, x, info);
   else {
-    const MKL_INT _b = -(MKL_INT)*b;
-    const MKL_UINT bq = *b * *q;
+    const F_INT _b = -(F_INT)*b;
+    const F_UINT bq = *b * *q;
     const double *const Aqp = A + bp * _ldA + bq;
     const double *const Apq = A + bq * _ldA + bp;
     const double *const Aqq = A + bq * _ldA + bq;
     long double spp, sqp, spq, sqq;
-    xoffsq_((const MKL_INT*)b, App, ldA, &spp, info);
+    xoffsq_((const F_INT*)b, App, ldA, &spp, info);
     if (*info)
       return;
     xoffsq_(&_b, Aqp, ldA, &sqp, info);
@@ -67,7 +67,7 @@ xoffpq_
     xoffsq_(&_b, Apq, ldA, &spq, info);
     if (*info)
       return;
-    xoffsq_((const MKL_INT*)b, Aqq, ldA, &sqq, info);
+    xoffsq_((const F_INT*)b, Aqq, ldA, &sqq, info);
     if (*info)
       return;
     if (sqp < spp) { *x = sqp; sqp = spp; spp = *x; }
