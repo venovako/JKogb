@@ -1,5 +1,5 @@
-#ifndef XOFFSQ_H
-#define XOFFSQ_H
+#ifndef XDOFFSQ_H
+#define XDOFFSQ_H
 
 #ifndef F_INT
 #ifdef MKL_ILP64
@@ -16,27 +16,27 @@
 #ifdef __cplusplus
 extern "C" void
 #ifdef _WIN32
-XOFFSQ
+XDOFFSQ
 #else /* !_WIN32 */
 #ifdef __powerpc__
-xoffsq
+xdoffsq
 #else /* !__powerpc__ */
-xoffsq_
+xdoffsq_
 #endif /* ?__powerpc__ */
 #endif /* ?_WIN32 */
 (const F_INT *const n, const double *const A, const F_INT *const ldA, long double *const x, F_INT *const info) throw();
 #else /* !__cplusplus */
 extern void
 #ifdef _WIN32
-XOFFSQ
+XDOFFSQ
 #else /* !_WIN32 */
 #ifdef __powerpc__
-xoffsq
+xdoffsq
 #else /* !__powerpc__ */
-xoffsq_
+xdoffsq_
 #endif /* ?__powerpc__ */
 #endif /* ?_WIN32 */
 (const F_INT n[static 1], const double A[static restrict 1], const F_INT ldA[static 1], long double x[static restrict 1], F_INT info[static restrict 1]);
 #endif /* ?__cplusplus */
 
-#endif /* !XOFFSQ_H */
+#endif /* !XDOFFSQ_H */

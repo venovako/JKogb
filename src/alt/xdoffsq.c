@@ -28,18 +28,18 @@ for (size_t j = 0u; j < _n; ++j) {       \
 }
 #endif /* ?POS_LOOP */
 
-#include "xoffsq.h"
+#include "xdoffsq.h"
 #ifdef __cplusplus
 #include <cassert>
 #include <cstddef>
 void
 #ifdef _WIN32
-XOFFSQ
+XDOFFSQ
 #else /* !_WIN32 */
 #ifdef __powerpc__
-xoffsq
+xdoffsq
 #else /* !__powerpc__ */
-xoffsq_
+xdoffsq_
 #endif /* ?__powerpc__ */
 #endif /* ?_WIN32 */
 (const F_INT *const n, const double *const A, const F_INT *const ldA, long double *const x, F_INT *const info) throw()
@@ -48,12 +48,12 @@ xoffsq_
 #include <stddef.h>
 void
 #ifdef _WIN32
-XOFFSQ
+XDOFFSQ
 #else /* !_WIN32 */
 #ifdef __powerpc__
-xoffsq
+xdoffsq
 #else /* !__powerpc__ */
-xoffsq_
+xdoffsq_
 #endif /* ?__powerpc__ */
 #endif /* ?_WIN32 */
 (const F_INT n[static 1], const double A[static restrict 1], const F_INT ldA[static 1], long double x[static restrict 1], F_INT info[static restrict 1])
