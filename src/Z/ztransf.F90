@@ -870,18 +870,10 @@ CONTAINS
        A(1,2) = Z_ZERO
     END IF
 
-    ! check if U is antidiagonal or diagonal and record in INFO if it is not
-    IF (((U(1,1) .EQ. Z_ZERO) .AND. (U(2,2) .EQ. Z_ZERO)) .OR. ((U(2,1) .EQ. Z_ZERO) .AND. (U(1,2) .EQ. Z_ZERO))) THEN
-       CONTINUE
-    ELSE ! non-trivial
-       INFO = INFO + 2
-    END IF
-    ! check if Z is antidiagonal or diagonal and record in INFO if it is not
-    IF (((Z(1,1) .EQ. Z_ZERO) .AND. (Z(2,2) .EQ. Z_ZERO)) .OR. ((Z(2,1) .EQ. Z_ZERO) .AND. (Z(1,2) .EQ. Z_ZERO))) THEN
-       CONTINUE
-    ELSE ! non-trivial
-       INFO = INFO + 4
-    END IF
+    ! check if U is identity and record in INFO if it is not
+    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 2
+    ! check if Z is identity and record in INFO if it is not
+    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 4
     ! check for overflow
     ! IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + ...
     ! IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + ...

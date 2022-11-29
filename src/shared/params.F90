@@ -30,8 +30,8 @@ MODULE params
 
   REAL(KIND=DWP), PARAMETER :: TWOF = SQRT(HUGE(D_ZERO))
   REAL(KIND=DWP), PARAMETER :: MINF = REAL(Z'0000000000000001',DWP)
-  ! approx. 0.8, or for harder cases, try lowering to 0.75, e.g.
-  REAL(KIND=DWP), PARAMETER :: TH1FIX = 4.0_DWP / 5
+  ! you might wish to relax it to 4/5 (0.8)
+  REAL(KIND=DWP), PARAMETER :: TH1FIX = 0.75_DWP
 
 #if defined(USE_ABSOFT) || defined(USE_NVIDIA)
   INTEGER, PARAMETER :: EH =  1024
