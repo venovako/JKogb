@@ -18,7 +18,7 @@ CC=gcc$(GNU)
 FC=gfortran$(GNU)
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts -fvect-cost-model=unlimited -fvariable-expansion-in-unroller -fopt-info-optimized-vec #-DUSE_FAST
-DBGFLAGS=-DNDEBUG -pedantic -Wall -Wextra #-DUSE_TEST
+DBGFLAGS=-DNDEBUG -pedantic -Wall -Wextra
 DBGFFLAGS=$(DBGFLAGS) -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 else # DEBUG
 OPTFLAGS=-O$(DEBUG) -march=native -fopt-info-optimized-vec

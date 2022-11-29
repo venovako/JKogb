@@ -12,7 +12,7 @@ LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) $(OPTFLAGS) /Qvec-threshold:0 #/DUSE_FAST
-DBGFLAGS=/DNDEBUG /Qdiag-disable:10397 #/DUSE_TEST
+DBGFLAGS=/DNDEBUG /Qdiag-disable:10397
 DBGFFLAGS=$(DBGFLAGS)
 FPUFLAGS=$(FPUFLAGS) /Qimf-use-svml:true
 C18FLAGS=$(C18FLAGS) /MD

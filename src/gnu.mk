@@ -36,7 +36,7 @@ OPTFLAGS=-O$(NDEBUG) -march=native -fgcse-las -fgcse-sm -fipa-pta -ftree-loop-di
 ifeq ($(ARCH),Darwin)
 OPTFLAGS += -Wa,-q
 endif # Darwin
-DBGFLAGS=-DNDEBUG -pedantic -Wall -Wextra #-DUSE_TEST
+DBGFLAGS=-DNDEBUG -pedantic -Wall -Wextra
 DBGFFLAGS=$(DBGFLAGS) -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 else # DEBUG
 OPTFLAGS=-O$(DEBUG) -march=native -fopt-info-optimized-vec

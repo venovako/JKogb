@@ -30,12 +30,8 @@ MODULE params
 
   REAL(KIND=DWP), PARAMETER :: TWOF = SQRT(HUGE(D_ZERO))
   REAL(KIND=DWP), PARAMETER :: MINF = REAL(Z'0000000000000001',DWP)
-#ifdef USE_TEST
-  REAL(KIND=DWP), PARAMETER :: TH1FIX = D_ONE
-#else
   ! approx. 0.8, or for harder cases, try lowering to 0.75, e.g.
   REAL(KIND=DWP), PARAMETER :: TH1FIX = 4.0_DWP / 5
-#endif
 
 #if defined(USE_ABSOFT) || defined(USE_NVIDIA)
   INTEGER, PARAMETER :: EH =  1024

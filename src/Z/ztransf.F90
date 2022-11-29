@@ -449,19 +449,31 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION ABODNZF2(B, M, X, Y, P, Q)
+  PURE REAL(KIND=DWP) FUNCTION ABODNZF2(B, M, X, Y, AQP, APQ, P, Q)
     ! skipping the diagonal elements X(P) and Y(Q),
     ! Z = SUM(|oldX(I)|^2-|newX(I)|^2 + |oldY(I)|^2-|newY(I)|^2)
     !   = ||oldX oldY||_F^2 - ||newX newY||_F^2
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: M, P, Q
-    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
+    COMPLEX(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M), AQP, APQ
 
     COMPLEX(KIND=DWP) :: R1, R2, XX, YY
     REAL(KIND=DWP) :: AXI, AXX, AYI, AYY
     INTEGER :: I
 
-    ABODNZF2 = DASUM4(REAL(Y(P)), AIMAG(Y(P)), REAL(X(Q)), AIMAG(X(Q)))
+    ABODNZF2 = D_ZERO
+    AXI = REAL(X(Q))
+    AYI = AIMAG(X(Q))
+    AXX = REAL(AQP)
+    AYY = AIMAG(AQP)
+    ABODNZF2 = FMAD(AXI - AXX, AXI + AXX, ABODNZF2)
+    ABODNZF2 = FMAD(AYI - AYY, AYI + AYY, ABODNZF2)
+    AXI = REAL(Y(P))
+    AYI = AIMAG(Y(P))
+    AXX = REAL(APQ)
+    AYY = AIMAG(APQ)
+    ABODNZF2 = FMAD(AXI - AXX, AXI + AXX, ABODNZF2)
+    ABODNZF2 = FMAD(AYI - AYY, AYI + AYY, ABODNZF2)
 
     IF (ABSZ(B(1,1)) .GE. ABSZ(B(2,1))) THEN
        IF (AIMAG(B(1,1)) .EQ. D_ZERO) THEN
@@ -833,7 +845,6 @@ CONTAINS
     INTEGER :: T
 
     T = J(1) + J(2)
-
     IF (((T .EQ. 2) .AND. (REAL(A(1,1)) .LT. REAL(A(2,2)))) .OR. ((T .EQ. -2) .AND. (REAL(A(2,2)) .LT. REAL(A(1,1))))) THEN
        ! swap the rows of U
        A(2,1) = U(1,1)
@@ -854,16 +865,26 @@ CONTAINS
        Z(1,2) = A(2,1)
        Z(2,2) = A(1,2)
     END IF
-    A(2,1) = Z_ZERO
-    A(1,2) = Z_ZERO
+    IF (IAND(INFO, 8) .EQ. 0) THEN
+       A(2,1) = Z_ZERO
+       A(1,2) = Z_ZERO
+    END IF
 
-    ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. Z_ONE) .OR. (U(2,1) .NE. Z_ZERO) .OR. (U(1,2) .NE. Z_ZERO) .OR. (U(2,2) .NE. Z_ONE)) INFO = INFO + 2
-    ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. Z_ONE) .OR. (Z(2,1) .NE. Z_ZERO) .OR. (Z(1,2) .NE. Z_ZERO) .OR. (Z(2,2) .NE. Z_ONE)) INFO = INFO + 4
+    ! check if U is antidiagonal or diagonal and record in INFO if it is not
+    IF (((U(1,1) .EQ. Z_ZERO) .AND. (U(2,2) .EQ. Z_ZERO)) .OR. ((U(2,1) .EQ. Z_ZERO) .AND. (U(1,2) .EQ. Z_ZERO))) THEN
+       CONTINUE
+    ELSE ! non-trivial
+       INFO = INFO + 2
+    END IF
+    ! check if Z is antidiagonal or diagonal and record in INFO if it is not
+    IF (((Z(1,1) .EQ. Z_ZERO) .AND. (Z(2,2) .EQ. Z_ZERO)) .OR. ((Z(2,1) .EQ. Z_ZERO) .AND. (Z(1,2) .EQ. Z_ZERO))) THEN
+       CONTINUE
+    ELSE ! non-trivial
+       INFO = INFO + 4
+    END IF
     ! check for overflow
-    ! IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + 8
-    ! IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + 16
+    ! IF (REAL(A(1,1)) .GT. HUGE(D_ZERO)) INFO = INFO + ...
+    ! IF (REAL(A(2,2)) .GT. HUGE(D_ZERO)) INFO = INFO + ...
   END SUBROUTINE ZHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -909,14 +930,15 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE ZHSVD2(A, J, U, Z, INFO)
+  PURE SUBROUTINE ZHSVD2(A, J, U, Z, TH1, INFO)
     IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: TH1
     COMPLEX(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(IN) :: J(2)
     COMPLEX(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: W(2,2), B(2,2), C(2,2)
+    REAL(KIND=DWP) :: G(2), W(2,2), B(2,2), C(2,2)
     INTEGER :: S
 
 #ifndef NDEBUG
@@ -959,19 +981,39 @@ CONTAINS
        W(2,1) = REAL(A(2,1))
        W(1,2) = REAL(A(1,2))
        W(2,2) = REAL(A(2,2))
-       CALL KHSVD2(W, J, B, C, S, INFO)
+       CALL KHSVD2(W, J, G, B, C, S, TH1, INFO)
     ELSE IF (INFO .EQ. 0) THEN
-       W(1,1) = SCALE(REAL(A(1,1)), -S)
-       W(2,2) = SCALE(REAL(A(2,2)), -S)
+       IF (S .EQ. 0) THEN
+          W(1,1) = REAL(A(1,1))
+          W(2,2) = REAL(A(2,2))
+       ELSE ! S .NE. 0
+          W(1,1) = SCALE(REAL(A(1,1)), -S)
+          W(2,2) = SCALE(REAL(A(2,2)), -S)
+       END IF
     END IF
     IF (INFO .LT. 0) RETURN
     IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
+       IF (IAND(INFO, 8) .EQ. 0) THEN
+          W(1,1) = G(1)
+          W(2,2) = G(2)
+          GOTO 1
+       ELSE ! TH1FIX case
+          IF (S .NE. 0) THEN
+             A(1,1) = CMPLX(SCALE(REAL(A(1,1)), -S), SCALE(AIMAG(A(1,1)), -S), DWP)
+             A(2,1) = CMPLX(SCALE(REAL(A(2,1)), -S), SCALE(AIMAG(A(2,1)), -S), DWP)
+             A(1,2) = CMPLX(SCALE(REAL(A(1,2)), -S), SCALE(AIMAG(A(1,2)), -S), DWP)
+             A(2,2) = CMPLX(SCALE(REAL(A(2,2)), -S), SCALE(AIMAG(A(2,2)), -S), DWP)
+          END IF
+          CALL C2A(B, A)
+          CALL A2C(A, C)
+          GOTO 2
+       END IF
     END IF
-    A(1,1) = CMPLX(W(1,1), D_ZERO, DWP)
+1   A(1,1) = CMPLX(W(1,1), D_ZERO, DWP)
     A(2,2) = CMPLX(W(2,2), D_ZERO, DWP)
-    CALL ZHSVD2S(A, J, U, Z, INFO)
+2   CALL ZHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE ZHSVD2
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

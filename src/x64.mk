@@ -23,7 +23,7 @@ FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check
 else # !strict
-FPUFLAGS += -fimf-use-svml=true
+FPUFLAGS += #-fimf-use-svml=true
 endif # ?strict
 FPUFFLAGS=$(FPUFLAGS)
 ifeq ($(FP),strict)
@@ -31,7 +31,7 @@ FPUFFLAGS += -assume ieee_fpe_flags
 endif # strict
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost -qopt-multi-version-aggressive -vec-threshold0 -qopt-report=5 #-DUSE_FAST
-DBGFLAGS=-DNDEBUG -diag-disable=10397 #-DUSE_TEST
+DBGFLAGS=-DNDEBUG -diag-disable=10397
 DBGFFLAGS=$(DBGFLAGS)
 else # DEBUG
 OPTFLAGS=-O0 -xHost -qopt-multi-version-aggressive #-qopt-report=5

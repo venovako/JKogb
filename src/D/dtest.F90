@@ -6,10 +6,6 @@ PROGRAM dtest
   REAL(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
-#ifndef USE_TEST
-  WRITE (ERROR_UNIT,'(A)') 'dtest.exe should have been compiled with USE_TEST macro defined'
-#endif
-
   A = D_ZERO
   U = D_ZERO
   Z = D_ZERO
@@ -36,7 +32,7 @@ PROGRAM dtest
   WRITE (OUTPUT_UNIT,1) 'A12=', A(1,2)
   WRITE (OUTPUT_UNIT,1) 'A22=', A(2,2)
 
-  CALL DHSVD2(A, J, U, Z, INFO)
+  CALL DHSVD2(A, J, U, Z, D_ONE, INFO)
   WRITE (OUTPUT_UNIT,*) 'INFO=', INFO
 
   IF (INFO .GE. 0) CALL UT2(U)

@@ -12,10 +12,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE KHSVD2T(A, U, Z, S)
+  PURE SUBROUTINE KHSVD2T(A, G, U, Z, S)
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
-    REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: A(2,2)
+    REAL(KIND=DWP), INTENT(OUT) :: G(2), U(2,2), Z(2,2)
     INTEGER, INTENT(IN) :: S
 
     REAL(KIND=DWP) :: X, Y, T2, TU, CU, TZ, CZ
@@ -40,8 +40,8 @@ CONTAINS
        E = 0
     END IF
 
-    A(1,1) = SCALE(A(1,1), -E) * X
-    A(2,2) = SCALE(A(2,2) / Y, -S)
+    G(1) = SCALE(A(1,1), -E) * X
+    G(2) = SCALE(A(2,2) / Y, -S)
 
     U(1,1) =  CU
     U(2,1) = -TU
@@ -56,10 +56,10 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE KHSVD2U(A, U, Z, S, INFO)
+  PURE SUBROUTINE KHSVD2U(A, G, U, Z, S, TH1, INFO)
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
-    REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: A(2,2), TH1
+    REAL(KIND=DWP), INTENT(OUT) :: G(2), U(2,2), Z(2,2)
     INTEGER, INTENT(IN) :: S
     INTEGER, INTENT(OUT) :: INFO
 
@@ -71,10 +71,21 @@ CONTAINS
     T2 = -MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / FMAD((Y - X), (Y + X), D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(FMAD(T2, T2, D_ONE)))
     TZ = -FMAD(Y, TU, X)
-    IF (ABS(TZ) .LT. TH1FIX) THEN
-       CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
-       CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
 
+    T2 = ABS(TZ)
+    IF (T2 .GE. D_ONE) THEN
+       INFO = -10
+       RETURN
+    END IF
+
+    IF (T2 .GE. TH1) THEN
+       TZ = SIGN(TH1FIX, TZ)
+       INFO = INFO + 8
+    END IF
+    CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
+    CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
+
+    IF (T2 .LT. TH1) THEN
        Y = CU / CZ
        X = Y
        D = EXPONENT(X) - ET
@@ -85,30 +96,27 @@ CONTAINS
           X = SCALE(X, -S)
           E = 0
        END IF
-
-       A(1,1) = SCALE(A(1,1) / Y, -S)
-       A(2,2) = SCALE(A(2,2), -E) * X
-
-       U(1,1) =  CU
-       U(2,1) = -TU
-       U(1,2) =  TU
-       U(2,2) =  CU
-
-       Z(1,1) =  CZ
-       Z(2,1) =  TZ
-       Z(1,2) =  TZ
-       Z(2,2) =  CZ
-    ELSE ! |tanh| >= TH1FIX
-       INFO = -10
+       G(1) = SCALE(A(1,1) / Y, -S)
+       G(2) = SCALE(A(2,2), -E) * X
     END IF
+
+    U(1,1) =  CU
+    U(2,1) = -TU
+    U(1,2) =  TU
+    U(2,2) =  CU
+
+    Z(1,1) =  CZ
+    Z(2,1) =  TZ
+    Z(1,2) =  TZ
+    Z(2,2) =  CZ
   END SUBROUTINE KHSVD2U
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE KHSVD2L(A, U, Z, S, INFO)
+  PURE SUBROUTINE KHSVD2L(A, G, U, Z, S, TH1, INFO)
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
-    REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: A(2,2), TH1
+    REAL(KIND=DWP), INTENT(OUT) :: G(2), U(2,2), Z(2,2)
     INTEGER, INTENT(IN) :: S
     INTEGER, INTENT(OUT) :: INFO
 
@@ -120,10 +128,21 @@ CONTAINS
     T2 = MIN(MAXD((SCALE(MIN(X, Y), 1) * MAX(X, Y)) / FMAD((Y - X), (Y + X), D_ONE), D_ZERO), TWOF)
     TU = T2 / (D_ONE + SQRT(FMAD(T2, T2, D_ONE)))
     TZ = FMAD(Y, TU, -X)
-    IF (ABS(TZ) .LT. TH1FIX) THEN
-       CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
-       CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
 
+    T2 = ABS(TZ)
+    IF (T2 .GE. D_ONE) THEN
+       INFO = -11
+       RETURN
+    END IF
+
+    IF (T2 .GE. TH1) THEN
+       TZ = SIGN(TH1FIX, TZ)
+       INFO = INFO + 8
+    END IF
+    CU = SQRT(FMAD( TU, TU, D_ONE)) ! D_ONE /
+    CZ = SQRT(FMAD(-TZ, TZ, D_ONE)) ! D_ONE /
+
+    IF (T2 .LT. TH1) THEN
        Y = CU / CZ
        X = Y
        D = EXPONENT(X) - ET
@@ -134,30 +153,27 @@ CONTAINS
           X = SCALE(X, -S)
           E = 0
        END IF
-
-       A(1,1) = SCALE(A(1,1), -E) * X
-       A(2,2) = SCALE(A(2,2) / Y, -S)
-
-       U(1,1) =  CU
-       U(2,1) = -TU
-       U(1,2) =  TU
-       U(2,2) =  CU
-
-       Z(1,1) =  CZ
-       Z(2,1) =  TZ
-       Z(1,2) =  TZ
-       Z(2,2) =  CZ
-    ELSE ! |tanh| >= TH1FIX
-       INFO = -11
+       G(1) = SCALE(A(1,1), -E) * X
+       G(2) = SCALE(A(2,2) / Y, -S)
     END IF
+
+    U(1,1) =  CU
+    U(2,1) = -TU
+    U(1,2) =  TU
+    U(2,2) =  CU
+
+    Z(1,1) =  CZ
+    Z(2,1) =  TZ
+    Z(1,2) =  TZ
+    Z(2,2) =  CZ
   END SUBROUTINE KHSVD2L
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE KHSVD2(A, J, U, Z, S, INFO)
+  PURE SUBROUTINE KHSVD2(A, J, G, U, Z, S, TH1, INFO)
     IMPLICIT NONE
-    REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
-    REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
+    REAL(KIND=DWP), INTENT(IN) :: A(2,2), TH1
+    REAL(KIND=DWP), INTENT(OUT) :: G(2), U(2,2), Z(2,2)
     INTEGER, INTENT(IN) :: J(2), S
     INTEGER, INTENT(INOUT) :: INFO
 
@@ -181,9 +197,9 @@ CONTAINS
     ELSE IF (A(2,1) .EQ. D_ZERO) THEN ! upper triangular
 #endif
        IF (J(1) .EQ. J(2)) THEN ! trigonometric
-          IF (INFO .EQ. 1) CALL KHSVD2T(A, U, Z, S)
+          IF (INFO .EQ. 1) CALL KHSVD2T(A, G, U, Z, S)
        ELSE ! hyperbolic
-          IF (INFO .EQ. 1) CALL KHSVD2U(A, U, Z, S, INFO)
+          IF (INFO .EQ. 1) CALL KHSVD2U(A, G, U, Z, S, TH1, INFO)
        END IF
     ELSE IF (A(1,2) .EQ. D_ZERO) THEN ! hyperbolic lower triangular
 #ifndef NDEBUG
@@ -191,7 +207,7 @@ CONTAINS
           INFO = -8
        ELSE ! non-diagonal
 #endif
-          IF (INFO .EQ. 1) CALL KHSVD2L(A, U, Z, S, INFO)
+          IF (INFO .EQ. 1) CALL KHSVD2L(A, G, U, Z, S, TH1, INFO)
 #ifndef NDEBUG
        END IF
     ELSE ! A not triangular => error

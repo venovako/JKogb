@@ -6,10 +6,6 @@ PROGRAM ztest
   COMPLEX(KIND=QWP) :: C(2,2), D(2,2)
   INTEGER :: J(2), INFO
 
-#ifndef USE_TEST
-  WRITE (ERROR_UNIT,'(A)') 'ztest.exe should have been compiled with USE_TEST macro defined'
-#endif
-
   A = Z_ZERO
   U = Z_ZERO
   Z = Z_ZERO
@@ -36,7 +32,7 @@ PROGRAM ztest
   WRITE (OUTPUT_UNIT,1) 'A12=', A(1,2)
   WRITE (OUTPUT_UNIT,1) 'A22=', A(2,2)
 
-  CALL ZHSVD2(A, J, U, Z, INFO)
+  CALL ZHSVD2(A, J, U, Z, D_ONE, INFO)
   WRITE (OUTPUT_UNIT,*) 'INFO=', INFO
 
   IF (INFO .GE. 0) CALL UH2(U)

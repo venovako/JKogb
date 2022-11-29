@@ -56,15 +56,17 @@ CONTAINS
        A2(2,2) = A(Q,Q)
        J2(1) = J(P)
        J2(2) = J(Q)
-       CALL ZHSVD2(A2, J2, U2, Z2, INFO)
+       CALL ZHSVD2(A2, J2, U2, Z2, TH1FIX, INFO)
        IF (INFO .LT. 0) THEN
           ZMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
        ELSE IF (IAND(INFO, 1) .EQ. 0) THEN
           ZMAGF2H = D_ZERO
        ELSE IF (IAND(INFO, 4) .EQ. 0) THEN
           ZMAGF2H = DASUM4(REAL(A(Q,P)), AIMAG(A(Q,P)), REAL(A(P,Q)), AIMAG(A(P,Q)))
+       ELSE IF (IAND(INFO, 8) .EQ. 0) THEN
+          ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), Z_ZERO, Z_ZERO, P, Q)
        ELSE ! a non-trivial transform
-          ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), P, Q)
+          ZMAGF2H = ABODNZF2(Z2, N, A(1,P), A(1,Q), A2(2,1), A2(1,2), P, Q)
        END IF
     ELSE ! no transform
        ZMAGF2H = QUIET_NAN((P - 1) * N + (Q - 1))
@@ -351,7 +353,7 @@ CONTAINS
        K(1) = J(P)
        K(2) = J(Q)
 
-       CALL ZHSVD2(B, K, V, W(:,:,I), M)
+       CALL ZHSVD2(B, K, V, W(:,:,I), TH1FIX, M)
        DZ(STEP(I))%I = M
        IF (M .GE. 0) THEN
           W(1,3,I) = REAL(B(1,1))
@@ -377,10 +379,12 @@ CONTAINS
           IF (IAND(L, 4) .NE. 0) CALL AB(W(:,:,I), N, A(1,P), A(1,Q))
           IF ((IAND(L, 1) .NE. 0) .AND. ((IAND(L, 2) .NE. 0) .OR. (IAND(L, 4) .NE. 0))) M = M + 1
 
-          A(P,P) = W(1,3,I)
-          A(Q,P) = Z_ZERO
-          A(P,Q) = Z_ZERO
-          A(Q,Q) = W(2,3,I)
+          IF (IAND(L, 8) .EQ. 0) THEN
+             A(P,P) = W(1,3,I)
+             A(Q,P) = Z_ZERO
+             A(P,Q) = Z_ZERO
+             A(Q,Q) = W(2,3,I)
+          END IF
        END DO
        !$OMP END PARALLEL DO
     END IF

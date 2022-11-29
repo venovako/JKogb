@@ -243,18 +243,20 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE REAL(KIND=DWP) FUNCTION ABODNDF2(B, M, X, Y, P, Q)
+  PURE REAL(KIND=DWP) FUNCTION ABODNDF2(B, M, X, Y, AQP, APQ, P, Q)
     ! skipping the diagonal elements X(P) and Y(Q),
     ! D = SUM(oldX(I)^2-newX(I)^2 + oldY(I)^2-newY(I)^2)
     !   = ||oldX oldY||_F^2 - ||newX newY||_F^2
     IMPLICIT NONE
     INTEGER, INTENT(IN) :: M, P, Q
-    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M)
+    REAL(KIND=DWP), INTENT(IN) :: B(2,2), X(M), Y(M), AQP, APQ
 
     REAL(KIND=DWP) :: R1, R2, XX, YY
     INTEGER :: I
 
-    ABODNDF2 = DASUM2(X(Q), Y(P))
+    ABODNDF2 = D_ZERO
+    ABODNDF2 = FMAD(X(Q) - AQP, X(Q) + AQP, ABODNDF2)
+    ABODNDF2 = FMAD(Y(P) - APQ, Y(P) + APQ, ABODNDF2)
 
     IF (ABS(B(1,1)) .GE. ABS(B(2,1))) THEN
        R1 = B(2,1) / B(1,1)
@@ -540,7 +542,6 @@ CONTAINS
     INTEGER :: T
 
     T = J(1) + J(2)
-
     IF (((T .EQ. 2) .AND. (A(1,1) .LT. A(2,2))) .OR. ((T .EQ. -2) .AND. (A(2,2) .LT. A(1,1)))) THEN
        ! swap the rows of U
        A(2,1) = U(1,1)
@@ -561,16 +562,26 @@ CONTAINS
        Z(1,2) = A(2,1)
        Z(2,2) = A(1,2)
     END IF
-    A(2,1) = D_ZERO
-    A(1,2) = D_ZERO
+    IF (IAND(INFO, 8) .EQ. 0) THEN
+       A(2,1) = D_ZERO
+       A(1,2) = D_ZERO
+    END IF
 
-    ! check if U is identity and record in INFO if it is not
-    IF ((U(1,1) .NE. D_ONE) .OR. (U(2,1) .NE. D_ZERO) .OR. (U(1,2) .NE. D_ZERO) .OR. (U(2,2) .NE. D_ONE)) INFO = INFO + 2
-    ! check if Z is identity and record in INFO if it is not
-    IF ((Z(1,1) .NE. D_ONE) .OR. (Z(2,1) .NE. D_ZERO) .OR. (Z(1,2) .NE. D_ZERO) .OR. (Z(2,2) .NE. D_ONE)) INFO = INFO + 4
+    ! check if U is antidiagonal or diagonal and record in INFO if it is not
+    IF (((U(1,1) .EQ. D_ZERO) .AND. (U(2,2) .EQ. D_ZERO)) .OR. ((U(2,1) .EQ. D_ZERO) .AND. (U(1,2) .EQ. D_ZERO))) THEN
+       CONTINUE
+    ELSE ! non-trivial
+       INFO = INFO + 2
+    END IF
+    ! check if Z is antidiagonal or diagonal and record in INFO if it is not
+    IF (((Z(1,1) .EQ. D_ZERO) .AND. (Z(2,2) .EQ. D_ZERO)) .OR. ((Z(2,1) .EQ. D_ZERO) .AND. (Z(1,2) .EQ. D_ZERO))) THEN
+       CONTINUE
+    ELSE ! non-trivial
+       INFO = INFO + 4
+    END IF
     ! check for overflow
-    ! IF (A(1,1) .GT. HUGE(D_ZERO)) INFO = INFO + 8
-    ! IF (A(2,2) .GT. HUGE(D_ZERO)) INFO = INFO + 16
+    ! IF (A(1,1) .GT. HUGE(D_ZERO)) INFO = INFO + ...
+    ! IF (A(2,2) .GT. HUGE(D_ZERO)) INFO = INFO + ...
   END SUBROUTINE DHSVD2S
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -608,14 +619,15 @@ CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  PURE SUBROUTINE DHSVD2(A, J, U, Z, INFO)
+  PURE SUBROUTINE DHSVD2(A, J, U, Z, TH1, INFO)
     IMPLICIT NONE
+    REAL(KIND=DWP), INTENT(IN) :: TH1
     REAL(KIND=DWP), INTENT(INOUT) :: A(2,2)
     INTEGER, INTENT(IN) :: J(2)
     REAL(KIND=DWP), INTENT(OUT) :: U(2,2), Z(2,2)
     INTEGER, INTENT(OUT) :: INFO
 
-    REAL(KIND=DWP) :: B(2,2), C(2,2)
+    REAL(KIND=DWP) :: G(2), B(2,2), C(2,2)
     INTEGER :: S
 
 #ifndef NDEBUG
@@ -654,8 +666,8 @@ CONTAINS
 
     CALL DHSVD2T(A, J, U, Z, INFO)
     IF (INFO .GT. 0) THEN
-       CALL KHSVD2(A, J, B, C, S, INFO)
-    ELSE IF (INFO .EQ. 0) THEN
+       CALL KHSVD2(A, J, G, B, C, S, TH1, INFO)
+    ELSE IF ((INFO .EQ. 0) .AND. (S .NE. 0)) THEN
        A(1,1) = SCALE(A(1,1), -S)
        A(2,2) = SCALE(A(2,2), -S)
     END IF
@@ -663,6 +675,17 @@ CONTAINS
     IF (INFO .GT. 0) THEN
        CALL C2A(B, U)
        CALL A2C(Z, C)
+       IF (IAND(INFO, 8) .EQ. 0) THEN
+          A(1,1) = G(1)
+          A(2,2) = G(2)
+       ELSE ! TH1FIX case
+          A(1,1) = SCALE(A(1,1), -S)
+          A(2,1) = SCALE(A(2,1), -S)
+          A(1,2) = SCALE(A(1,2), -S)
+          A(2,2) = SCALE(A(2,2), -S)
+          CALL C2A(B, A)
+          CALL A2C(A, C)
+       END IF
     END IF
     CALL DHSVD2S(A, J, U, Z, INFO)
   END SUBROUTINE DHSVD2
