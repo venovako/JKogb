@@ -38,7 +38,7 @@ For example, ``make COMPILER=x200 NDEBUG=3 clean all`` will trigger a full, rele
 
 ### Command line
 
-In the examples below, ``FN`` is the input and output file name prefix (without an extension), ``N`` for the matrix order, and ``N_2`` for the maximal number of transformations per step (up to ``N/2``).
+In the examples below, ``FN`` is the input and output file name prefix (without an extension), ``N`` for the matrix order, and ``N_2`` for the maximal number of transformations per step (up to ``N/2``, with the fail-safe but the slowest option being ``1``).
 
 Assuming the top directory of the cloned repository has been made current, execute either
 ```bash
