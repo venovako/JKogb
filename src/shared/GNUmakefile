@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libjk$(DEBUG).a
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o $(MKFS) #cutils.o
 	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o #cutils.o
@@ -43,4 +43,5 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *.dSYM

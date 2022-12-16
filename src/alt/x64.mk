@@ -3,7 +3,7 @@ ARFLAGS=-qnoipo -lib rsv
 CC=icc 
 C18FLAGS=-std=c18 -qopenmp
 OPT=-xHost -qopt-zmm-usage=high
-DBG=-w3 -diag-disable=1572,2547,10397
+DBG=-w3 -diag-disable=1572,2547,10397,10441
 FPU=-fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) $(OPT)

@@ -10,7 +10,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libdjk$(DEBUG).a djk.exe dtest.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=gnu|x64|x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libdjk$(DEBUG).a: dstep.o dtransf.o dtypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ dstep.o dtransf.o dtypes.o
@@ -47,4 +47,5 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *.dSYM

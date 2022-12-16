@@ -16,7 +16,7 @@ MKFS=GNUmakefile $(COMPILER).mk
 all: libajk$(DEBUG)$(GNU).a common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
 
 help:
-	@echo "[g]make [COMPILER=gnu|clang|nvidia|intel] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "[g]make [COMPILER=gnu|clang|nvidia|x64|x64x] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
 libajk$(DEBUG)$(GNU).a: common.o j2apq.o tweight.o wpqb.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ common.o j2apq.o tweight.o wpqb.o
