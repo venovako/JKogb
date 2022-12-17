@@ -1,32 +1,36 @@
 RM=del /F
 AR=xilib.exe
 ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
-CC=icl.exe
-FC=ifort.exe
+!IFNDEF FORT
+FORT=ifort
+!ENDIF # !FORT
+FC=$(FORT).exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
-C18FLAGS=/nologo /Qstd=c18 /Qlong-double
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
-OPTFLAGS=/QxHost /Qopt-multi-version-aggressive /Qopt-report:5
-FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz- /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
+OPTFLAGS=/QxHost
+FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz-
+!IF "$(FORT)"=="ifort"
+OPTFLAGS=$(OPTFLAGS) /Qopt-multi-version-aggressive
+DBGFLAGS=$(DBGFLAGS) /Qopt-report:5
+FPUFLAGS=$(FPUFLAGS) /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
+!ELSE # ifx
+DBGFLAGS=$(DBGFLAGS) /Qopt-report:3
+!ENDIF # ?FORT
 LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) $(OPTFLAGS) /Qvec-threshold:0 #/DUSE_FAST
-DBGFLAGS=/DNDEBUG /Qdiag-disable:10397
-DBGFFLAGS=$(DBGFLAGS)
-FPUFLAGS=$(FPUFLAGS) /Qimf-use-svml:true
-C18FLAGS=$(C18FLAGS) /MD
+DBGFLAGS=/DNDEBUG
+FPUFLAGS=$(FPUFLAGS) #/Qimf-use-svml:true
 LDFLAGS=$(LDFLAGS) /RELEASE /LIBPATH:. $(TYPE)jk.lib /LIBPATH:..\shared jk.lib
 !ELSE # DEBUG
 OPTFLAGS=/O$(DEBUG) $(OPTFLAGS)
-DBGFLAGS=/debug:full /debug:inline-debug-info /Qdiag-disable:10397
-DBGFFLAGS=$(DBGFLAGS) /debug-parameters:all /check:all /warn:all
+DBGFLAGS=/debug:full /debug:inline-debug-info /debug-parameters:all /check:all /warn:all
+FPUFLAGS=$(FPUFLAGS)
+!IF "$(FORT)"=="ifort"
 FPUFLAGS=$(FPUFLAGS) /Qfp-stack-check
+!ENDIF # ifort
 LIBFLAGS=$(LIBFLAGS) /dbglibs
-C18FLAGS=$(C18FLAGS) /MDd
 LDFLAGS=$(LDFLAGS) /DEBUG /LIBPATH:. $(TYPE)jk$(DEBUG).lib /LIBPATH:..\shared jk$(DEBUG).lib
 !ENDIF # ?NDEBUG
-OPTFFLAGS=$(OPTFLAGS)
-FPUFFLAGS=$(FPUFLAGS)
-FFLAGS=$(OPTFFLAGS) $(DBGFFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFFLAGS)
-CFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(C18FLAGS) $(FPUFLAGS)
+FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)

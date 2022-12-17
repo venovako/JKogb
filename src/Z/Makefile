@@ -37,4 +37,5 @@ clean:
 	-$(RM) *.obj
 	-$(RM) *.lib
 	-$(RM) *.optrpt
+	-$(RM) *.opt.yaml
 	-$(RM) *.pdb
