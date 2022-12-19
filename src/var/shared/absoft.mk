@@ -32,9 +32,6 @@ timer.o TIMER.mod: timer.F90 PARAMS.mod $(MKFS)
 utils.o UTILS.mod: utils.F90 PARAMS.mod $(MKFS)
 	$(FC) $(FFLAGS) -c utils.F90
 
-# cutils.o: cutils.c cutils.h $(MKFS)
-# 	$(FC) $(FFLAGS) -c cutils.c
-
 clean:
 	-$(RM) *.mod
 	-$(RM) *.o

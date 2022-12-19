@@ -20,19 +20,18 @@ endif # ANIMATE
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz
 ifeq ($(FP),strict)
 FPUFLAGS += -assume ieee_fpe_flags
-else # !strict
-FPUFLAGS += -fma #-fimf-use-svml=true
+#else # !strict
+#FPUFLAGS += -fimf-use-svml=true
 endif # ?strict
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost -vec-threshold0 -qopt-report=3 #-DUSE_FAST
 DBGFLAGS=-DNDEBUG
 else # DEBUG
-OPTFLAGS=-O0 -xHost
-DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames
+OPTFLAGS=-O0 -xHost #-qopt-report=3
+DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -debug-parameters all -check all -warn all
 ifneq ($(ARCH),Darwin)
 DBGFLAGS += -debug parallel
 endif # Linux
-DBGFLAGS += -debug-parameters all -check all -warn all
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 ifneq ($(ARCH),Darwin)

@@ -8,25 +8,25 @@ FC=$(FORT).exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
 OPTFLAGS=/QxHost
-FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz-
+FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz- #/Qimf-use-svml:true
 !IF "$(FORT)"=="ifort"
 OPTFLAGS=$(OPTFLAGS) /Qopt-multi-version-aggressive
-DBGFLAGS=$(DBGFLAGS) /Qopt-report:5
 FPUFLAGS=$(FPUFLAGS) /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt
-!ELSE # ifx
-DBGFLAGS=$(DBGFLAGS) /Qopt-report:3
-!ENDIF # ?FORT
+!ENDIF # ifort
 LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
 !IFDEF NDEBUG
 OPTFLAGS=/O$(NDEBUG) $(OPTFLAGS) /Qvec-threshold:0 #/DUSE_FAST
 DBGFLAGS=/DNDEBUG
-FPUFLAGS=$(FPUFLAGS) #/Qimf-use-svml:true
+!IF "$(FORT)"=="ifort"
+OPTFLAGS=$(OPTFLAGS) /Qopt-report:5
+!ELSE # ifx
+OPTFLAGS=$(OPTFLAGS) /Qopt-report:3
+!ENDIF # ?FORT
 LDFLAGS=$(LDFLAGS) /RELEASE /LIBPATH:. $(TYPE)jk.lib /LIBPATH:..\shared jk.lib
 !ELSE # DEBUG
 OPTFLAGS=/O$(DEBUG) $(OPTFLAGS)
 DBGFLAGS=/debug:full /debug:inline-debug-info /debug-parameters:all /check:all /warn:all
-FPUFLAGS=$(FPUFLAGS)
 !IF "$(FORT)"=="ifort"
 FPUFLAGS=$(FPUFLAGS) /Qfp-stack-check
 !ENDIF # ifort

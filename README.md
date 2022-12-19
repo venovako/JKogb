@@ -22,12 +22,12 @@ where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64`` or ``
 Building with a recent Intel Fortran is possible on Windows as well:
 ```bash
 cd src
-nmake [NDEBUG=d|1|2|3|4|5] [all|clean|help]
+nmake [FORT=ifort|ifx] [NDEBUG=d|1|2|3|4|5] [all|clean|help]
 ```
 
-If ``COMPILER`` is not set or is ``gnu``, the GNU Fortran compiler will be used.
-The major version of your GCC in this case should be 8, since the later ones will not work unless a fix is applied as noted in ``src/gnu.mk``.
+If ``COMPILER`` is not set or is ``gnu``, the GNU Fortran compiler will be used, but it is not recommended.
 Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding the new MIN and MAX intrinsics.
+The major versions of ``gfortran`` above ``8`` thus require a fix from ``src/gnu.mk`` that can be turned off for the older compilers.
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
 If unset, the predefined debug-mode build options will be used.

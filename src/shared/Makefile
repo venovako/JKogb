@@ -6,7 +6,7 @@ all: jk$(DEBUG).lib
 help:
 	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
 
-jk$(DEBUG).lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS) #cutils.obj
+jk$(DEBUG).lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj
 
 atypes.obj atypes.mod: atypes.F90 timer.mod utils.mod $(MKFS)
@@ -29,9 +29,6 @@ timer.obj timer.mod: timer.F90 params.mod $(MKFS)
 
 utils.obj utils.mod: utils.F90 params.mod $(MKFS)
 	$(FC) $(FFLAGS) /c utils.F90
-
-# cutils.obj: cutils.c cutils.h $(MKFS)
-# 	$(CC) $(CFLAGS) /c cutils.c
 
 clean:
 	-$(RM) *.mod
