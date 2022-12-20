@@ -87,12 +87,7 @@ CONTAINS
     WRITE (F,'(A,A,I11.11)') TRIM(FN), '.', S
     U = -1
     I = 0
-#ifdef USE_SUN
-    U = 4 ! TODO: dirty hack
-    OPEN(UNIT=U, IOSTAT=I, FILE=F, STATUS='REPLACE', ACCESS='SEQUENTIAL', ACTION='WRITE')
-#else
     OPEN(NEWUNIT=U, IOSTAT=I, FILE=F, STATUS='REPLACE', ACCESS='SEQUENTIAL', ACTION='WRITE')
-#endif
     IF (I .EQ. 0) THEN
        OPEN_LOG = U
     ELSE ! error

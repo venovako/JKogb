@@ -33,7 +33,7 @@ MODULE params
   ! you might wish to relax it to 4/5 (0.8)
   REAL(KIND=DWP), PARAMETER :: TH1FIX = 0.75_DWP
 
-#if defined(USE_ABSOFT) || defined(USE_NVIDIA)
+#ifdef USE_NVIDIA
   INTEGER, PARAMETER :: EH =  1024
   INTEGER, PARAMETER :: ET = -1021
 #else

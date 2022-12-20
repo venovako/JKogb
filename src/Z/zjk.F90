@@ -69,18 +69,7 @@ PROGRAM zjk
      STOP 'BCLOSEN(RO)'
   END IF
 
-#ifdef USE_SUN
-  SELECT CASE (R%TRU)
-  CASE (1)
-     CALL TRU1(N, J, NN, P, Q, FD, INFO)
-  CASE (2)
-     CALL TRU2(N, J, NN, P, Q, FD, INFO)
-  CASE DEFAULT
-     STOP 'R%TRU'
-  END SELECT
-#else
   CALL R%TRU(N, J, NN, P, Q, FD, INFO)
-#endif
   IF (INFO .LT. 0) THEN
      WRITE (ERROR_UNIT,'(A,I11)') 'INFO=', INFO
      FLUSH(ERROR_UNIT)
