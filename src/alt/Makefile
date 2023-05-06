@@ -29,7 +29,7 @@ DBG=$(DBG) /Qopt-report:3
 !ENDIF # ?ICC
 OPTFLAGS=/O$(NDEBUG) $(OPT)
 DBGFLAGS=/DNDEBUG $(DBG)
-FPUFLAGS=/fp:precise $(FPU) /Qimf-use-svml:true
+FPUFLAGS=/fp:precise $(FPU)
 LDFLAGS=/link /RELEASE $(LNK)
 !ELSE # DEBUG
 !IF "$(ICC)"=="icl"

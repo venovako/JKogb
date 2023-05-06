@@ -8,7 +8,7 @@ FPU=-fma -fprotect-parens -no-ftz -no-complex-limited-range -no-fast-transcenden
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) $(OPT)
 DBGFLAGS=-DNDEBUG -qopt-report=5 $(DBG)
-FPUFLAGS=-fp-model precise $(FPU) -fimf-use-svml=true
+FPUFLAGS=-fp-model precise $(FPU)
 else # DEBUG
 OPTFLAGS=-O0 $(OPT)
 DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -check=stack,uninit

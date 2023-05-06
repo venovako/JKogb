@@ -8,7 +8,7 @@ FC=$(FORT).exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
 OPTFLAGS=/QxHost
-FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz- #/Qimf-use-svml:true
+FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz-
 !IF "$(FORT)"=="ifort"
 OPTFLAGS=$(OPTFLAGS) /Qopt-multi-version-aggressive
 FPUFLAGS=$(FPUFLAGS) /Qcomplex-limited-range- /Qfast-transcendentals- /Qprec-div /Qprec-sqrt

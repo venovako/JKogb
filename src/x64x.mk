@@ -20,8 +20,6 @@ endif # ANIMATE
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz
 ifeq ($(FP),strict)
 FPUFLAGS += -assume ieee_fpe_flags
-#else # !strict
-#FPUFLAGS += -fimf-use-svml=true
 endif # ?strict
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -xHost -vec-threshold0 -qopt-report=3 #-DUSE_FAST
