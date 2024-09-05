@@ -12,17 +12,17 @@ RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifx
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -vec-threshold0 -qopenmp
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 ifdef ANIMATE
 FORFLAGS += -i8
 endif # ANIMATE
-FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz
+FPUFLAGS=-fp-model=$(FP) -fp-speculation=safe -fma -fprotect-parens -no-ftz
 ifeq ($(FP),strict)
 FPUFLAGS += -assume ieee_fpe_flags
 endif # ?strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -xHost -vec-threshold0 -qopt-report=3 #-DUSE_FAST
+OPTFLAGS=-O$(NDEBUG) -xHost -qopt-report=3 #-DUSE_FAST
 DBGFLAGS=-DNDEBUG
 else # DEBUG
 OPTFLAGS=-O0 -xHost #-qopt-report=3

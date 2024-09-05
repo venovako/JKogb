@@ -16,9 +16,9 @@ A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Big Sur
 On Linux or macOS, run ``make`` (GNU make assumed) or ``gmake`` as follows:
 ```bash
 cd src
-make [COMPILER=gnu|x64|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
+make [COMPILER=gnu|x64x|x200|nvidia] [NDEBUG=0|1|2|3|4|5] [all|clean|help]
 ```
-where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64`` or ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
+where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
 Building with a recent Intel Fortran is possible on Windows as well:
 ```bash
 cd src
@@ -33,7 +33,6 @@ Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding 
 The major versions of ``gfortran`` above ``8`` thus require a fix from ``src/gnu.mk`` that can be turned off for the older compilers.
 
 While the ``nvfortran`` compiler might work, the executables have *not* been tested.
-The support for Oracle and Absoft Fortran compilers has been removed.
 
 For example, ``make COMPILER=x200 NDEBUG=3 clean all`` will trigger a full, release-mode rebuild for the KNLs.
 
