@@ -8,7 +8,6 @@ MODULE blas_utils
 #endif
 #endif
   USE params
-  USE vn_blas_f
   !$ USE omp_lib
   IMPLICIT NONE
 
@@ -18,6 +17,7 @@ CONTAINS
 
   INTEGER FUNCTION BLAS_PREPARE()
     IMPLICIT NONE
+    BLAS_PREPARE = 0
 #ifdef USE_MKL
 #ifdef USE_INTEL
 #ifdef USE_X200
@@ -28,16 +28,7 @@ CONTAINS
 #endif
 #endif
 #endif
-    BLAS_PREPARE = VN_BLAS_PREPARE()
   END FUNCTION BLAS_PREPARE
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  INTEGER FUNCTION BLAS_SET_NUM_THREADS(NT)
-    IMPLICIT NONE
-    INTEGER, INTENT(IN) :: NT
-    BLAS_SET_NUM_THREADS = VN_BLAS_SET_NUM_THREADS(NT)
-  END FUNCTION BLAS_SET_NUM_THREADS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
