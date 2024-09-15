@@ -9,7 +9,10 @@ RM=rm -rfv
 AR=ar
 ARFLAGS=rsv
 # comment out USE_X64 if not on Intel 64
-CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -fvect-cost-model=unlimited -fopenmp -march=native
+ifndef CPU
+CPU=native
+endif # !CPU
+CPUFLAGS=-DUSE_GNU -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -fvect-cost-model=unlimited -fopenmp -march=$(CPU)
 ifeq ($(ARCH),Darwin)
 CPUFLAGS += -Wa,-q
 endif # Darwin

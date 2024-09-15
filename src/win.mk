@@ -5,7 +5,10 @@ FORT=ifx
 FC=$(FORT).exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
 FORFLAGS=/nologo /fpp $(CPUFLAGS) /standard-semantics
-OPTFLAGS=/QxHost
+!IFNDEF CPU
+CPU=Host
+!ENDIF # !CPU
+OPTFLAGS=/Qx$(CPU)
 FPUFLAGS=/fp:precise /Qprotect-parens /Qfma /Qftz-
 LIBFLAGS=-I. -I..\shared /libs:dll /threads
 LDFLAGS=/link
