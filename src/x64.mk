@@ -12,18 +12,19 @@ RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp -xHost -qopt-multi-version-aggressive -traceback -vec-threshold0
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -qopenmp -xHost -qopt-multi-version-aggressive -qopt-zmm-usage=high -traceback -vec-threshold0
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
 FPUFLAGS += -fp-stack-check -assume ieee_fpe_flags
 endif # ?strict
+DBGFLAGS=-diag-disable=10448,10397
 ifdef NDEBUG
 OPTFLAGS=-O$(NDEBUG) -qopt-report=5 #-DUSE_FAST
-DBGFLAGS=-DNDEBUG -diag-disable=10397
+DBGFLAGS += -DNDEBUG
 else # DEBUG
 OPTFLAGS=-O0
-DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -debug-parameters all -check all -warn all -diag-disable=10397
+DBGFLAGS += -$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -debug-parameters all -check all -warn all
 ifneq ($(ARCH),Darwin)
 DBGFLAGS += -debug parallel
 endif # Linux
