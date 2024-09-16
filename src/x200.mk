@@ -15,7 +15,7 @@ FC=ifx
 ifndef CPU
 CPU=common-avx512
 endif # !CPU
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -mprefer-vector-width=512 -vec-threshold0 -qopenmp -x$(CPU)
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -mprefer-vector-width=512 -vec-threshold0 -qopenmp -x$(CPU) -traceback
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model=$(FP) -fp-speculation=safe -fma -fprotect-parens -no-ftz -fimf-precision=high
 ifeq ($(FP),strict)
