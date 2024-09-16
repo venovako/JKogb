@@ -1,6 +1,6 @@
 SHELL=/bin/bash
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 MKFS=GNUmakefile $(COMPILER).mk
 
@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(COMPILER).mk
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "gmake [COMPILER=gnu|x64x|x200] [CPU=...] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|gnu] [CPU=...] [NDEBUG=optimization_level] [ANIMATE=ppe] [all|clean|help]"
 
 SHARED: $(MKFS)
 ifdef NDEBUG
