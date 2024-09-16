@@ -484,12 +484,14 @@ CONTAINS
     INTEGER :: S, SL
 #ifdef ANIMATE
     CHARACTER(LEN=8,KIND=c_char), PARAMETER :: GNAME = c_char_'djkGstp'//C_NULL_CHAR
-    INTEGER, PARAMETER :: ACT = 2, SX = ANIMATE, SY = ANIMATE, BPP = 8
+    INTEGER(KIND=c_int), PARAMETER :: ACT = 2, SX = ANIMATE, SY = ANIMATE, BPP = 8
     INTEGER(KIND=c_intptr_t) :: CTX
     INTEGER(KIND=c_size_t) :: LDF
+    INTEGER(KIND=c_int) :: NF
     INTEGER(KIND=c_intptr_t), EXTERNAL :: PVN_RVIS_START
     INTEGER(KIND=c_int), EXTERNAL :: PVN_RVIS_FRAME, PVN_RVIS_STOP
     LDF = INT(N,c_size_t)
+    NF = INT(N,c_int)
 #endif
 
 #ifdef USE_FAST
@@ -545,7 +547,7 @@ CONTAINS
 
     INFO = 0
 #ifdef ANIMATE
-    CTX = PVN_RVIS_START(N, N, ACT, GNAME)
+    CTX = PVN_RVIS_START(NF, NF, ACT, GNAME)
     IF (CTX .EQ. 0_c_intptr_t) THEN
        INFO = -20
        WRITE (ERROR_UNIT,'(A)') 'PVN_RVIS_START'
@@ -562,9 +564,9 @@ CONTAINS
     S = 0
     DO WHILE (S .GE. 0)
 #ifdef ANIMATE
-       INFO = INT(PVN_RVIS_FRAME(CTX, A, LDF))
-       IF (INFO .NE. 0) THEN
-          WRITE (ERROR_UNIT,'(A,I11)') 'PVN_RVIS_FRAME:', INFO
+       NF = PVN_RVIS_FRAME(CTX, A, LDF)
+       IF (NF .NE. 0_c_int) THEN
+          WRITE (ERROR_UNIT,'(A,I11)') 'PVN_RVIS_FRAME:', NF
           FLUSH(ERROR_UNIT)
           RETURN
        END IF
@@ -581,11 +583,12 @@ CONTAINS
     END IF
 
 #ifdef ANIMATE
-    S = INT(PVN_RVIS_STOP(CTX, SX, SY, BPP, GNAME))
-    IF (S .NE. 0) THEN
-       WRITE (ERROR_UNIT,'(A,I11)') 'PVN_RVIS_STOP:', S
+    NF = PVN_RVIS_STOP(CTX, SX, SY, BPP, GNAME)
+    IF (NF .NE. 0_c_int) THEN
+       WRITE (ERROR_UNIT,'(A,I11)') 'PVN_RVIS_STOP:', NF
        FLUSH(ERROR_UNIT)
     END IF
+    CTX = 0_c_intptr_t
 #endif
 
     !$OMP PARALLEL DO DEFAULT(NONE) PRIVATE(S) SHARED(N,SIGMA,A)
