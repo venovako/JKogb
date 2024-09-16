@@ -12,7 +12,7 @@ RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp -xHost -qopt-multi-version-aggressive -vec-threshold0
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -qopenmp -xHost -qopt-multi-version-aggressive -traceback -vec-threshold0
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
@@ -29,8 +29,19 @@ DBGFLAGS += -debug parallel
 endif # Linux
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
-LDFLAGS=-rdynamic -static-libgcc -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
+LDFLAGS=-rdynamic
+ifeq ($(ARCH),Darwin)
+GCC=gcc-14
+else # !Darwin
+GCC=gcc
+LDFLAGS += -static-libgcc
+endif # !Darwin
+LDFLAGS += -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -lpvn -ldl -lm
+LDFLAGS += -L../../../libpvn/src -lpvn $(realpath $(shell $(GCC) -print-file-name=libquadmath.a))
+ifeq ($(ARCH),Darwin)
+LDFLAGS += $(realpath $(shell $(GCC) -print-file-name=libgcc.a)) 
+endif # Darwin
+LDFLAGS += -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)

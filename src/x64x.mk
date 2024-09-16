@@ -32,6 +32,6 @@ endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 LDFLAGS=-rdynamic -static-libgcc -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -lpvn -ldl -lm
+LDFLAGS += -L../../../libpvn/src -lpvn $(realpath $(shell gcc -print-file-name=libquadmath.a)) -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)

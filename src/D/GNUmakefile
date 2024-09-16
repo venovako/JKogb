@@ -16,7 +16,7 @@ libdjk$(DEBUG).a: dstep.o dtransf.o dtypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ dstep.o dtransf.o dtypes.o
 
 ifdef ANIMATE
-dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/jstep.mod ../../../JACSD/vn/vn_mtxvis_f.mod $(MKFS)
+dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/jstep.mod $(MKFS)
 	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c dstep.F90
 else # !ANIMATE
 dstep.o dstep.mod: dstep.F90 dtransf.mod dtypes.mod ../shared/jstep.mod $(MKFS)

@@ -16,7 +16,7 @@ libzjk$(DEBUG).a: zstep.o ztransf.o ztypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ zstep.o ztransf.o ztypes.o
 
 ifdef ANIMATE
-zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/jstep.mod ../../../JACSD/vn/vn_cmplxvis_f.mod $(MKFS)
+zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/jstep.mod $(MKFS)
 	$(FC) -DANIMATE=$(ANIMATE) $(FFLAGS) -c zstep.F90
 else # !ANIMATE
 zstep.o zstep.mod: zstep.F90 ztransf.mod ztypes.mod ../shared/jstep.mod $(MKFS)
