@@ -497,8 +497,10 @@ CONTAINS
     CHARACTER(LEN=8,KIND=c_char), PARAMETER :: GNAME = c_char_'zjkGstp'//C_NULL_CHAR, FNAME = c_char_'zjkFstp'//C_NULL_CHAR
     INTEGER, PARAMETER :: ACT = 2, SX = ANIMATE, SY = ANIMATE, BPP = 8
     INTEGER(KIND=c_intptr_t) :: CTX
+    INTEGER(KIND=c_size_t) :: LDF
     INTEGER(KIND=c_intptr_t), EXTERNAL :: PVN_CVIS_START
     INTEGER(KIND=c_int), EXTERNAL :: PVN_CVIS_FRAME, PVN_CVIS_STOP
+    LDF = INT(N,c_size_t)
 #endif
 
 #ifdef USE_FAST
@@ -571,7 +573,7 @@ CONTAINS
     S = 0
     DO WHILE (S .GE. 0)
 #ifdef ANIMATE
-       INFO = INT(PVN_CVIS_FRAME(CTX, A, N))
+       INFO = INT(PVN_CVIS_FRAME(CTX, A, LDF))
        IF (INFO .NE. 0) THEN
           WRITE (ERROR_UNIT,'(A,I11)') 'PVN_CVIS_FRAME:', INFO
           FLUSH(ERROR_UNIT)
