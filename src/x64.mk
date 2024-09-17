@@ -12,7 +12,11 @@ RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifort
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -qopenmp -xHost -qopt-multi-version-aggressive -qopt-zmm-usage=high -traceback -vec-threshold0
+ifndef CPU
+CPU=Host
+# COMMON-AVX512 for KNLs
+endif # !CPU
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -qopenmp -x$(CPU) -qopt-multi-version-aggressive -qopt-zmm-usage=high -traceback -vec-threshold0
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
@@ -20,7 +24,7 @@ FPUFLAGS += -fp-stack-check -assume ieee_fpe_flags
 endif # ?strict
 DBGFLAGS=-diag-disable=10448,10397
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -qopt-report=5 #-DUSE_FAST
+OPTFLAGS=-O$(NDEBUG) -fno-math-errno -inline-level=2 -qopt-report=5 #-DUSE_FAST
 DBGFLAGS += -DNDEBUG
 else # DEBUG
 OPTFLAGS=-O0

@@ -16,10 +16,10 @@ A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Big Sur
 On Linux or macOS, run ``make`` (GNU make assumed) or ``gmake`` as follows:
 ```bash
 cd src
-make [COMPILER=x64x|x200|gnu] [CPU=...] [NDEBUG=optimization_level] [ANIMATE=ppe] [all|clean|help]
+make [COMPILER=x64x|x200|x64|gnu] [CPU=...] [NDEBUG=optimization_level] [ANIMATE=ppe] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
-Building with a recent Intel Fortran is possible on Windows as well:
+Building with a recent Intel Fortran should be possible on Windows as well:
 ```bash
 cd src
 nmake [NDEBUG=d|1|2|3|4|5] [CPU=...] [all|clean|help]

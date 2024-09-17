@@ -1,6 +1,6 @@
 TYPE=z
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
@@ -10,7 +10,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libzjk$(DEBUG).a zjk.exe ztest.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=optimization_level] [all|clean|help]"
 
 libzjk$(DEBUG).a: zstep.o ztransf.o ztypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ zstep.o ztransf.o ztypes.o

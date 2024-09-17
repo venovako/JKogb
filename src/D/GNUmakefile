@@ -1,6 +1,6 @@
 TYPE=d
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
@@ -10,7 +10,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libdjk$(DEBUG).a djk.exe dtest.exe
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=optimization_level] [all|clean|help]"
 
 libdjk$(DEBUG).a: dstep.o dtransf.o dtypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ dstep.o dtransf.o dtypes.o

@@ -23,7 +23,7 @@ ifeq ($(FP),strict)
 FPUFLAGS += -assume ieee_fpe_flags
 endif # ?strict
 ifdef NDEBUG
-OPTFLAGS=-O$(NDEBUG) -qopt-report=3 #-DUSE_FAST
+OPTFLAGS=-O$(NDEBUG) -fno-math-errno -inline-level=2 -qopt-report=3 #-DUSE_FAST
 DBGFLAGS=-DNDEBUG
 else # DEBUG
 OPTFLAGS=-O0

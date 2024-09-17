@@ -1,5 +1,5 @@
 ifndef COMPILER
-COMPILER=gnu
+COMPILER=x64x
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
@@ -9,7 +9,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libjk$(DEBUG).a
 
 help:
-	@echo "gmake [COMPILER=gnu|x64|x64x|x200] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=optimization_level] [all|clean|help]"
 
 libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o
