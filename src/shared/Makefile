@@ -4,7 +4,7 @@ MKFS=Makefile ..\win.mk
 all: jk$(DEBUG).lib
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=optimization_level] [all|clean|help]"
 
 jk$(DEBUG).lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj

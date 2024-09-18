@@ -3,7 +3,7 @@ MKFS=Makefile win.mk
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [CPU=...] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=optimization_level] [CPU=...] [all|clean|help]"
 
 SHARED: $(MKFS)
 !IFDEF NDEBUG

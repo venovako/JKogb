@@ -9,7 +9,7 @@ MKFS=GNUmakefile $(COMPILER).mk
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [CPU=...] [NDEBUG=optimization_level] [ANIMATE=ppe] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [MARCH=...] [NDEBUG=optimization_level] [ANIMATE=ppe] [all|clean|help]"
 
 SHARED: $(MKFS)
 ifdef NDEBUG

@@ -5,7 +5,7 @@ MKFS=Makefile ..\win.mk
 all: djk$(DEBUG).lib djk.exe dtest.exe
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|4|5] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=optimization_level] [all|clean|help]"
 
 djk$(DEBUG).lib: dstep.obj dtransf.obj dtypes.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ dstep.obj dtransf.obj dtypes.obj
