@@ -12,11 +12,11 @@ RM=rm -rfv
 AR=xiar
 ARFLAGS=-qnoipo -lib rsv
 FC=ifort
-ifndef CPU
-CPU=Host
+ifndef MARCH
+MARCH=Host
 # COMMON-AVX512 for KNLs
-endif # !CPU
-CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -qopenmp -x$(CPU) -qopt-multi-version-aggressive -qopt-zmm-usage=high -traceback -vec-threshold0
+endif # !MARCH
+CPUFLAGS=-DUSE_INTEL -DUSE_X64 -fPIC -fexceptions -fasynchronous-unwind-tables -fno-omit-frame-pointer -qopenmp -x$(MARCH) -qopt-multi-version-aggressive -qopt-zmm-usage=high -traceback -vec-threshold0
 FORFLAGS=$(CPUFLAGS) -standard-semantics -threads
 FPUFLAGS=-fp-model $(FP) -fprotect-parens -fma -no-ftz -no-complex-limited-range -no-fast-transcendentals -prec-div -prec-sqrt
 ifeq ($(FP),strict)
