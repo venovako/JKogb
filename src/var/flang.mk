@@ -14,12 +14,9 @@ MARCH=native
 endif # !MARCH
 CPUFLAGS=-DUSE_FLANG -DUSE_X64 -fPIC -fimplicit-none -fno-omit-frame-pointer -march=$(MARCH) #-fopenmp
 ifeq ($(ARCH),Darwin)
-CPUFLAGS += -fintegrated-as
+CPUFLAGS += -DUSE_MACOS -fintegrated-as
 endif # Darwin
 FORFLAGS=-cpp -DMIND=C_FMIN -DMAXD=C_FMAX $(CPUFLAGS) -fstack-arrays
-ifeq ($(ARCH),Darwin)
-CPUFLAGS += -DUSE_MACOS
-endif # Darwin
 FPUFLAGS=-ffp-contract=fast -fhonor-infinities -fhonor-nans
 FC=flang-new
 ifdef NDEBUG
