@@ -9,8 +9,8 @@ ifndef FP
 FP=precise
 endif # !FP
 RM=rm -rfv
-AR=xiar
-ARFLAGS=-qnoipo -lib rsv
+AR=ar
+ARFLAGS=rsv
 FC=ifx
 ifndef MARCH
 MARCH=common-avx512

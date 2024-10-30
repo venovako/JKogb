@@ -1,5 +1,5 @@
-AR=xiar
-ARFLAGS=-qnoipo -lib rsv
+AR=ar
+ARFLAGS=rsv
 CC=icx 
 C18FLAGS=-std=c18 -qopenmp
 OPT=-xHost -qopt-zmm-usage=high
