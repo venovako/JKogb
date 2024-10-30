@@ -4,8 +4,8 @@ DEBUG=
 DEBUG=d
 !ENDIF # ?NDEBUG
 RM=del /F
-AR=xilib.exe
-ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
+AR=lib.exe
+ARFLAGS=/NOLOGO /VERBOSE
 !IFNDEF ICC
 ICC=icl
 !ENDIF # !ICC

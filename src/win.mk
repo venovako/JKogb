@@ -1,6 +1,6 @@
 RM=del /F
-AR=xilib.exe
-ARFLAGS=-qnoipo -lib /NOLOGO /VERBOSE
+AR=lib.exe
+ARFLAGS=/NOLOGO /VERBOSE
 FORT=ifx
 FC=$(FORT).exe
 CPUFLAGS=/DUSE_INTEL /DUSE_X64 /DUSE_WINDOWS /Qopenmp
