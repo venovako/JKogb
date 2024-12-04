@@ -16,7 +16,7 @@ CPUFLAGS=-DUSE_FLANG -DUSE_X64 -fPIC -fimplicit-none -fno-omit-frame-pointer -ma
 ifeq ($(ARCH),Darwin)
 CPUFLAGS += -DUSE_MACOS -fintegrated-as
 endif # Darwin
-FORFLAGS=-cpp -DMIND=C_FMIN -DMAXD=C_FMAX $(CPUFLAGS) -fstack-arrays
+FORFLAGS=-cpp -DMIND=C_FMIN -DMAXD=C_FMAX $(CPUFLAGS)
 FPUFLAGS=-ffp-contract=fast -fhonor-infinities -fhonor-nans
 FC=flang-new
 ifdef NDEBUG
@@ -27,5 +27,5 @@ OPTFLAGS=-O$(DEBUG)
 DBGFLAGS=-$(DEBUG)
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
-LDFLAGS=-pthread -rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
+LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)
