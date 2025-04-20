@@ -1,12 +1,12 @@
 !INCLUDE ..\win.mk
 MKFS=Makefile ..\win.mk
 
-all: jk$(DEBUG).lib
+all: jk.lib
 
 help:
-	@echo "nmake.exe [NDEBUG=optimization_level] [all|clean|help]"
+	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
 
-jk$(DEBUG).lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS)
+jk.lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj
 
 atypes.obj atypes.mod: atypes.F90 timer.mod utils.mod $(MKFS)
@@ -35,5 +35,4 @@ clean:
 	-$(RM) *.obj
 	-$(RM) *.lib
 	-$(RM) *.optrpt
-	-$(RM) *.opt.yaml
 	-$(RM) *.pdb
