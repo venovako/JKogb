@@ -22,7 +22,7 @@ where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64x`` for 
 Building with a recent Intel Fortran should be possible on Windows as well:
 ```bash
 cd src
-nmake [NDEBUG=optimization_level] [MARCH=...] [all|clean|help]
+nmake [NDEBUG=d|1|2|3|...] [all|clean|help]
 ```
 
 Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
