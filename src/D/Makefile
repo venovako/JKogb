@@ -3,6 +3,7 @@ TYPE=d
 MKFS=Makefile ..\win.mk
 
 all: djk.lib djk.exe dtest.exe
+	copy /Y /V ..\..\..\libpvn\src\pvn.dll .
 
 help:
 	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
@@ -33,6 +34,7 @@ dtest.obj: dtest.F90 dtransf.mod $(MKFS)
 
 clean:
 	-$(RM) *.exe
+	-$(RM) *.dll
 	-$(RM) *.mod
 	-$(RM) *.obj
 	-$(RM) *.lib

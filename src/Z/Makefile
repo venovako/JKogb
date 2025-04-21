@@ -3,6 +3,7 @@ TYPE=z
 MKFS=Makefile ..\win.mk
 
 all: zjk.lib zjk.exe ztest.exe
+	copy /Y /V ..\..\..\libpvn\src\pvn.dll .
 
 help:
 	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
@@ -33,6 +34,7 @@ ztest.obj: ztest.F90 ztransf.mod $(MKFS)
 
 clean:
 	-$(RM) *.exe
+	-$(RM) *.dll
 	-$(RM) *.mod
 	-$(RM) *.obj
 	-$(RM) *.lib
