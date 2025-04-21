@@ -7,7 +7,7 @@ MARCH=Host
 !ENDIF # !MARCH
 !IFNDEF NDEBUG
 NDEBUG=d
-!ENDIF # NDEBUG
+!ENDIF # !NDEBUG
 CFLAGS=/nologo /Qstd:c18 /Qlong-double /Qoption,cpp,--extended_float_types /DNDEBUG=$(NDEBUG) /DPVN_OS="\"Windows\"" /DPVN_ARCH="\"x64\"" /DPVN_COMPILER="\"icx\"" /DPVN_CR_MATH="\"bundled_noerrno\"" /DPVN_QUADMATH="\"Intel\"" /I. /EHsc /MT /O$(NDEBUG) /Qx$(MARCH) /Ob2 /fp:precise /Qfma /Qftz- /Qopt-report:3 /Qvec-threshold:0 /traceback /Wno-deprecated-declarations /Wno-overriding-option
 LDFLAGS=/link /RELEASE /LIBPATH:. ajk.lib
 
