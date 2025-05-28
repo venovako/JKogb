@@ -40,5 +40,4 @@ clean:
 	-$(RM) *.o
 	-$(RM) *.a
 	-$(RM) *.optrpt
-	-$(RM) *.opt.yaml
 	-$(RM) *.dSYM
