@@ -37,9 +37,11 @@ LIBFLAGS=-I. -I../shared
 LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
 LDFLAGS += -L../../../libpvn/src
-ifneq ($(ARCH),Darwin)
+ifeq ($(ARCH),Darwin)
+LDFLAGS += -Wl,-rpath,../../../libpvn/src
+else # !Darwin
 LDFLAGS += -Wl,-rpath=../../../libpvn/src
-endif # !Darwin
+endif # ?Darwin
 LDFLAGS += -lpvn -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)
