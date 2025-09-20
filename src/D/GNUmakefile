@@ -10,7 +10,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libdjk$(DEBUG).a djk.exe dtest.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=optimization_level] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=0|1|2|3|...|g] [all|clean|help]"
 
 libdjk$(DEBUG).a: dstep.o dtransf.o dtypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ dstep.o dtransf.o dtypes.o

@@ -10,7 +10,7 @@ MKFS=GNUmakefile ../$(COMPILER).mk
 all: libzjk$(DEBUG).a zjk.exe ztest.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=optimization_level] [all|clean|help]"
+	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=0|1|2|3|...|g] [all|clean|help]"
 
 libzjk$(DEBUG).a: zstep.o ztransf.o ztypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ zstep.o ztransf.o ztypes.o

@@ -36,17 +36,16 @@ endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 LDFLAGS=-rdynamic
 ifeq ($(ARCH),Darwin)
-GCC=gcc-14
+GCC=gcc-15
 else # !Darwin
 GCC=gcc
-LDFLAGS += -static-libgcc
 endif # !Darwin
 LDFLAGS += -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -lpvn $(realpath $(shell $(GCC) -print-file-name=libquadmath.a))
-ifeq ($(ARCH),Darwin)
-LDFLAGS += $(realpath $(shell $(GCC) -print-file-name=libgcc.a)) 
-endif # Darwin
-LDFLAGS += -ldl -lm
+LDFLAGS += -L../../../libpvn/src
+ifneq ($(ARCH),Darwin)
+LDFLAGS += -Wl,-rpath=../../../libpvn/src
+endif # !Darwin
+LDFLAGS += -lpvn -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)

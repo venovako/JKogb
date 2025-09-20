@@ -29,8 +29,8 @@ OPTFLAGS=-O0
 DBGFLAGS=-$(DEBUG) -debug emit_column -debug extended -debug inline-debug-info -debug pubnames -debug parallel -debug-parameters all -check all -warn all
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
-LDFLAGS=-rdynamic -static-libgcc -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
+LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -lpvn $(realpath $(shell gcc -print-file-name=libquadmath.a)) -ldl -lm
+LDFLAGS += -L../../../libpvn/src -Wl,-rpath=../../../libpvn/src -lpvn -lquadmath -lgcc_s -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)

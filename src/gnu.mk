@@ -34,8 +34,12 @@ OPTFLAGS=-O$(DEBUG)
 DBGFLAGS=-$(DEBUG)gdb3 -Wall -Wextra -fcheck=all,no-recursion -finit-local-zero -finit-real=nan -finit-derived -Wno-compare-reals -Warray-temporaries -Wcharacter-truncation -Wimplicit-procedure -Wfunction-elimination -Wrealloc-lhs-all
 endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
-LDFLAGS=-rdynamic -static-libgcc -static-libgfortran -static-libquadmath -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
+LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -lpvn -ldl -lm
+LDFLAGS += -L../../../libpvn/src
+ifneq ($(ARCH),Darwin)
+LDFLAGS += -Wl,-rpath=../../../libpvn/src
+endif # !Darwin
+LDFLAGS += -lpvn -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)
