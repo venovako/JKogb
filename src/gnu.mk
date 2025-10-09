@@ -36,11 +36,12 @@ endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src
+LIBPVN=$(realpath ../../../libpvn)
+LDFLAGS += -L$(LIBPVN)/src
 ifeq ($(ARCH),Darwin)
-LDFLAGS += -Wl,-rpath,../../../libpvn/src
+LDFLAGS += -Wl,-rpath,$(LIBPVN)/src
 else # !Darwin
-LDFLAGS += -Wl,-rpath=../../../libpvn/src
+LDFLAGS += -Wl,-rpath=$(LIBPVN)/src
 endif # ?Darwin
 LDFLAGS += -lpvn -ldl -lm
 endif # ANIMATE

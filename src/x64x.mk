@@ -32,6 +32,7 @@ endif # ?NDEBUG
 LIBFLAGS=-I. -I../shared
 LDFLAGS=-rdynamic -L. -l$(TYPE)jk$(DEBUG) -L../shared -ljk$(DEBUG)
 ifdef ANIMATE
-LDFLAGS += -L../../../libpvn/src -Wl,-rpath=../../../libpvn/src -lpvn -lquadmath -lgcc_s -ldl -lm
+LIBPVN=$(realpath ../../../libpvn)
+LDFLAGS += -L$(LIBPVN)/src -Wl,-rpath=$(LIBPVN)/src -lpvn -lquadmath -lgcc_s -ldl -lm
 endif # ANIMATE
 FFLAGS=$(OPTFLAGS) $(DBGFLAGS) $(LIBFLAGS) $(FORFLAGS) $(FPUFLAGS)
