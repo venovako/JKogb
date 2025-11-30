@@ -11,7 +11,8 @@ doi:[10.1007/s11075-021-01197-4](https://doi.org/10.1007/s11075-021-01197-4 "A K
 
 A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Big Sur), or Windows (e.g., 10) is needed.
 
-The repository [libpvn](https://github.com/venovako/libpvn) has to be cloned in a parallel directory to this one and built with the desired compiler (and ``OPENMP=0`` if not on Windows).
+The repository [libpvn](https://github.com/venovako/libpvn) has to be cloned in a parallel directory to this one and built with the desired compiler
+(and, if OpenMP should be enabled, with the additional ``nmake`` options ``OPENMP=1``, or ``CRT=MD`` if on Windows).
 
 ### Make options
 
@@ -22,7 +23,7 @@ make [COMPILER=x64|gnu] [ANIMATE=ppe] [all|clean|help]
 ```
 where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64``.
 
-Building with a recent Intel Fortran should be possible on Windows as well (without OpenMP):
+Building with a recent Intel Fortran should be possible on Windows as well:
 ```bash
 cd src
 nmake [all|clean|help]
