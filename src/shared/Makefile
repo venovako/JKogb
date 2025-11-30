@@ -4,7 +4,7 @@ MKFS=Makefile ..\win.mk
 all: jk.lib
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
+	@echo "nmake.exe [all|clean|help]"
 
 jk.lib: atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ atypes.obj binio.obj jstep.obj ktransf.obj timer.obj utils.obj params.obj

@@ -11,28 +11,25 @@ doi:[10.1007/s11075-021-01197-4](https://doi.org/10.1007/s11075-021-01197-4 "A K
 
 A recent 64-bit Linux (e.g., CentOS 7.9 with devtoolset-8), macOS (e.g., Big Sur), or Windows (e.g., 10) is needed.
 
+The repository [libpvn](https://github.com/venovako/libpvn) has to be cloned in a parallel directory to this one and built with the desired compiler and ``OPENMP=0``.
+
 ### Make options
 
 On Linux or macOS, run ``make`` (GNU make assumed) or ``gmake`` as follows:
 ```bash
 cd src
-make [COMPILER=x64x|x200|gnu] [MARCH=...] [NDEBUG=0|1|2|3|...|g] [ANIMATE=ppe] [all|clean|help]
+make [COMPILER=x64|gnu] [ANIMATE=ppe] [all|clean|help]
 ```
-where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64x`` for Xeons, or to ``x200`` for Xeon Phi KNLs, respectively.
+where ``COMPILER`` should be set for the Intel Fortran compiler to ``x64``.
 Building with a recent Intel Fortran should be possible on Windows as well:
 ```bash
 cd src
-nmake [NDEBUG=d|1|2|3|...] [all|clean|help]
+nmake [all|clean|help]
 ```
 
-Here, ``NDEBUG`` should be set to the desired optimization level (``3`` is a sensible choice).
-If unset, the predefined debug-mode build options will be used.
-
-If ``COMPILER`` is not set or is ``gnu``, the GNU Fortran compiler will be used, but it is not recommended.
+If ``COMPILER=gnu``, the GNU Fortran compiler will be used, but it is not recommended.
 Please see [this explanation](https://gcc.gnu.org/gcc-9/changes.html) regarding the new MIN and MAX intrinsics.
 The major versions of ``gfortran`` above ``8`` thus require a fix from ``src/gnu.mk`` that can be turned off for the older compilers.
-
-For example, ``make COMPILER=x200 NDEBUG=3 clean all`` will trigger a full, release-mode rebuild for the KNLs.
 
 ## Execution
 

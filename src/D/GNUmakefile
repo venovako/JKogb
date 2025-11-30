@@ -1,18 +1,18 @@
 TYPE=d
 ifndef COMPILER
-COMPILER=x64x
+COMPILER=x64
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
-all: libdjk$(DEBUG).a djk.exe dtest.exe
+all: libdjk.a djk.exe dtest.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=0|1|2|3|...|g] [all|clean|help]"
+	@echo "gmake [COMPILER=x64|gnu] [ANIMATE=ppe] [all|clean|help]"
 
-libdjk$(DEBUG).a: dstep.o dtransf.o dtypes.o $(MKFS)
+libdjk.a: dstep.o dtransf.o dtypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ dstep.o dtransf.o dtypes.o
 
 ifdef ANIMATE
@@ -29,13 +29,13 @@ dtransf.o dtransf.mod: dtransf.F90 ../shared/ktransf.mod $(MKFS)
 dtypes.o dtypes.mod: dtypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c dtypes.F90
 
-djk.exe: djk.o libdjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
+djk.exe: djk.o libdjk.a ../shared/libjk.a $(MKFS)
 	$(FC) $(FFLAGS) djk.o -o $@ $(LDFLAGS)
 
 djk.o: djk.F90 bio.F90 ../shared/readcl.F90 dstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c djk.F90
 
-dtest.exe: dtest.o libdjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
+dtest.exe: dtest.o libdjk.a ../shared/libjk.a $(MKFS)
 	$(FC) $(FFLAGS) dtest.o -o $@ $(LDFLAGS)
 
 dtest.o: dtest.F90 dtransf.mod $(MKFS)

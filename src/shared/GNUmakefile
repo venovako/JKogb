@@ -1,17 +1,17 @@
 ifndef COMPILER
-COMPILER=x64x
+COMPILER=x64
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
-all: libjk$(DEBUG).a
+all: libjk.a
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=0|1|2|3|...|g] [all|clean|help]"
+	@echo "gmake [COMPILER=x64|gnu] [all|clean|help]"
 
-libjk$(DEBUG).a: atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o $(MKFS)
+libjk.a: atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ atypes.o binio.o jstep.o ktransf.o timer.o utils.o params.o
 
 atypes.o atypes.mod: atypes.F90 timer.mod utils.mod $(MKFS)

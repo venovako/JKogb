@@ -3,18 +3,18 @@ MKFS=Makefile win.mk
 all: SHARED REAL8 COMPLEX8
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
+	@echo nmake.exe [all|clean|help]
 
 SHARED: $(MKFS)
-	pushd shared && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) && popd
+	pushd shared && $(MAKE) /NOLOGO && popd
 
 REAL8: SHARED $(MKFS)
-	pushd D && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) && popd
+	pushd D && $(MAKE) /NOLOGO && popd
 
 COMPLEX8: SHARED $(MKFS)
-	pushd Z && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) && popd
+	pushd Z && $(MAKE) /NOLOGO && popd
 
 clean:
-	pushd Z && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) clean && popd
-	pushd D && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) clean && popd
-	pushd shared && $(MAKE) /NOLOGO NDEBUG=$(NDEBUG) clean && popd
+	pushd Z && $(MAKE) /NOLOGO clean && popd
+	pushd D && $(MAKE) /NOLOGO clean && popd
+	pushd shared && $(MAKE) /NOLOGO clean && popd

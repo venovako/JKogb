@@ -5,7 +5,7 @@ MKFS=Makefile ..\win.mk
 all: zjk.lib zjk.exe ztest.exe
 
 help:
-	@echo "nmake.exe [NDEBUG=d|1|2|3|...] [all|clean|help]"
+	@echo "nmake.exe [all|clean|help]"
 
 zjk.lib: zstep.obj ztransf.obj ztypes.obj $(MKFS)
 	$(AR) $(ARFLAGS) /OUT:$@ zstep.obj ztransf.obj ztypes.obj

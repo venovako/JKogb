@@ -13,12 +13,12 @@ MKFS=GNUmakefile $(COMPILER).mk
 
 .PHONY: all help clean
 
-all: libajk$(DEBUG)$(GNU).a common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
+all: libajk$(GNU).a common_test.exe j2apq_test.exe tweight_test.exe wpqb_test.exe
 
 help:
 	@echo "[g]make [COMPILER=gnu|clang|nvidia|x64|x64x] [NDEBUG=0|1|2|3|4|5] [all|clean|help]"
 
-libajk$(DEBUG)$(GNU).a: common.o j2apq.o tweight.o wpqb.o $(MKFS)
+libajk$(GNU).a: common.o j2apq.o tweight.o wpqb.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ common.o j2apq.o tweight.o wpqb.o
 
 common.o: common.c common.h $(MKFS)
@@ -33,16 +33,16 @@ tweight.o: tweight.c tweight.h common.h $(MKFS)
 wpqb.o: wpqb.c wpqb.h common.h $(MKFS)
 	$(CC) $(CFLAGS) -c wpqb.c -o $@
 
-common_test.exe: common_test.c common.h libajk$(DEBUG)$(GNU).a $(MKFS)
+common_test.exe: common_test.c common.h libajk$(GNU).a $(MKFS)
 	$(CC) $(CFLAGS) common_test.c -o $@ $(LDFLAGS)
 
-j2apq_test.exe: j2apq_test.c j2apq.h wpqb.h common.h libajk$(DEBUG)$(GNU).a $(MKFS)
+j2apq_test.exe: j2apq_test.c j2apq.h wpqb.h common.h libajk$(GNU).a $(MKFS)
 	$(CC) $(CFLAGS) j2apq_test.c -o $@ $(LDFLAGS)
 
-tweight_test.exe: tweight_test.c tweight.h common.h libajk$(DEBUG)$(GNU).a $(MKFS)
+tweight_test.exe: tweight_test.c tweight.h common.h libajk$(GNU).a $(MKFS)
 	$(CC) $(CFLAGS) tweight_test.c -o $@ $(LDFLAGS)
 
-wpqb_test.exe: wpqb_test.c wpqb.h common.h libajk$(DEBUG)$(GNU).a $(MKFS)
+wpqb_test.exe: wpqb_test.c wpqb.h common.h libajk$(GNU).a $(MKFS)
 	$(CC) $(CFLAGS) wpqb_test.c -o $@ $(LDFLAGS)
 
 clean:
@@ -55,6 +55,6 @@ ifeq ($(ARCH),Darwin)
 	-$(RM) *.exe.dSYM
 endif # Darwin
 endif # ?NDEBUG
-	-$(RM) libajk$(DEBUG)$(GNU).a
+	-$(RM) libajk$(GNU).a
 	-$(RM) *.exe
 	-$(RM) *.o

@@ -1,18 +1,18 @@
 TYPE=z
 ifndef COMPILER
-COMPILER=x64x
+COMPILER=x64
 endif # !COMPILER
 include ../$(COMPILER).mk
 MKFS=GNUmakefile ../$(COMPILER).mk
 
 .PHONY: all help clean
 
-all: libzjk$(DEBUG).a zjk.exe ztest.exe
+all: libzjk.a zjk.exe ztest.exe
 
 help:
-	@echo "gmake [COMPILER=x64x|x200|x64|gnu] [NDEBUG=0|1|2|3|...|g] [all|clean|help]"
+	@echo "gmake [COMPILER=x64|gnu] [ANIMATE=ppe] [all|clean|help]"
 
-libzjk$(DEBUG).a: zstep.o ztransf.o ztypes.o $(MKFS)
+libzjk.a: zstep.o ztransf.o ztypes.o $(MKFS)
 	$(AR) $(ARFLAGS) $@ zstep.o ztransf.o ztypes.o
 
 ifdef ANIMATE
@@ -29,13 +29,13 @@ ztransf.o ztransf.mod: ztransf.F90 ../shared/ktransf.mod $(MKFS)
 ztypes.o ztypes.mod: ztypes.F90 ../shared/atypes.mod $(MKFS)
 	$(FC) $(FFLAGS) -c ztypes.F90
 
-zjk.exe: zjk.o libzjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
+zjk.exe: zjk.o libzjk.a ../shared/libjk.a $(MKFS)
 	$(FC) $(FFLAGS) zjk.o -o $@ $(LDFLAGS)
 
 zjk.o: zjk.F90 bio.F90 ../shared/readcl.F90 zstep.mod ../shared/binio.mod $(MKFS)
 	$(FC) $(FFLAGS) -c zjk.F90
 
-ztest.exe: ztest.o libzjk$(DEBUG).a ../shared/libjk$(DEBUG).a $(MKFS)
+ztest.exe: ztest.o libzjk.a ../shared/libjk.a $(MKFS)
 	$(FC) $(FFLAGS) ztest.o -o $@ $(LDFLAGS)
 
 ztest.o: ztest.F90 ztransf.mod $(MKFS)
